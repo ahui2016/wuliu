@@ -22,6 +22,7 @@
 
 - 每个档案与一个 json 关联, json 里有档案的属性（例如分类、标签、备注等）
 - 属性可自由添加，只要脚本能处理即可
+- 档案属性缓冲使用数据库 https://github.com/etcd-io/bbolt
 
 ## 编程简单第一
 
@@ -63,10 +64,6 @@
   - `webpages`
   - `recyclebin`
 
-初始化时，如果资料夹内已有档案，则自动生成数据库，保存在 `wuliu-metadata` 中。
-  - 每个文件一个 JSON 档案
-  - 缓冲使用数据库 https://github.com/etcd-io/bbolt
-
 ### 添加档案
 
 - 直接向 `files` 资料夹添加档案，然后执行脚本去发现新档案
@@ -91,7 +88,7 @@
 - Windows 资源管理器可以复制档案路径（可多选），利用这个特性，读取剪贴板进行批量处理
 - 也可以通过静态网页 javascript 进行多选
 
-### 生产静态网页
+### 生成静态网页
 
 - 生成一些静态网页，方便浏览和复制档案名
 - 专为 markdown 档案生成一些静态网页
@@ -123,3 +120,5 @@
 
 - 尝试使用最简单的文本编辑器 (EmEditor)
 - 配合 ripgrep 使用 <https://github.com/BurntSushi/ripgrep>
+- https://pkg.go.dev/flag
+
