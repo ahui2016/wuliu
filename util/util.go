@@ -9,7 +9,7 @@ import (
 var Separator = string(filepath.Separator)
 
 func GetCwd() string {
-	return lo.Must1(os.Getwd())
+	return lo.Must(os.Getwd())
 }
 
 func DirIsEmpty(dirpath string) (ok bool, err error) {
