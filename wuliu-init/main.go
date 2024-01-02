@@ -6,5 +6,17 @@ import (
 )
 
 func main() {
-	fmt.Println(util.GetCwd())
+	fmt.Println(checkCWD())
+}
+
+func checkCWD() error {
+	cwd := util.GetCwd()
+	ok, err := util.DirIsEmpty(cwd)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("當前目錄不為空: %s", cwd)
+	}
+	return nil
 }
