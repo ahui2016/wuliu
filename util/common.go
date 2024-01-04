@@ -9,6 +9,7 @@ const (
 	NormalFilePerm  = 0666
 	NormalDirPerm   = 0750
 	ProjectInfoPath = "metadata/project.json"
+	DatabasePath    = "metadata/project.db"
 )
 
 type ProjectInfo struct {
