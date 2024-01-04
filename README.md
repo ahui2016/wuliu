@@ -49,7 +49,7 @@ Wuliu File Manager (五柳档案管理脚本)
 
 ```
 {
-	ID			string	`json:"id"`				// 档案名称的 adler32
+	ID			string	`json:"id"`				// 档案名称的 CRC32
 	Filename	string	`json:"filename"`			// 档案名称
 	Checksum	string	`json:"checksum"`		// BLAKE2b
 	Size		int64	`json:"size"`				// length in bytes for regular files
@@ -67,8 +67,12 @@ Wuliu File Manager (五柳档案管理脚本)
 }
 ```
 
+- ID 是档案名称的 CRC32，有冲突的可能性，但可能性较低，
+  大不了冲突了再改档案名称，问题不大。
+- 关于 CRC32 <https://softwareengineering.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed>
 - Type, Label, Note, Keywords 等都是为了方便搜寻，请大胆灵活使用。
-- Keywords, Collections 等 `[]string` 类型，都排序，排序后转为纯字符（用逗号空格 `, ` 分隔）方便保存到 kv 数据库。
+- Keywords, Collections 等 `[]string` 类型，都排序，排序后转为纯字符
+  （用逗号空格 `, ` 分隔）方便保存到 kv 数据库。
 - 因此 `[]string` 类型在用户输入时不允许包含逗号、顿号和空格。
 
 
