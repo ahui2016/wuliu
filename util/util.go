@@ -7,6 +7,13 @@ import (
 	"path/filepath"
 )
 
+const (
+	NormalFilePerm  = 0666
+	NormalDirPerm   = 0750
+	ProjectInfoPath = "metadata/project.json"
+	DatabasePath    = "metadata/project.db"
+)
+
 var Separator = string(filepath.Separator)
 
 func GetCwd() string {
@@ -22,6 +29,29 @@ func DirIsEmpty(dirpath string) (ok bool, err error) {
 func DirIsNotEmpty(dirpath string) (ok bool, err error) {
 	ok, err = DirIsEmpty(dirpath)
 	return !ok, err
+}
+
+func PathNotExists(name string) (ok bool) {
+	_, err := os.Lstat(name)
+	if os.IsNotExist(err) {
+		ok = true
+		err = nil
+	}
+	lo.Must0(err)
+	return
+}
+
+func PathExists(name string) bool {
+	return !PathNotExists(name)
+}
+
+// MkdirIfNotExists 创建資料夹, 忽略 ErrExist.
+// 在 Windows 里, 文件夹的只读属性不起作用, 为了统一行为, 不把資料夹设为只读.
+func MkdirIfNotExists(name string) error {
+	if PathExists(name) {
+		return nil
+	}
+	return os.Mkdir(name, NormalDirPerm)
 }
 
 // WriteFile 写檔案, 使用权限 0666

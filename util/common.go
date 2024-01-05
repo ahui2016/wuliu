@@ -1,15 +1,11 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/samber/lo"
+	"log"
 	"os"
-)
-
-const (
-	NormalFilePerm  = 0666
-	NormalDirPerm   = 0750
-	ProjectInfoPath = "metadata/project.json"
-	DatabasePath    = "metadata/project.db"
 )
 
 type ProjectInfo struct {
@@ -28,5 +24,21 @@ func PrintVersionExit(ok bool) {
 		fmt.Println(WuliuInfo.RepoURL)
 		fmt.Println("Version: 2024-01-04")
 		os.Exit(0)
+	}
+}
+
+func readProjectInfo() (info ProjectInfo) {
+	data := lo.Must(os.ReadFile(ProjectInfoPath))
+	lo.Must0(json.Unmarshal(data, &info))
+	return
+}
+
+func MustInWuliu() {
+	if PathNotExists(ProjectInfoPath) {
+		log.Fatalln("找不到 project.json")
+	}
+	info := readProjectInfo()
+	if info.RepoName != WuliuInfo.RepoName {
+		log.Fatalf("RepoName (%s) != '%s'", info.RepoName, WuliuInfo.RepoName)
 	}
 }

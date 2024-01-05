@@ -37,7 +37,7 @@ func checkCWD() {
 func makeFolders() {
 	for _, folder := range Folders {
 		fmt.Println("Create folder:", folder)
-		lo.Must0(os.Mkdir(folder, util.NormalDirPerm))
+		lo.Must0(util.MkdirIfNotExists(folder, util.NormalDirPerm))
 	}
 }
 
