@@ -7,11 +7,13 @@ import (
 	"github.com/samber/lo"
 	bolt "go.etcd.io/bbolt"
 	"log"
-	"os"
 	"time"
 )
 
-var vFlag = flag.Bool("v", false, "print the version of the command")
+var (
+	vFlag = flag.Bool("v", false, "print the version of the command")
+	wFlag = flag.Bool("where", false, "print where is the command")
+)
 
 var Folders = []string{
 	"files", "metadata", "input", "output", "webpages", "recyclebin",
@@ -20,6 +22,7 @@ var Folders = []string{
 func main() {
 	flag.Parse()
 	util.PrintVersionExit(*vFlag)
+	util.PrintWhereExit(*wFlag)
 
 	checkCWD()
 	makeFolders()
@@ -37,7 +40,7 @@ func checkCWD() {
 func makeFolders() {
 	for _, folder := range Folders {
 		fmt.Println("Create folder:", folder)
-		lo.Must0(util.MkdirIfNotExists(folder, util.NormalDirPerm))
+		lo.Must0(util.MkdirIfNotExists(folder))
 	}
 }
 

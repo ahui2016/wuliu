@@ -7,6 +7,7 @@ Wuliu File Manager (五柳档案管理脚本)
 - 档案 = 文件 = file
 - 资料夹 = 文件夹 = folder = directory
 - 专案 = 项目 = project
+- 列印 = 打印/显示 = print
 
 ## Scripts
 
@@ -17,6 +18,9 @@ Wuliu File Manager (五柳档案管理脚本)
 - 新建/初始化一个专案，主要是新建一些资料夹和数据库、配置等。
 - 只能对一个空资料夹进行初始化
 - 使用方法: 进入一个空资料夹，执行 `wuliu-init` (没有任何参数，只能初始化当前目录)
+- `wuliu-init -h` 列印帮助信息
+- `wuliu-init -v` 列印版本信息
+- `wuliu-init -where` 列印 wuliu-init 的位置
 
 ## wuliu-add
 

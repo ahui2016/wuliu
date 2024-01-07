@@ -20,6 +20,12 @@ func GetCwd() string {
 	return lo.Must(os.Getwd())
 }
 
+// GetExePath returns the path name for the executable
+// that started the current process.
+func GetExePath() string {
+	return lo.Must1(os.Executable())
+}
+
 func DirIsEmpty(dirpath string) (ok bool, err error) {
 	items, err := filepath.Glob(dirpath + Separator + "*")
 	ok = len(items) == 0
