@@ -6,6 +6,7 @@ import (
 	"github.com/samber/lo"
 	"log"
 	"os"
+	"strings"
 )
 
 type ProjectInfo struct {
@@ -48,4 +49,27 @@ func MustInWuliu() {
 	if info.RepoName != WuliuInfo.RepoName {
 		log.Fatalf("RepoName (%s) != '%s'", info.RepoName, WuliuInfo.RepoName)
 	}
+}
+
+func filesInFiles() ([]string, error) {
+	return GetFilenamesBase(FILES)
+}
+
+func filesInInput() ([]string, error) {
+	return GetFilenamesBase(INPUT)
+}
+
+func filesInMetadata() ([]string, error) {
+	return GetFilenamesBase(METADATA)
+}
+
+func filesInMetadataTrim() ([]string, error) {
+	names, err := filesInMetadata()
+	if err != nil {
+		return nil, err
+	}
+	trimmed := lo.Map(names, func(name string, _ int) string {
+		return strings.TrimSuffix(name, ".json")
+	})
+	return trimmed, nil
 }

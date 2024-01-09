@@ -10,8 +10,17 @@ import (
 const (
 	NormalFilePerm  = 0666
 	NormalDirPerm   = 0750
-	ProjectInfoPath = "metadata/project.json"
-	DatabasePath    = "metadata/project.db"
+	ProjectInfoPath = "project.json"
+	DatabasePath    = "project.db"
+)
+
+const (
+	FILES      = "files"
+	METADATA   = "metadata"
+	INPUT      = "input"
+	OUTPUT     = "output"
+	WEBPAGES   = "webpages"
+	RECYCLEBIN = "recyclebin"
 )
 
 var Separator = string(filepath.Separator)
@@ -72,4 +81,43 @@ func WriteJSON(data interface{}, filename string) error {
 		return err
 	}
 	return WriteFile(filename, dataJSON)
+}
+
+func isRegularFile(name string) (ok bool, err error) {
+	info, err := os.Lstat(name)
+	if err != nil {
+		return
+	}
+	return info.Mode().IsRegular(), nil
+}
+
+// GetFilenamesBase 假设 folder 里全是普通档案，没有资料夹。
+func GetFilenamesBase(folder string) ([]string, error) {
+	pattern := filepath.Join(folder, "*")
+	names, err := filepath.Glob(pattern)
+	if err != nil {
+		return nil, err
+	}
+	baseNames := lo.Map(names, func(name string, _ int) string {
+		return filepath.Base(name)
+	})
+	return baseNames, nil
+}
+
+func getRegularFiles(folder string) (files []string, err error) {
+	pattern := filepath.Join(folder, "*")
+	items, err := filepath.Glob(pattern)
+	if err != nil {
+		return nil, err
+	}
+	for _, file := range items {
+		ok, err := isRegularFile(file)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			files = append(files, file)
+		}
+	}
+	return files, nil
 }

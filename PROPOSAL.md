@@ -64,6 +64,11 @@
   - `webpages`
   - `recyclebin`
 
+其中 metadata 里的 json 档案与 files 里的普通档案一一对应，
+其他任何档案请勿放进 metadata 里，并且，metadata 里也不允许有子资料夹。
+
+注意: files, metadata, input 均不允许包含子资料夹！
+
 ### 添加档案
 
 - 直接向 `files` 资料夹添加档案，然后执行脚本去发现新档案

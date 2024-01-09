@@ -16,7 +16,7 @@ var (
 )
 
 var Folders = []string{
-	"files", "metadata", "input", "output", "webpages", "recyclebin",
+	util.FILES, util.METADATA, util.INPUT, util.OUTPUT, util.WEBPAGES, util.RECYCLEBIN,
 }
 
 func main() {
