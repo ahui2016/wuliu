@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/samber/lo"
 	"os"
 	"path/filepath"
@@ -24,6 +25,20 @@ const (
 )
 
 var Separator = string(filepath.Separator)
+
+// WrapErrors 把多个错误合并为一个错误.
+func WrapErrors(allErrors ...error) (wrapped error) {
+	for _, err := range allErrors {
+		if err != nil {
+			if wrapped == nil {
+				wrapped = err
+			} else {
+				wrapped = fmt.Errorf("%w | %w", wrapped, err)
+			}
+		}
+	}
+	return
+}
 
 func GetCwd() string {
 	return lo.Must(os.Getwd())
@@ -120,4 +135,10 @@ func getRegularFiles(folder string) (files []string, err error) {
 		}
 	}
 	return files, nil
+}
+
+func PrintList[T any] (list []T) {
+	for _, item := range list {
+		fmt.Println(item)
+	}
 }

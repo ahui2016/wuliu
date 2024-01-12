@@ -22,14 +22,20 @@ Wuliu File Manager (五柳档案管理脚本)
 - `wuliu-init -v` 列印版本信息
 - `wuliu-init -where` 列印 wuliu-init 的位置
 
+## wuliu-orphan
+
+- 孤立档案: files 资料夹里的每个档案都有一个同名 json 在 metadata 资料夹中，
+  如果缺少同名 json, 就是孤立档案。
+- `wuliu-orphan` 命令会检查有无孤立档案，如果有，就提示处理
+- 如果在 metadata 中有 json, 但在 files 中找不到对应的档案，也会提示处理
+- 建议在某些操作（例如添加档案）之前先检查有无孤立档案
+
 ## wuliu-add
 
 - 该命令用于添加档案，同时也用于发现新档案
 - 需要添加属性 `--do` 才能真正添加新档案，否则就只是列出新档案
-- 执行 `wuliu-add` 发现 files 和 input 里的新档案
-  - 执行 `wuliu-add --from=files` 只发现 files 里的新档案 (取消，为了编程简单)
-  - 执行 `wuliu-add --from=input` 只发现 input 里的新档案 (取消，为了编程简单)
-  - 差点又搞复杂了，一定要非常警惕，保持编程简单
+- 如果有一段时间未执行 `wuliu-orphan` 命令，建议先执行 `wuliu-orphan`
+- 请把需要添加的档案放到 input 资料夹中，然后执行 `wuliu-add`
 
 ### 只添加一部分新档案
 

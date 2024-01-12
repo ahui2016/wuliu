@@ -4,4 +4,5 @@ use (
 	./util
 	./wuliu-add
 	./wuliu-init
+	./wuliu-orphan
 )

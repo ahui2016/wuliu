@@ -51,20 +51,34 @@ func MustInWuliu() {
 	}
 }
 
-func filesInFiles() ([]string, error) {
+func FindOrphans() (fileOrphans, metaOrphans []string, err error) {
+	files, e1 := namesInFiles()
+	metas, e2 := namesInMetadataTrim()
+	if err = WrapErrors(e1, e2); err != nil {
+		return
+	}
+	fileOrphans, metaOrphans = lo.Difference(files, metas)
+	return
+}
+
+func FindNewFiles() ([]string, error) {
+	return namesInInput()
+}
+
+func namesInFiles() ([]string, error) {
 	return GetFilenamesBase(FILES)
 }
 
-func filesInInput() ([]string, error) {
+func namesInInput() ([]string, error) {
 	return GetFilenamesBase(INPUT)
 }
 
-func filesInMetadata() ([]string, error) {
+func namesInMetadata() ([]string, error) {
 	return GetFilenamesBase(METADATA)
 }
 
-func filesInMetadataTrim() ([]string, error) {
-	names, err := filesInMetadata()
+func namesInMetadataTrim() ([]string, error) {
+	names, err := namesInMetadata()
 	if err != nil {
 		return nil, err
 	}
