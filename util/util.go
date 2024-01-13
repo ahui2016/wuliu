@@ -137,8 +137,14 @@ func getRegularFiles(folder string) (files []string, err error) {
 	return files, nil
 }
 
-func PrintList[T any] (list []T) {
+func PrintList[T any](list []T) {
 	for _, item := range list {
 		fmt.Println(item)
+	}
+}
+
+func PrintListWithSuffix[T any](list []T, suffix string) {
+	for _, item := range list {
+		fmt.Printf("%v%v", item, suffix)
 	}
 }

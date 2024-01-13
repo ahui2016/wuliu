@@ -12,6 +12,9 @@ Wuliu File Manager (五柳档案管理脚本)
 ## Scripts
 
 - wuliu-init (新建/初始化一个专案)
+- `cat project.info` (查看专案信息)
+- wuliu-orphan (检查有无孤立档案)
+- wuliu-add (添加档案)
 
 ## wuliu-init
 
@@ -21,6 +24,11 @@ Wuliu File Manager (五柳档案管理脚本)
 - `wuliu-init -h` 列印帮助信息
 - `wuliu-init -v` 列印版本信息
 - `wuliu-init -where` 列印 wuliu-init 的位置
+
+## project.info
+
+建议经常执行 `cat project.info` 查看专案信息。
+当然，也可直接打开 project.info 查看。
 
 ## wuliu-orphan
 

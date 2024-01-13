@@ -7,22 +7,32 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
+)
+
+const (
+	GB      = 1 << 30
+	Day     = 24 * 60 * 60
+	RFC3339 = "2006-01-02 15:04:05Z07:00"
 )
 
 type ProjectInfo struct {
-	RepoName string
-	RepoURL  string
+	RepoName         string
+	RepoURL          string
+	OrphanLastCheck  string // 上次检查孤立档案的时间
+	OrphanFilesCount int    // 孤立的档案数量
+	OrphanMetaCount  int    // 孤立的 metadata 数量
 }
 
-var WuliuInfo = ProjectInfo{
+var DefaultWuliuInfo = ProjectInfo{
 	RepoName: "Wuliu File Manager",
 	RepoURL:  "https://github.com/ahui2016/wuliu",
 }
 
 func PrintVersionExit(ok bool) {
 	if ok {
-		fmt.Println(WuliuInfo.RepoName)
-		fmt.Println(WuliuInfo.RepoURL)
+		fmt.Println(DefaultWuliuInfo.RepoName)
+		fmt.Println(DefaultWuliuInfo.RepoURL)
 		fmt.Println("Version: 2024-01-07")
 		os.Exit(0)
 	}
@@ -35,19 +45,23 @@ func PrintWhereExit(ok bool) {
 	}
 }
 
-func readProjectInfo() (info ProjectInfo) {
+func ReadProjectInfo() (info ProjectInfo) {
 	data := lo.Must(os.ReadFile(ProjectInfoPath))
 	lo.Must0(json.Unmarshal(data, &info))
 	return
+}
+
+func WriteProjectInfo(info ProjectInfo) error {
+	return WriteJSON(&info, ProjectInfoPath)
 }
 
 func MustInWuliu() {
 	if PathNotExists(ProjectInfoPath) {
 		log.Fatalln("找不到 project.json")
 	}
-	info := readProjectInfo()
-	if info.RepoName != WuliuInfo.RepoName {
-		log.Fatalf("RepoName (%s) != '%s'", info.RepoName, WuliuInfo.RepoName)
+	info := ReadProjectInfo()
+	if info.RepoName != DefaultWuliuInfo.RepoName {
+		log.Fatalf("RepoName (%s) != '%s'", info.RepoName, DefaultWuliuInfo.RepoName)
 	}
 }
 
@@ -58,6 +72,13 @@ func FindOrphans() (fileOrphans, metaOrphans []string, err error) {
 		return
 	}
 	fileOrphans, metaOrphans = lo.Difference(files, metas)
+	info := ReadProjectInfo()
+	info.OrphanLastCheck = Now()
+	info.OrphanFilesCount = len(fileOrphans)
+	info.OrphanMetaCount = len(metaOrphans)
+	if err = WriteProjectInfo(info); err != nil {
+		return nil, nil, err
+	}
 	return
 }
 
@@ -86,4 +107,8 @@ func namesInMetadataTrim() ([]string, error) {
 		return strings.TrimSuffix(name, ".json")
 	})
 	return trimmed, nil
+}
+
+func Now() string {
+	return time.Now().Format(RFC3339)
 }

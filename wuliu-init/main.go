@@ -46,7 +46,7 @@ func makeFolders() {
 
 func writeProjectInfo() {
 	fmt.Println("Create", util.ProjectInfoPath)
-	lo.Must0(util.WriteJSON(&util.WuliuInfo, util.ProjectInfoPath))
+	lo.Must0(util.WriteProjectInfo(util.DefaultWuliuInfo))
 }
 
 func createDatabase() {

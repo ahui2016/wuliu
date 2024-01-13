@@ -17,5 +17,5 @@ func findOrphans() {
 	util.PrintList(fileOrphans)
 	fmt.Println()
 	fmt.Println("metadata-orphans:")
-	util.PrintList(metaOrphans)
+	util.PrintListWithSuffix(metaOrphans, ".json")
 }
