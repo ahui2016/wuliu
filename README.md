@@ -87,6 +87,7 @@ Wuliu File Manager (五柳档案管理脚本)
 
 - ID 是档案名称的 CRC32，有冲突的可能性，但可能性较低，
   大不了冲突了再改档案名称，问题不大。
+  后续如果档案数量大了，可以考虑改用 CRC64
 - 关于 CRC32 <https://softwareengineering.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed>
 - Type, Label, Note, Keywords 等都是为了方便搜寻，请大胆灵活使用。
 - Keywords, Collections 等 `[]string` 类型，都排序，排序后转为纯字符

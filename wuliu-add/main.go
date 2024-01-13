@@ -15,8 +15,9 @@ func main() {
 
 func findNewFiles() {
 	names := lo.Must(util.FindNewFiles())
-	for _, name := range names {
-		fmt.Println(name)
+	files := util.NewFilesFrom(names)
+	for _, f := range files {
+		fmt.Println(f.ID, f.Filename)
 	}
 }
 

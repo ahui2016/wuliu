@@ -8,24 +8,6 @@ import (
 	"path/filepath"
 )
 
-const (
-	NormalFilePerm  = 0666
-	NormalDirPerm   = 0750
-	ProjectInfoPath = "project.json"
-	DatabasePath    = "project.db"
-)
-
-const (
-	FILES      = "files"
-	METADATA   = "metadata"
-	INPUT      = "input"
-	OUTPUT     = "output"
-	WEBPAGES   = "webpages"
-	RECYCLEBIN = "recyclebin"
-)
-
-var Separator = string(filepath.Separator)
-
 // WrapErrors 把多个错误合并为一个错误.
 func WrapErrors(allErrors ...error) (wrapped error) {
 	for _, err := range allErrors {

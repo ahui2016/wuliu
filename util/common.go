@@ -7,33 +7,13 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 )
-
-const (
-	GB      = 1 << 30
-	Day     = 24 * 60 * 60
-	RFC3339 = "2006-01-02 15:04:05Z07:00"
-)
-
-type ProjectInfo struct {
-	RepoName         string
-	RepoURL          string
-	OrphanLastCheck  string // 上次检查孤立档案的时间
-	OrphanFilesCount int    // 孤立的档案数量
-	OrphanMetaCount  int    // 孤立的 metadata 数量
-}
-
-var DefaultWuliuInfo = ProjectInfo{
-	RepoName: "Wuliu File Manager",
-	RepoURL:  "https://github.com/ahui2016/wuliu",
-}
 
 func PrintVersionExit(ok bool) {
 	if ok {
 		fmt.Println(DefaultWuliuInfo.RepoName)
 		fmt.Println(DefaultWuliuInfo.RepoURL)
-		fmt.Println("Version: 2024-01-07")
+		fmt.Println("Version: 2024-01-13")
 		os.Exit(0)
 	}
 }
@@ -82,6 +62,16 @@ func FindOrphans() (fileOrphans, metaOrphans []string, err error) {
 	return
 }
 
+// NewFilesFrom 把档案名 (names) 转换为 File, 此时假设档案都在 input 资料夹内。
+func NewFilesFrom(names []string) (files []*File) {
+	for _, name := range names {
+		// inputFile := INPUT + "/" + name
+		f := NewFile(name)
+		files = append(files, f)
+	}
+	return
+}
+
 func FindNewFiles() ([]string, error) {
 	return namesInInput()
 }
@@ -107,8 +97,4 @@ func namesInMetadataTrim() ([]string, error) {
 		return strings.TrimSuffix(name, ".json")
 	})
 	return trimmed, nil
-}
-
-func Now() string {
-	return time.Now().Format(RFC3339)
 }
