@@ -62,11 +62,22 @@ func FindOrphans() (fileOrphans, metaOrphans []string, err error) {
 	return
 }
 
-// NewFilesFrom 把档案名 (names) 转换为 File, 此时假设档案都在 input 资料夹内。
-func NewFilesFrom(names []string) (files []*File) {
+// NewFilesFromInput 把档案名 (names) 转换为 File, 此时假设档案都在 input 资料夹内。
+func NewFilesFromInput(names []string) (files []*File, err error) {
 	for _, name := range names {
-		// inputFile := INPUT + "/" + name
+		filePath := INPUT + "/" + name
+		info, err := os.Lstat(filePath)
+		if err != nil {
+			return nil, err
+		}
+		checksum, err := FileSum512(filePath)
+		if err != nil {
+			return nil, err
+		}
 		f := NewFile(name)
+		f.Checksum = checksum
+		f.Size = info.Size()
+		f.Type = typeByFilename(name)
 		files = append(files, f)
 	}
 	return

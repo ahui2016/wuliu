@@ -12,6 +12,7 @@ const (
 	GB              = 1 << 30
 	Day             = 24 * 60 * 60
 	RFC3339         = "2006-01-02 15:04:05Z07:00"
+	MIMEOctetStream = "application/octet-stream"
 	NormalFilePerm  = 0666
 	NormalDirPerm   = 0750
 	ProjectInfoPath = "project.json"
@@ -28,6 +29,11 @@ const (
 )
 
 var Separator = string(filepath.Separator)
+
+type (
+	Base64String = string
+	HexString    = string
+)
 
 type ProjectInfo struct {
 	RepoName         string
@@ -61,9 +67,13 @@ type File struct {
 }
 
 func NewFile(name string) *File {
+	now := Now()
 	f := new(File)
 	f.ID = CRC32Str36(name)
 	f.Filename = name
+	f.CTime = now
+	f.UTime = now
+	f.Checked = now
 	return f
 }
 
