@@ -63,6 +63,35 @@ func PutToBucket(key []byte, value []byte, b *bolt.Bucket) error {
 	return b.Put(key, value)
 }
 
+func DeleteInDB(ids []string, db *bolt.DB) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		var filenames []string
+		filesBuc := tx.Bucket(FilesBucket)
+		for _, id := range ids {
+			// 如果找不到 id, 则忽略，不报错。
+			if v := filesBuc.Get([]byte(id)); v != nil {
+				var f File
+				if err := json.Unmarshal(v, &f); err != nil {
+					filenames = append(filenames, f.Filename)
+				}
+			}
+		}
+
+		filenameBuc := tx.Bucket(FilenameBucket)
+		for _, name := range filenames {
+			if err := filenameBuc.Delete([]byte(name)); err != nil {
+				return err
+			}
+		}
+		for _, id := range ids {
+			if err := filesBuc.Delete([]byte(id)); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
 func FilesExistInDB(files []*File, db *bolt.DB) (existFiles []string) {
 	db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(FilesBucket)
