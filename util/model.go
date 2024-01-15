@@ -82,6 +82,23 @@ func NewFile(name string) *File {
 	return f
 }
 
+type FilesToDelete struct {
+	IDs       []string
+	Names []string
+}
+
+func (files *FilesToDelete) Check() error {
+	idsLength := len(files.IDs)
+	namesLength := len(files.Names)
+	if idsLength + namesLength == 0 {
+		return fmt.Errorf("未指定要刪除的檔案")
+	}
+	if idsLenght > 0 && namesLength > 0 {
+		renturn fmt.Errorf("只能指定 ID 或檔案名稱，不可兩者同時指定。")
+	}
+	return nil
+}
+
 // CRC32Str36 把一个字符串转化为 crc32, 再转化为 36 进制。
 func CRC32Str36(s string) string {
 	sum := crc32.ChecksumIEEE([]byte(s))
