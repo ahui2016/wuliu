@@ -7,19 +7,19 @@ import (
 	"time"
 )
 
-const (
+var (
 	FilesBucket    = []byte("FilesBucket")
 	FilenameBucket = []byte("FilenameBucket")
 )
 
-var buckets = []string{
+var buckets = [][]byte{
 	FilesBucket,
 	FilenameBucket,
 }
 
 func OpenDB() (*bolt.DB, error) {
 	return bolt.Open(
-		DatabasePath, NormalDirPerm, &bolt.Options{Timeout: 1 * time.Second}))
+		DatabasePath, NormalDirPerm, &bolt.Options{Timeout: 1 * time.Second})
 }
 
 func CreateDatabase() {
@@ -43,13 +43,39 @@ func AddFilesToDB(files []FileAndMeta, db *bolt.DB) error {
 		filesBuc := tx.Bucket(FilesBucket)
 		filenameBuc := tx.Bucket(FilenameBucket)
 		for _, f := range files {
-			if err := filesBuc.Put([]byte(f.ID), f.Metadata); err != nil {
+			id := []byte(f.ID)
+			filename := []byte(f.Filename)
+			if err := PutToBucket(id, f.Metadata, filesBuc); err != nil {
 				return err
 			}
-			if err := filenameBuc.Put([]byte(f.Filename), []byte(f.ID)); err != nil {
+			if err := PutToBucket(filename, id, filenameBuc); err != nil {
 				return err
 			}
 		}
 		return nil
 	})
+}
+
+func PutToBucket(key []byte, value []byte, b *bolt.Bucket) error {
+	if KeyExistsInBucket(key, b) {
+		return fmt.Errorf("key exists: %s", key)
+	}
+	return b.Put(key, value)
+}
+
+func FilesExistInDB(files []*File, db *bolt.DB) (existFiles []string) {
+	db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(FilesBucket)
+		for _, f := range files {
+			if KeyExistsInBucket([]byte(f.ID), b) {
+				existFiles = append(existFiles, f.Filename)
+			}
+		}
+		return nil
+	})
+	return
+}
+
+func KeyExistsInBucket(key []byte, b *bolt.Bucket) bool {
+	return b.Get(key) != nil
 }

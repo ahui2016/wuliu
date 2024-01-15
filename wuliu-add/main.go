@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"github.com/ahui2016/wuliu/util"
 	"github.com/samber/lo"
+	bolt "go.etcd.io/bbolt"
 	"os"
 )
 
 type (
-	File = util.File
+	File        = util.File
 	FileAndMeta = util.FileAndMeta
 )
 
@@ -24,10 +25,13 @@ func main() {
 	checkOrphan()
 	names := lo.Must(util.FindNewFiles())
 	files := lo.Must(util.NewFilesFromInput(names))
-	checkExist(files)
+
+	db := lo.Must(util.OpenDB())
+	defer db.Close()
+	checkExist(files, db)
 
 	if *do {
-		addNew(files)
+		addNew(files, db)
 	} else {
 		findNew(files)
 	}
@@ -39,7 +43,7 @@ func findNew(files []*File) {
 	}
 }
 
-func addNew(files []*File) {
+func addNew(files []*File, db *bolt.DB) {
 	var metadatas []FileAndMeta
 	for _, f := range files {
 		metaPath := util.METADATA + "/" + f.Filename + ".json"
@@ -53,13 +57,18 @@ func addNew(files []*File) {
 		lo.Must0(os.Rename(src, dst))
 	}
 	fmt.Println("Update database...")
-	db := lo.Must(OpenDB())
-	defer db.Close()
 	lo.Must0(util.AddFilesToDB(metadatas, db))
 	fmt.Println("OK")
 }
 
-func checkExist(files []*File) {
+func checkExist(files []*File, db *bolt.DB) {
+	existInDB := util.FilesExistInDB(files, db)
+	if len(existInDB) > 0 {
+		fmt.Println("【注意！】數據庫中有同名檔案：")
+		util.PrintList(existInDB)
+		os.Exit(0)
+	}
+
 	var dstFiles []string
 	for _, f := range files {
 		dst := util.FILES + "/" + f.Filename

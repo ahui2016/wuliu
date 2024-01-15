@@ -67,7 +67,7 @@ type File struct {
 }
 
 type FileAndMeta struct {
-	*File,
+	*File
 	Metadata []byte
 }
 
