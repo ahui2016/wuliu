@@ -10,6 +10,7 @@ import (
 
 type (
 	File = util.File
+	FileAndMeta = util.FileAndMeta
 )
 
 var (
@@ -39,15 +40,23 @@ func findNew(files []*File) {
 }
 
 func addNew(files []*File) {
+	var metadatas []FileAndMeta
 	for _, f := range files {
 		metaPath := util.METADATA + "/" + f.Filename + ".json"
 		fmt.Println("Create =>", metaPath)
-		lo.Must0(util.WriteJSON(f, metaPath))
+		meta := lo.Must(util.WriteJSON(f, metaPath))
+		metadatas = append(metadatas, FileAndMeta{f, meta})
+
 		src := util.INPUT + "/" + f.Filename
 		dst := util.FILES + "/" + f.Filename
 		fmt.Println("Add =>", dst)
 		lo.Must0(os.Rename(src, dst))
 	}
+	fmt.Println("Update database...")
+	db := lo.Must(OpenDB())
+	defer db.Close()
+	lo.Must0(util.AddFilesToDB(metadatas, db))
+	fmt.Println("OK")
 }
 
 func checkExist(files []*File) {

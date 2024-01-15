@@ -66,6 +66,11 @@ type File struct {
 	Damaged     bool     `json:"damaged"`     // 上次校驗結果 (檔案是否損壞)
 }
 
+type FileAndMeta struct {
+	*File,
+	Metadata []byte
+}
+
 func NewFile(name string) *File {
 	now := Now()
 	f := new(File)

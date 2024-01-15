@@ -32,7 +32,8 @@ func ReadProjectInfo() (info ProjectInfo) {
 }
 
 func WriteProjectInfo(info ProjectInfo) error {
-	return WriteJSON(&info, ProjectInfoPath)
+	_, err := WriteJSON(&info, ProjectInfoPath)
+	return err
 }
 
 func MustInWuliu() {

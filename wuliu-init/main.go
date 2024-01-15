@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"github.com/ahui2016/wuliu/util"
 	"github.com/samber/lo"
-	bolt "go.etcd.io/bbolt"
 	"log"
-	"time"
 )
 
 var (
@@ -27,7 +25,7 @@ func main() {
 	checkCWD()
 	makeFolders()
 	writeProjectInfo()
-	createDatabase()
+	util.CreateDatabase()
 }
 
 func checkCWD() {
@@ -47,13 +45,4 @@ func makeFolders() {
 func writeProjectInfo() {
 	fmt.Println("Create", util.ProjectInfoPath)
 	lo.Must0(util.WriteProjectInfo(util.DefaultWuliuInfo))
-}
-
-func createDatabase() {
-	fmt.Println("Create", util.DatabasePath)
-	db, err := bolt.Open(util.DatabasePath, util.NormalDirPerm, &bolt.Options{Timeout: 1 * time.Second})
-	if err != nil {
-		log.Fatal(err)
-	}
-	db.Close()
 }

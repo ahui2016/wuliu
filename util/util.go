@@ -76,12 +76,15 @@ func WriteFile(name string, data []byte) error {
 }
 
 // WriteJSON 把 data 转换为漂亮格式的 JSON 并写入檔案 filename 中。
-func WriteJSON(data interface{}, filename string) error {
+func WriteJSON(data interface{}, filename string) ([]byte, error) {
 	dataJSON, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return WriteFile(filename, dataJSON)
+	if err = WriteFile(filename, dataJSON); err != nil {
+		return nil, err
+	}
+	return dataJSON, nil
 }
 
 func isRegularFile(name string) (ok bool, err error) {
