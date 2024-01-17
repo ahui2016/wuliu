@@ -74,7 +74,7 @@ type FileAndMeta struct {
 func NewFile(name string) *File {
 	now := Now()
 	f := new(File)
-	f.ID = CRC32Str36(name)
+	f.ID = NameToID(name)
 	f.Filename = name
 	f.CTime = now
 	f.UTime = now
@@ -97,6 +97,18 @@ func (files *FilesToDelete) Check() error {
 		renturn fmt.Errorf("只能指定 ID 或檔案名稱，不可兩者同時指定。")
 	}
 	return nil
+}
+
+func NamesToID(names []string) (ids []string) {
+	for _, name := range names {
+		ids = append(ids, NameToID(name))
+	}
+	return
+}
+
+// NameToID 目前采用 CRC32Str36
+func NameToID(name string) string {
+	return CRC32Str36(name)
 }
 
 // CRC32Str36 把一个字符串转化为 crc32, 再转化为 36 进制。
