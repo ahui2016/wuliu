@@ -99,7 +99,7 @@ func (files *FilesToDelete) Check() error {
 	return nil
 }
 
-func NamesToID(names []string) (ids []string) {
+func NamesToIds(names []string) (ids []string) {
 	for _, name := range names {
 		ids = append(ids, NameToID(name))
 	}

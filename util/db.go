@@ -65,18 +65,11 @@ func PutToBucket(key []byte, value []byte, b *bolt.Bucket) error {
 
 func DeleteInDB(ids []string, db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		var filenames []string
 		filesBuc := tx.Bucket(FilesBucket)
-		for _, id := range ids {
-			// 如果找不到 id, 则忽略，不报错。
-			if v := filesBuc.Get([]byte(id)); v != nil {
-				var f File
-				if err := json.Unmarshal(v, &f); err != nil {
-					filenames = append(filenames, f.Filename)
-				}
-			}
+		filenames, err := idsToNames(ids, filesBuc)
+		if err != nil {
+			return err
 		}
-
 		filenameBuc := tx.Bucket(FilenameBucket)
 		for _, name := range filenames {
 			if err := filenameBuc.Delete([]byte(name)); err != nil {
@@ -90,6 +83,32 @@ func DeleteInDB(ids []string, db *bolt.DB) error {
 		}
 		return nil
 	})
+}
+
+
+func idsToNames(ids []string, filesBuc *bolt.Bucket) (names []string, err error) {
+	for _, id := range ids {
+		// 如果找不到 id, 则忽略，不报错。
+		if v := filesBuc.Get([]byte(id)); v == nil {
+			continue
+		}
+		var f File
+		if err := json.Unmarshal(v, &f); err != nil {
+			return err
+		}
+		names = append(names, f.Filename)
+	}
+}
+
+func IdsToNames(ids []string, db *bolt.DB) (names []string, err error) {
+	dbErr := db.View(func(tx *bolt.Tx) error {
+		filesBuc := tx.Bucket(FilesBucket)
+		names, err = idsToNames(ids, filesBuc)
+		if err != nil {
+			return err
+		}
+	})
+	return names, dbErr
 }
 
 func FilesExistInDB(files []*File, db *bolt.DB) (existFiles []string) {
