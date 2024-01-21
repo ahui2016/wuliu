@@ -76,7 +76,7 @@ func WriteFile(name string, data []byte) error {
 }
 
 // WriteJSON 把 data 转换为漂亮格式的 JSON 并写入檔案 filename 中。
-func WriteJSON(data interface{}, filename string) ([]byte, error) {
+func WriteJSON(data any, filename string) ([]byte, error) {
 	dataJSON, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
 		return nil, err

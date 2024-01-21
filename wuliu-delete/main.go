@@ -2,17 +2,30 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/ahui2016/wuliu/util"
 	"github.com/samber/lo"
-	bolt "go.etcd.io/bbolt"
+	"log"
 	"os"
 )
 
 var (
-	newFlag = flag.String("newjson", false, "really do add files")
+	newFlag = flag.String("newjson", "", "create a JSON file for deleting files")
 )
 
 func main() {
 	flag.Parse()
+	newJsonFile()
+}
+
+func newJsonFile() {
+	if *newFlag == "" {
+		return
+	}
+	if util.PathExists(*newFlag) {
+		log.Fatalln("file exists:", *newFlag)
+	}
+	v := util.FilesToDelete{IDs: []string{}, Names: []string{}}
+	lo.Must(
+		util.WriteJSON(v, *newFlag))
+	os.Exit(0)
 }

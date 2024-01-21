@@ -3,8 +3,8 @@ package util
 import (
 	"encoding/json"
 	"fmt"
-	bolt "go.etcd.io/bbolt"
 	"github.com/samber/lo"
+	bolt "go.etcd.io/bbolt"
 	"log"
 	"os"
 	"strings"
@@ -14,7 +14,7 @@ func PrintVersionExit(ok bool) {
 	if ok {
 		fmt.Println(DefaultWuliuInfo.RepoName)
 		fmt.Println(DefaultWuliuInfo.RepoURL)
-		fmt.Println("Version: 2024-01-13")
+		fmt.Println("Version: 2024-01-21")
 		os.Exit(0)
 	}
 }
@@ -117,9 +117,9 @@ func namesInMetadataTrim() ([]string, error) {
 // 注意，这里说的删除是将档案移动到专案根目录的 recyclebin 中，
 // 如果 recyclebin 里有同名档案则直接覆盖。
 func deleteFileByName(name string) {
-	f := FILES+"/"+name
-	m := METADATA+"/"+name+".json"
-	r := RECYCLEBIN+"/"+name
+	f := FILES + "/" + name
+	m := METADATA + "/" + name + ".json"
+	r := RECYCLEBIN + "/" + name
 	for _, oldpath := range []string{f, m} {
 		if PathNotExists(oldpath) {
 			fmt.Println("NotFound =>", oldpath)

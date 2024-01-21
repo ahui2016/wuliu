@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"hash/crc32"
 	"path/filepath"
 	"strconv"
@@ -83,18 +84,18 @@ func NewFile(name string) *File {
 }
 
 type FilesToDelete struct {
-	IDs       []string
+	IDs   []string
 	Names []string
 }
 
 func (files *FilesToDelete) Check() error {
 	idsLength := len(files.IDs)
 	namesLength := len(files.Names)
-	if idsLength + namesLength == 0 {
+	if idsLength+namesLength == 0 {
 		return fmt.Errorf("未指定要刪除的檔案")
 	}
-	if idsLenght > 0 && namesLength > 0 {
-		renturn fmt.Errorf("只能指定 ID 或檔案名稱，不可兩者同時指定。")
+	if idsLength > 0 && namesLength > 0 {
+		return fmt.Errorf("只能指定 ID 或檔案名稱，不可兩者同時指定。")
 	}
 	return nil
 }

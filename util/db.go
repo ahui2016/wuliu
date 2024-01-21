@@ -1,6 +1,7 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/samber/lo"
 	bolt "go.etcd.io/bbolt"
@@ -85,28 +86,27 @@ func DeleteInDB(ids []string, db *bolt.DB) error {
 	})
 }
 
-
 func idsToNames(ids []string, filesBuc *bolt.Bucket) (names []string, err error) {
 	for _, id := range ids {
 		// 如果找不到 id, 则忽略，不报错。
-		if v := filesBuc.Get([]byte(id)); v == nil {
+		v := filesBuc.Get([]byte(id))
+		if v == nil {
 			continue
 		}
 		var f File
 		if err := json.Unmarshal(v, &f); err != nil {
-			return err
+			return nil, err
 		}
 		names = append(names, f.Filename)
 	}
+	return
 }
 
 func IdsToNames(ids []string, db *bolt.DB) (names []string, err error) {
 	dbErr := db.View(func(tx *bolt.Tx) error {
 		filesBuc := tx.Bucket(FilesBucket)
 		names, err = idsToNames(ids, filesBuc)
-		if err != nil {
-			return err
-		}
+		return err
 	})
 	return names, dbErr
 }
