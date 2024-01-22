@@ -65,7 +65,7 @@ func checkExist(files []*File, db *bolt.DB) {
 	existInDB := util.FilesExistInDB(files, db)
 	if len(existInDB) > 0 {
 		fmt.Println("【注意！】數據庫中有同名檔案：")
-		util.PrintList(existInDB)
+		printIdAndName(existInDB)
 		os.Exit(0)
 	}
 
@@ -85,6 +85,12 @@ func checkExist(files []*File, db *bolt.DB) {
 		fmt.Println("【注意！】同名檔案已存在：")
 		util.PrintList(existFiles)
 		os.Exit(0)
+	}
+}
+
+func printIdAndName(files []*File) {
+	for _, f := range files {
+		fmt.Println(f.ID, f.Filename)
 	}
 }
 

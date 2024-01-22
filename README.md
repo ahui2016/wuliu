@@ -47,11 +47,11 @@ Wuliu File Manager (五柳档案管理脚本)
 
 ### 只添加一部分新档案
 
-- 执行命令 `wuliu-add --writenames=files.txt`
+- 执行命令 `wuliu-add --writenames files.txt`
   可以把发现的新档案名称列印到 files.txt 中
 - files.txt 在专案的根目录（注意防止覆盖）
 - 在 files.txt 中删除不需要添加的档案名称
-- 执行命令 `wuliu-add --files=files.txt` 只添加指定的新档案
+- 执行命令 `wuliu-add --files files.txt` 只添加指定的新档案
 
 ### wuliu-add --json=add.json
 
@@ -101,6 +101,8 @@ Wuliu File Manager (五柳档案管理脚本)
 - `wuliu-delete -name` 通过档案名称指定需要删除的档案（只能指定一个）
 - `wuliu-delete --newjson delete.json` 在专案根目录生成一个 delete.json 档案模板，
   方便批量填写需要删除的档案。
+- 例如想删除 files/aaa.txt 档案，请在 delete.json 中指定档案名称 aaa.txt,
+  如果想删除 metadata/bbb.txt.json, 请在 delete.json 中指定档案名称 bbb.txt (不需要 `.json`)
 - `wuliu-delete --json delete.json ` 通过 delete.json 指定需要删除的档案（可指定多个）
 - 需要添加属性 `--danger` 才能真正删除档案，否则就只是列出 delete.json 的内容
 

@@ -111,12 +111,12 @@ func IdsToNames(ids []string, db *bolt.DB) (names []string, err error) {
 	return names, dbErr
 }
 
-func FilesExistInDB(files []*File, db *bolt.DB) (existFiles []string) {
+func FilesExistInDB(files []*File, db *bolt.DB) (existFiles []*File) {
 	db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(FilesBucket)
 		for _, f := range files {
 			if KeyExistsInBucket([]byte(f.ID), b) {
-				existFiles = append(existFiles, f.Filename)
+				existFiles = append(existFiles, f)
 			}
 		}
 		return nil
