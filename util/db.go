@@ -11,11 +11,37 @@ import (
 var (
 	FilesBucket    = []byte("FilesBucket")
 	FilenameBucket = []byte("FilenameBucket")
+	ChecksumBucket = []byte("ChecksumBucket")
+	SizeBucket = []byte("SizeBucket")
+	TypeBucket = []byte("TypeBucket")
+	LikeBucket = []byte("LikeBucket")
+	LabelBucket = []byte("LabelBucket")
+	NotesBucket = []byte("NotesBucket")
+	KeywordsBucket = []byte("KeywordsBucket")
+	CollectionsBucket = []byte("CollectionsBucket")
+	AlbumsBucket = []byte("AlbumsBucket")
+	CTimeBucket = []byte("CTimeBucket")
+	UTimeBucket = []byte("UTimeBucket")
+	CheckedBucket = []byte("CheckedBucket")
+	DamagedBucket = []byte("DamagedBucket")
 )
 
 var buckets = [][]byte{
 	FilesBucket,
 	FilenameBucket,
+	ChecksumBucket,
+	SizeBucket,
+	TypeBucket,
+	LikeBucket,
+	LabelBucket,
+	NotesBucket,
+	KeywordsBucket,
+	CollectionsBucket,
+	AlbumsBucket,
+	CTimeBucket,
+	UTimeBucket,
+	CheckedBucket,
+	DamagedBucket,
 }
 
 func OpenDB() (*bolt.DB, error) {

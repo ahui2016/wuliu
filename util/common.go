@@ -81,6 +81,9 @@ func NewFilesFromInput(names []string) (files []*File, err error) {
 		f.Checksum = checksum
 		f.Size = info.Size()
 		f.Type = typeByFilename(name)
+		f.Keywords = []string{}
+		f.Collections = []string{}
+		f.Albums = []string{}
 		files = append(files, f)
 	}
 	return
