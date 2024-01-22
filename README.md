@@ -41,7 +41,7 @@ Wuliu File Manager (五柳档案管理脚本)
 ## wuliu-add
 
 - 该命令用于添加档案，同时也用于发现新档案
-- 需要添加属性 `--do` 才能真正添加新档案，否则就只是列出新档案
+- 需要添加属性 `--danger` 才能真正添加新档案，否则就只是列出新档案
 - 如果有一段时间未执行 `wuliu-orphan` 命令，建议先执行 `wuliu-orphan`
 - 请把需要添加的档案放到 input 资料夹中，然后执行 `wuliu-add`
 
@@ -55,13 +55,13 @@ Wuliu File Manager (五柳档案管理脚本)
 
 ### wuliu-add --json=add.json
 
-- 执行 `wuliu-add --json="add.json"` 发现 input 里的新档案，同时列出
+- 执行 `wuliu-add --json add.json` 发现 input 里的新档案，同时列出
   add.json 里的档案属性，该属性将应用于待添加的新档案。
 - 注意, add.json 应放在专案的根目录。
-- 执行 `wuliu-add --newjson="add.json"`
+- 执行 `wuliu-add --newjson add.json`
   可在 input 资料夹中生成一个新的 add.json, 方便编辑
 - `--json` 与 `--files` 可组合使用
-- 需要添加属性 `--do` 才能真正添加新档案，否则就只是列印相关信息
+- 需要添加属性 `--danger` 才能真正添加新档案，否则就只是列印相关信息
 
 ### 档案属性
 
@@ -99,9 +99,10 @@ Wuliu File Manager (五柳档案管理脚本)
 - 该命令删除添加档案，包括删除对应的 json 档案和数据库中的条目
 - `wuliu-delete -id` 通过档案 ID 指定需要删除的档案（只能指定一个）
 - `wuliu-delete -name` 通过档案名称指定需要删除的档案（只能指定一个）
-- `wuliu-delete --newjson="delete.json"` 在专案根目录生成一个 delete.json 档案模板，
+- `wuliu-delete --newjson delete.json` 在专案根目录生成一个 delete.json 档案模板，
   方便批量填写需要删除的档案。
-- `wuliu-delete --json="delete.json"` 通过 delete.json 指定需要删除的档案（可指定多个）
+- `wuliu-delete --json delete.json ` 通过 delete.json 指定需要删除的档案（可指定多个）
+- 需要添加属性 `--danger` 才能真正删除档案，否则就只是列出 delete.json 的内容
 
 ## 数据库 (bolt)
 

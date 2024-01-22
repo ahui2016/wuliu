@@ -7,6 +7,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -119,13 +120,13 @@ func namesInMetadataTrim() ([]string, error) {
 func deleteFileByName(name string) {
 	f := FILES + "/" + name
 	m := METADATA + "/" + name + ".json"
-	r := RECYCLEBIN + "/" + name
 	for _, oldpath := range []string{f, m} {
 		if PathNotExists(oldpath) {
 			fmt.Println("NotFound =>", oldpath)
 		} else {
-			fmt.Println("recycle =>", r)
-			if err := os.Rename(oldpath, r); err != nil {
+			newpath := RECYCLEBIN + "/" + filepath.Base(oldpath)
+			fmt.Println("move =>", newpath)
+			if err := os.Rename(oldpath, newpath); err != nil {
 				fmt.Println(err)
 			}
 		}

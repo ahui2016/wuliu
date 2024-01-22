@@ -15,7 +15,7 @@ type (
 )
 
 var (
-	do = flag.Bool("do", false, "really do add files")
+	danger = flag.Bool("danger", false, "really do add files")
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 	defer db.Close()
 	checkExist(files, db)
 
-	if *do {
+	if *danger {
 		addNew(files, db)
 	} else {
 		findNew(files)
