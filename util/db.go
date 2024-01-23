@@ -65,6 +65,24 @@ func createBuckets(db *bolt.DB) error {
 	})
 }
 
+func bucketPutJson(k string, v any, b *bolt.Bucket) error {
+	data, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	return b.Put([]byte(k), data)
+}
+
+func bucketGetStrSlice(key string, b *bolt.Bucket) ([]string, error) {
+	data := b.Get([]byte(key))
+	if data == nil {
+		return nil, nil
+	}
+	strSlice := []string{}
+	err := json.Unmarshal(data, &strSlice)
+	return strSlice, err
+}
+
 func AddFilesToDB(files []FileAndMeta, db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		filesBuc := tx.Bucket(FilesBucket)
@@ -81,6 +99,22 @@ func AddFilesToDB(files []FileAndMeta, db *bolt.DB) error {
 		}
 		return nil
 	})
+}
+
+func putChecksum(f *File, b *bolt.Bucket) error {
+	ids := bucketGetStrSlice(f.Checksum, b)
+	if ids != nil {
+		ids = append(ids, f.ID)
+		return bucketPutJson(f.Checksum, ids, b)
+	}
+	return bucketPutJson(f.Checksum, []string{f.ID}, b)
+}
+
+func rebuildChecksumBucket(files []*File, tx *bolt.Tx) error {
+	b := tx.Bucket(ChecksumBucket)
+	for _, f := range files {
+		
+	}
 }
 
 func PutToBucket(key []byte, value []byte, b *bolt.Bucket) error {
