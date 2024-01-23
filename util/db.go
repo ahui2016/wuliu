@@ -172,11 +172,14 @@ func KeyExistsInBucket(key []byte, b *bolt.Bucket) bool {
 	return b.Get(key) != nil
 }
 
-func reCreateBucket(name []byte, tx *bolt.Tx) (*bolt.Bucket, error) {
-	if err := tx.DeleteBucket(name); err != nil {
-		return nil, err
-	}
-	return tx.CreateBucket(name)
+func RebuildSomeBuckets(db *bolt.DB) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		files, err := getAllFiles(tx)
+		if err != nil {
+			return err
+		}
+		return rebuildSomeBuckets(files, tx)
+	})
 }
 
 func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
@@ -195,25 +198,55 @@ func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
 	dmgBuc := reCreateBucket(DamagedBucket)
 
 	for _, f := range files {
-		e1 := putStrAndID(f.Checksum, f.ID, b)
-		e2 := putIntAndID(f.Size, f.ID, b)
-		e3 := putStrAndID(f.Type, f.ID, b)
-		e4 := putIntAndID(f.Like, f.ID, b)
-		e5 := putStrAndID(f.Label, f.ID, b)
-		e6 := putStrAndID(f.Notes, f.ID, b)
-		e7 := putSliceAndID(f.Keywords, f.ID, b)
-		e8 := putSliceAndID(f.Collections, f.ID, b)
-		e9 := putSliceAndID(f.Albums, f.ID, b)
-		e10 := putStrAndID(f.CTime, f.ID, b)
-		e11 := putStrAndID(f.UTime, f.ID, b)
-		e12 := putStrAndID(f.Checked, f.ID, b)
-		e13 := putIdAndBool(f.ID, f.Damaged, b)
+		e1 := putStrAndID(f.Checksum, f.ID, csumBuc)
+		e2 := putIntAndID(f.Size, f.ID, sizeBuc)
+		e3 := putStrAndID(f.Type, f.ID, typeBuc)
+		e4 := putIntAndID(f.Like, f.ID, likeBuc)
+		e5 := putStrAndID(f.Label, f.ID, labelBuc)
+		e6 := putStrAndID(f.Notes, f.ID, notesBuc)
+		e7 := putSliceAndID(f.Keywords, f.ID, kwBuc)
+		e8 := putSliceAndID(f.Collections, f.ID, collBuc)
+		e9 := putSliceAndID(f.Albums, f.ID, albumBuc)
+		e10 := putStrAndID(f.CTime, f.ID, ctimeBuc)
+		e11 := putStrAndID(f.UTime, f.ID, utimeBuc)
+		e12 := putStrAndID(f.Checked, f.ID, checkBuc)
+		e13 := putIdAndBool(f.ID, f.Damaged, dmgBuc)
 
 		if err := util.WrapErrors(e1, e2, e3, e4, e5, e6,
 			e7, e8, e9, e10, e11, e12, e13); err != nil {
 			return err
 		}
 	}
+	return nil
+}
+
+func GetAllFiles(db *bolt.DB) (files []*File, err error) {
+	err = db.View(func(tx *bolt.Tx) error {
+		files, e := getAllFiles(tx)
+		if e != nil {
+			return e
+		}
+	})
+	return
+}
+
+func getAllFiles(tx *bolt.Tx) (files []*File, err error) {
+	b := tx.Bucket(FilesBucket)
+	err = b.ForEach(func(_, v []byte) error {
+		var f File
+		if err := json.Unmarshal(v, &f); err != nil {
+			return nil, err
+		}
+		files = append(files, &f)
+	})
+	return
+}
+
+func reCreateBucket(name []byte, tx *bolt.Tx) (*bolt.Bucket, error) {
+	if err := tx.DeleteBucket(name); err != nil {
+		return nil, err
+	}
+	return tx.CreateBucket(name)
 }
 
 func putStrAndID(key, id string, b *bolt.Bucket) error {
