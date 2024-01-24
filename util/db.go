@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"github.com/samber/lo"
 	bolt "go.etcd.io/bbolt"
+	"os"
+	"path/filepath"
+	"strconv"
 	"time"
 )
 
@@ -26,7 +29,7 @@ var (
 	DamagedBucket     = []byte("DamagedBucket")
 )
 
-var buckets = [][]byte{
+var Buckets = [][]byte{
 	FilesBucket,
 	FilenameBucket,
 	ChecksumBucket,
@@ -58,7 +61,7 @@ func CreateDatabase() {
 
 func createBuckets(db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		for _, name := range buckets {
+		for _, name := range Buckets {
 			lo.Must(tx.CreateBucketIfNotExists(name))
 		}
 		return nil
@@ -194,15 +197,18 @@ func RebuildSomeBuckets(db *bolt.DB) error {
 }
 
 func rebuildFilesAndName(tx *bolt.Tx) error {
-	filesBuc := reCreateBucket(FilesBuckets)
-	nameBuc := reCreateBucket(FilenameBucket)
+	filesBuc, e1 := reCreateBucket(FilesBucket, tx)
+	nameBuc, e2 := reCreateBucket(FilenameBucket, tx)
+	if err := WrapErrors(e1, e2); err != nil {
+		return err
+	}
 	files, err := getAllFilesMetadata()
 	if err != nil {
 		return err
 	}
 	for _, f := range files {
 		e1 := bucketPutJson(f.ID, f, filesBuc)
-		e2 := b.Put([]byte(f.Filename), []byte(f.ID))
+		e2 := nameBuc.Put([]byte(f.Filename), []byte(f.ID))
 		if err := WrapErrors(e1, e2); err != nil {
 			return err
 		}
@@ -245,19 +251,23 @@ func getAllMetadataPaths() ([]string, error) {
 }
 
 func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
-	csumBuc := reCreateBucket(ChecksumBucket)
-	sizeBuc := reCreateBucket(SizeBucket)
-	typeBuc := reCreateBucket(TypeBucket)
-	likeBuc := reCreateBucket(LikeBucket)
-	labelBuc := reCreateBucket(LabelBucket)
-	notesBuc := reCreateBucket(NotesBucket)
-	kwBuc := reCreateBucket(KeywordsBucket)
-	collBuc := reCreateBucket(CollectionsBucket)
-	albumBuc := reCreateBucket(AlbumsBucket)
-	ctimeBuc := reCreateBucket(CTimeBucket)
-	utimeBuc := reCreateBucket(UTimeBucket)
-	checkBuc := reCreateBucket(CheckedBucket)
-	dmgBuc := reCreateBucket(DamagedBucket)
+	csumBuc, e1 := reCreateBucket(ChecksumBucket, tx)
+	sizeBuc, e2 := reCreateBucket(SizeBucket, tx)
+	typeBuc, e3 := reCreateBucket(TypeBucket, tx)
+	likeBuc, e4 := reCreateBucket(LikeBucket, tx)
+	labelBuc, e5 := reCreateBucket(LabelBucket, tx)
+	notesBuc, e6 := reCreateBucket(NotesBucket, tx)
+	kwBuc, e7 := reCreateBucket(KeywordsBucket, tx)
+	collBuc, e8 := reCreateBucket(CollectionsBucket, tx)
+	albumBuc, e9 := reCreateBucket(AlbumsBucket, tx)
+	ctimeBuc, e10 := reCreateBucket(CTimeBucket, tx)
+	utimeBuc, e11 := reCreateBucket(UTimeBucket, tx)
+	checkBuc, e12 := reCreateBucket(CheckedBucket, tx)
+	dmgBuc, e13 := reCreateBucket(DamagedBucket, tx)
+	if err := WrapErrors(e1, e2, e3, e4, e5, e6,
+		e7, e8, e9, e10, e11, e12, e13); err != nil {
+		return err
+	}
 
 	for _, f := range files {
 		e1 := putStrAndID(f.Checksum, f.ID, csumBuc)
@@ -284,10 +294,8 @@ func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
 
 func GetAllFiles(db *bolt.DB) (files []*File, err error) {
 	err = db.View(func(tx *bolt.Tx) error {
-		files, e := getAllFiles(tx)
-		if e != nil {
-			return e
-		}
+		files, err = getAllFiles(tx)
+		return err
 	})
 	return
 }
@@ -297,9 +305,10 @@ func getAllFiles(tx *bolt.Tx) (files []*File, err error) {
 	err = b.ForEach(func(_, v []byte) error {
 		var f File
 		if err := json.Unmarshal(v, &f); err != nil {
-			return nil, err
+			return err
 		}
 		files = append(files, &f)
+		return nil
 	})
 	return
 }
@@ -312,7 +321,10 @@ func reCreateBucket(name []byte, tx *bolt.Tx) (*bolt.Bucket, error) {
 }
 
 func putStrAndID(key, id string, b *bolt.Bucket) error {
-	ids := bucketGetStrSlice(key, b)
+	ids, err := bucketGetStrSlice(key, b)
+	if err != nil {
+		return err
+	}
 	if ids != nil {
 		ids = append(ids, id)
 		return bucketPutJson(key, ids, b)
@@ -322,7 +334,7 @@ func putStrAndID(key, id string, b *bolt.Bucket) error {
 
 func putIntAndID(i int64, id string, b *bolt.Bucket) error {
 	key := strconv.FormatInt(i, 10)
-	return putKeyAndID(key, f.ID, b)
+	return putStrAndID(key, id, b)
 
 }
 

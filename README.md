@@ -119,6 +119,10 @@ Wuliu File Manager (五柳档案管理脚本)
 - Note that, while RFC3339 is sortable, the Golang implementation of RFC3339Nano does
   not use a fixed number of digits after the decimal point and is therefore not sortable.
 
+### 数据库信息
+
+- `wuliu-db --info=count` 可查看数据库条目数量
+
 ### 更新数据库
 
 - 更新数据库，是指以 metadata 为准更新数据库，因此如果一段时间没执行 wuliu-orphan,
