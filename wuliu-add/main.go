@@ -20,9 +20,9 @@ var (
 
 func main() {
 	flag.Parse()
-
 	util.MustInWuliu()
 	checkOrphan()
+
 	names := lo.Must(util.FindNewFiles())
 	files := lo.Must(util.NewFilesFromInput(names))
 

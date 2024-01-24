@@ -6,6 +6,7 @@ import (
 	"github.com/ahui2016/wuliu/util"
 	"github.com/samber/lo"
 	"log"
+	"os"
 )
 
 var (
@@ -18,6 +19,7 @@ var Folders = []string{
 }
 
 func main() {
+	customFlagUsage()
 	flag.Parse()
 	util.PrintVersionExit(*vFlag)
 	util.PrintWhereExit(*wFlag)
@@ -26,6 +28,16 @@ func main() {
 	makeFolders()
 	writeProjectInfo()
 	util.CreateDatabase()
+}
+
+// customFlagUsage 必须在 `flag.Parse()` 之前执行才有效。
+func customFlagUsage() {
+	cmdUsage := "在空资料夹内执行 `wuliu-init` (不带参数) 即可初始化专案。"
+	flag.Usage = func() {
+		fmt.Fprintf(
+			flag.CommandLine.Output(), "Usage of %s:\n%s\n", os.Args[0], cmdUsage)
+		flag.PrintDefaults()
+	}
 }
 
 func checkCWD() {

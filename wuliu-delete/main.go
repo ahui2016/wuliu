@@ -19,6 +19,8 @@ var (
 
 func main() {
 	flag.Parse()
+	util.MustInWuliu()
+
 	if *cfgPath+*newFlag == "" {
 		flag.Usage()
 		os.Exit(0)

@@ -14,6 +14,7 @@ var (
 
 func main() {
 	flag.Parse()
+	util.MustInWuliu()
 	db := lo.Must(util.OpenDB())
 	defer db.Close()
 
