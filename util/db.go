@@ -172,6 +172,17 @@ func KeyExistsInBucket(key []byte, b *bolt.Bucket) bool {
 	return b.Get(key) != nil
 }
 
+func RebuildAllBuckets(db *bolt.DB) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		if err := rebuildFilesAndName(tx); err != nil {
+			return err
+		}
+		files, e1 := getAllFiles(tx)
+		e2 := rebuildSomeBuckets(files, tx)
+		return WrapErrors(e1, e2)
+	})
+}
+
 func RebuildSomeBuckets(db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		files, err := getAllFiles(tx)
@@ -180,6 +191,57 @@ func RebuildSomeBuckets(db *bolt.DB) error {
 		}
 		return rebuildSomeBuckets(files, tx)
 	})
+}
+
+func rebuildFilesAndName(tx *bolt.Tx) error {
+	filesBuc := reCreateBucket(FilesBuckets)
+	nameBuc := reCreateBucket(FilenameBucket)
+	files, err := getAllFilesMetadata()
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		e1 := bucketPutJson(f.ID, f, filesBuc)
+		e2 := b.Put([]byte(f.Filename), []byte(f.ID))
+		if err := WrapErrors(e1, e2); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func getAllFilesMetadata() ([]*File, error) {
+	metaPaths, err := getAllMetadataPaths()
+	if err != nil {
+		return nil, err
+	}
+	return metaPathsToFiles(metaPaths)
+}
+
+func metaPathsToFiles(paths []string) (files []*File, err error) {
+	for _, meta := range paths {
+		data, err := os.ReadFile(meta)
+		if err != nil {
+			return nil, err
+		}
+		var f File
+		if err := json.Unmarshal(data, &f); err != nil {
+			return nil, err
+		}
+		files = append(files, &f)
+	}
+	return files, nil
+}
+
+func getAllMetadataPaths() ([]string, error) {
+	a, b, err := FindOrphans()
+	if err != nil {
+		return nil, err
+	}
+	if len(a)+len(b) > 0 {
+		return nil, fmt.Errorf("發現孤立檔案，請執行 wuliu-orphan")
+	}
+	return filepath.Glob(filepath.Join(METADATA, "/*"))
 }
 
 func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
@@ -212,7 +274,7 @@ func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
 		e12 := putStrAndID(f.Checked, f.ID, checkBuc)
 		e13 := putIdAndBool(f.ID, f.Damaged, dmgBuc)
 
-		if err := util.WrapErrors(e1, e2, e3, e4, e5, e6,
+		if err := WrapErrors(e1, e2, e3, e4, e5, e6,
 			e7, e8, e9, e10, e11, e12, e13); err != nil {
 			return err
 		}

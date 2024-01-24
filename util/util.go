@@ -97,7 +97,7 @@ func isRegularFile(name string) (ok bool, err error) {
 
 // GetFilenamesBase 假设 folder 里全是普通档案，没有资料夹。
 func GetFilenamesBase(folder string) ([]string, error) {
-	pattern := filepath.Join(folder, "*")
+	pattern := filepath.Join(folder, "/*")
 	names, err := filepath.Glob(pattern)
 	if err != nil {
 		return nil, err
