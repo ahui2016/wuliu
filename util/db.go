@@ -175,7 +175,22 @@ func KeyExistsInBucket(key []byte, b *bolt.Bucket) bool {
 	return b.Get(key) != nil
 }
 
-func RebuildAllBuckets(db *bolt.DB) error {
+// RebuildDatabase 删除数据库，然后重建数据库并且重新填充数据。
+func RebuildDatabase() {
+	if PathExists(DatabasePath) {
+		fmt.Println("Delete", DatabasePath)
+		lo.Must0(os.Remove(DatabasePath))
+	}
+	fmt.Println("Rebuilding database...")
+	db := lo.Must(OpenDB())
+	defer db.Close()
+	lo.Must0(createBuckets(db))
+	lo.Must0(rebuildAllBuckets(db))
+	fmt.Println("OK")
+}
+
+// rebuildAllBuckets 重建全部数据桶，几乎等于重建整个数据库。
+func rebuildAllBuckets(db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		if err := rebuildFilesAndName(tx); err != nil {
 			return err
@@ -186,6 +201,8 @@ func RebuildAllBuckets(db *bolt.DB) error {
 	})
 }
 
+// RebuildSomeBuckets 重建数据库的一部分索引，不需要读取硬盘。
+// 由于不需要读取硬盘，因此不能反映最新的变化。
 func RebuildSomeBuckets(db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		files, err := getAllFiles(tx)
@@ -273,9 +290,9 @@ func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
 		e1 := putStrAndID(f.Checksum, f.ID, csumBuc)
 		e2 := putIntAndID(f.Size, f.ID, sizeBuc)
 		e3 := putStrAndID(f.Type, f.ID, typeBuc)
-		e4 := putIntAndID(f.Like, f.ID, likeBuc)
-		e5 := putStrAndID(f.Label, f.ID, labelBuc)
-		e6 := putStrAndID(f.Notes, f.ID, notesBuc)
+		e4 = putIntAndID(f.Like, f.ID, likeBuc)
+		e5 = putStrAndID(f.Label, f.ID, labelBuc)
+		e6 = putStrAndID(f.Notes, f.ID, notesBuc)
 		e7 := putSliceAndID(f.Keywords, f.ID, kwBuc)
 		e8 := putSliceAndID(f.Collections, f.ID, collBuc)
 		e9 := putSliceAndID(f.Albums, f.ID, albumBuc)
@@ -321,6 +338,9 @@ func reCreateBucket(name []byte, tx *bolt.Tx) (*bolt.Bucket, error) {
 }
 
 func putStrAndID(key, id string, b *bolt.Bucket) error {
+	if key == "" {
+		return nil
+	}
 	ids, err := bucketGetStrSlice(key, b)
 	if err != nil {
 		return err
@@ -333,12 +353,18 @@ func putStrAndID(key, id string, b *bolt.Bucket) error {
 }
 
 func putIntAndID(i int64, id string, b *bolt.Bucket) error {
+	if i == 0 {
+		return nil
+	}
 	key := strconv.FormatInt(i, 10)
 	return putStrAndID(key, id, b)
 
 }
 
 func putSliceAndID(s []string, id string, b *bolt.Bucket) error {
+	if len(s) == 0 {
+		return nil
+	}
 	for _, item := range s {
 		if err := putStrAndID(item, id, b); err != nil {
 			return err

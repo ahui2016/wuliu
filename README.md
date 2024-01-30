@@ -121,7 +121,8 @@ Wuliu File Manager (五柳档案管理脚本)
 
 ### 数据库信息
 
-- `wuliu-db --info=count` 可查看数据库条目数量
+- `wuliu-db --info=count` 查看数据库条目数量
+- `wuliu-db --info=size` 查看全部档案的总体积
 
 ### 更新数据库
 
