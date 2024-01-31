@@ -9,6 +9,8 @@ import (
 	"log"
 	"os"
 	"slices"
+	"strconv"
+	"strings"
 )
 
 var (
@@ -41,6 +43,10 @@ func main() {
 		lo.Must0(printDatabaseCount(db))
 		return
 	}
+	if *infoFlag == "size" {
+		lo.Must0(printTotalSize(db))
+		return
+	}
 	if *updateFlag == "cache" {
 		lo.Must0(updateCache(db))
 		return
@@ -65,4 +71,28 @@ func printDatabaseCount(db *bolt.DB) error {
 
 func updateCache(db *bolt.DB) error {
 	return util.RebuildSomeBuckets(db)
+}
+
+func printTotalSize(db *bolt.DB) error {
+	return db.View(func(tx *bolt.Tx) error {
+		fileN := 0
+		total := 0
+		b := tx.Bucket(util.SizeBucket)
+		err := b.ForEach(func(k, v []byte) error {
+			size, err := strconv.Atoi(string(k))
+			if err != nil {
+				return err
+			}
+			n := len(strings.Split(string(v), ","))
+			fileN += n
+			total += size * n
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+		totalStr := util.FileSizeToString(float64(total))
+		fmt.Printf("Total: %d files, %s\n", fileN, totalStr)
+		return nil
+	})
 }

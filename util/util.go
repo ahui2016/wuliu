@@ -158,6 +158,20 @@ func FileSum512(name string) (HexString, error) {
 	return hex.EncodeToString(checksum), nil
 }
 
+// FileSizeToString 把文件大小转换为方便人类阅读的格式。
+func FileSizeToString(size float64) string {
+	sizeGB := size / 1024 / 1024 / 1024
+	if sizeGB < 1 {
+		sizeMB := sizeGB * 1024
+		if sizeMB < 1 {
+			sizeKB := sizeMB * 1024
+			return fmt.Sprintf("%.2f KB", sizeKB)
+		}
+		return fmt.Sprintf("%.2f MB", sizeMB)
+	}
+	return fmt.Sprintf("%.2f GB", sizeGB)
+}
+
 // https://github.com/gofiber/fiber/blob/master/utils/http.go (edited).
 func typeByFilename(filename string) (filetype string) {
 	ext := filepath.Ext(filename)
