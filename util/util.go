@@ -159,17 +159,25 @@ func FileSum512(name string) (HexString, error) {
 }
 
 // FileSizeToString 把文件大小转换为方便人类阅读的格式。
-func FileSizeToString(size float64) string {
+// fixed 指定小数点后几位, 设为负数表示不限制小数位。
+func FileSizeToString(size float64, fixed int) string {
+	format := fmt.Sprintf("%%.%df", fixed)
+	if fixed < 0 {
+		format = "%f"
+	}
 	sizeGB := size / 1024 / 1024 / 1024
 	if sizeGB < 1 {
 		sizeMB := sizeGB * 1024
 		if sizeMB < 1 {
 			sizeKB := sizeMB * 1024
-			return fmt.Sprintf("%.2f KB", sizeKB)
+			format = format + " KB"
+			return fmt.Sprintf(format, sizeKB)
 		}
-		return fmt.Sprintf("%.2f MB", sizeMB)
+		format = format + " MB"
+		return fmt.Sprintf(format, sizeMB)
 	}
-	return fmt.Sprintf("%.2f GB", sizeGB)
+	format = format + " GB"
+	return fmt.Sprintf(format, sizeGB)
 }
 
 // https://github.com/gofiber/fiber/blob/master/utils/http.go (edited).

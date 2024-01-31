@@ -161,3 +161,10 @@ func DeleteFilesByID(ids []string, db *bolt.DB) error {
 	}
 	return DeleteInDB(ids, db)
 }
+
+func PrintFilesSimple(files []*File) {
+	for _, f := range files {
+		size := FileSizeToString(float64(f.Size), 0)
+		fmt.Printf("%s (%s) %s\n", f.ID, size, f.Filename)
+	}
+}

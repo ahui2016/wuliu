@@ -6,5 +6,6 @@ use (
 	./wuliu-db
 	./wuliu-delete
 	./wuliu-init
+	./wuliu-list
 	./wuliu-orphan
 )

@@ -106,6 +106,11 @@ Wuliu File Manager (五柳档案管理脚本)
 - `wuliu-delete --json delete.json ` 通过 delete.json 指定需要删除的档案（可指定多个）
 - 需要添加属性 `--danger` 才能真正删除档案，否则就只是列出 delete.json 的内容
 
+## wuliu-list
+
+- `wuliu-list` 列印最近 15 个档案 (ID, 体积, 档案名称)
+- `wuliu-list n=100` 列印最近 100 个档案，按 CTime 倒序排列 (CTime 是入库时间)
+
 ## 数据库 (bolt)
 
 - https://github.com/etcd-io/bbolt
@@ -119,7 +124,7 @@ Wuliu File Manager (五柳档案管理脚本)
 - Note that, while RFC3339 is sortable, the Golang implementation of RFC3339Nano does
   not use a fixed number of digits after the decimal point and is therefore not sortable.
 
-### 数据库信息
+## wuliu-db
 
 - `wuliu-db --info=count` 查看数据库条目数量
 - `wuliu-db --info=size` 查看全部档案的总体积

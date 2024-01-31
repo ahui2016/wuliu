@@ -330,6 +330,19 @@ func getAllFiles(tx *bolt.Tx) (files []*File, err error) {
 	return
 }
 
+func GetFilesByIDs(ids []string, tx *bolt.Tx) (files []*File, err error) {
+	b := tx.Bucket(FilesBucket)
+	for _, id := range ids {
+		var f File
+		data := b.Get([]byte(id))
+		if err := json.Unmarshal(data, &f); err != nil {
+			return nil, err
+		}
+		files = append(files, &f)
+	}
+	return files, nil
+}
+
 func reCreateBucket(name []byte, tx *bolt.Tx) (*bolt.Bucket, error) {
 	if err := tx.DeleteBucket(name); err != nil {
 		return nil, err
