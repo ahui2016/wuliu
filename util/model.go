@@ -49,6 +49,35 @@ var DefaultWuliuInfo = ProjectInfo{
 	RepoURL:  "https://github.com/ahui2016/wuliu",
 }
 
+// EditFiles 用于批量修改档案属性。
+type EditFiles struct {
+	IDs         []string `json:"ids"`         // 通过 ID 指定档案
+	Filenames   []string `json:"filenames"`   // 通过档案名称指定档案
+	Like        int64    `json:"like"`        // 點贊
+	Label       string   `json:"label"`       // 标签，便於搜尋
+	Notes       string   `json:"notes"`       // 備註，便於搜尋
+	Keywords    []string `json:"keywords"`    // 關鍵詞, 便於搜尋
+	Collections []string `json:"collections"` // 集合（分组），一个档案可属于多个集合
+	Albums      []string `json:"albums"`      // 相册（专辑），主要用于图片和音乐
+}
+
+func NewEditFiles(ids, filenames []string) *EditFiles {
+	ef := new(EditFiles)
+	ef.IDs = ids
+	ef.Filenames = filenames
+	ef.Keywords = []string{}
+	ef.Collections = []string{}
+	ef.Albums = []string{}
+	return ef
+}
+
+func (ef *EditFiles) Check() (err error) {
+	if len(ef.IDs) > 0 && len(ef.Filenames) > 0 {
+		err = fmt.Errorf("只能指定 ID 或檔案名稱，不可兩者同時指定。")
+	}
+	return
+}
+
 type File struct {
 	ID          string   `json:"id"`          // 档案名称的 CRC32
 	Filename    string   `json:"filename"`    // 档案名称

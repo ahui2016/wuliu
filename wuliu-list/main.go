@@ -20,7 +20,7 @@ func main() {
 	db := lo.Must(util.OpenDB())
 	defer db.Close()
 
-	listFiles(*nFlag, db)
+	lo.Must0(listFiles(*nFlag, db))
 }
 
 func listFiles(limitN int, db *bolt.DB) error {

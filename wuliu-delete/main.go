@@ -23,11 +23,11 @@ func main() {
 
 	if *cfgPath+*newFlag == "" {
 		flag.Usage()
-		os.Exit(0)
+		return
 	}
 	if *newFlag != "" {
 		newJsonFile()
-		os.Exit(0)
+		return
 	}
 
 	db := lo.Must(util.OpenDB())
@@ -81,9 +81,7 @@ func deleteFiles(toDelete util.FilesToDelete, db *bolt.DB) {
 func readConfig() (cfg util.FilesToDelete) {
 	data := lo.Must(os.ReadFile(*cfgPath))
 	lo.Must0(json.Unmarshal(data, &cfg))
-	if err := cfg.Check(); err != nil {
-		log.Fatalln(err)
-	}
+	lo.Must0(cfg.Check())
 	if len(cfg.IDs)+len(cfg.Names) == 0 {
 		log.Fatalln(*cfgPath, "未填寫要刪除的檔案")
 	}

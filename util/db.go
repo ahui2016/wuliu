@@ -335,6 +335,9 @@ func GetFilesByIDs(ids []string, tx *bolt.Tx) (files []*File, err error) {
 	for _, id := range ids {
 		var f File
 		data := b.Get([]byte(id))
+		if data == nil {
+			return nil, fmt.Errorf("Not Found ID: %s", id)
+		}
 		if err := json.Unmarshal(data, &f); err != nil {
 			return nil, err
 		}

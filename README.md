@@ -34,7 +34,7 @@ Wuliu File Manager (五柳档案管理脚本)
 
 - 孤立档案: files 资料夹里的每个档案都有一个同名 json 在 metadata 资料夹中，
   如果缺少同名 json, 就是孤立档案。
-- `wuliu-orphan` 命令会检查有无孤立档案，如果有，就提示处理
+- `wuliu-orphan --check` 命令会检查有无孤立档案，如果有，就提示处理
 - 如果在 metadata 中有 json, 但在 files 中找不到对应的档案，也会提示处理
 - 建议在某些操作（例如添加档案）之前先检查有无孤立档案
 
@@ -47,20 +47,19 @@ Wuliu File Manager (五柳档案管理脚本)
 
 ### 只添加一部分新档案
 
-- 执行命令 `wuliu-add --writenames files.txt`
-  可以把发现的新档案名称列印到 files.txt 中
-- files.txt 在专案的根目录（注意防止覆盖）
-- 在 files.txt 中删除不需要添加的档案名称
-- 执行命令 `wuliu-add --files files.txt` 只添加指定的新档案
-
-### wuliu-add --json=add.json
-
-- 执行 `wuliu-add --json add.json` 发现 input 里的新档案，同时列出
-  add.json 里的档案属性，该属性将应用于待添加的新档案。
-- 注意, add.json 应放在专案的根目录。
 - 执行 `wuliu-add --newjson add.json`
   可在 input 资料夹中生成一个新的 add.json, 方便编辑
-- `--json` 与 `--files` 可组合使用
+- 在 add.json 中会列出全部待添加的档案名称
+- 在 add.json 中删除不需要添加的档案名称
+- 执行命令 `wuliu-add --json add.json` 只添加指定的新档案
+
+### 批量修改待添加档案的属性
+
+- 执行 `wuliu-add --newjson add.json`
+  可在 input 资料夹中生成一个新的 add.json, 方便编辑
+- 执行 `wuliu-add --json add.json` 列出 add.json 中指定的待添加档案，
+  同时列出 add.json 里的档案属性，该属性将应用于全部待添加档案。
+- 注意, add.json 应放在专案的根目录。
 - 需要添加属性 `--danger` 才能真正添加新档案，否则就只是列印相关信息
 
 ### 档案属性
