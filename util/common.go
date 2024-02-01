@@ -15,7 +15,7 @@ func PrintVersionExit(ok bool) {
 	if ok {
 		fmt.Println(DefaultWuliuInfo.RepoName)
 		fmt.Println(DefaultWuliuInfo.RepoURL)
-		fmt.Println("Version: 2024-01-30")
+		fmt.Println("Version: 2024-01-31")
 		os.Exit(0)
 	}
 }

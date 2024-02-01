@@ -36,7 +36,7 @@ func main() {
 	}
 	if *infoFlag+*updateFlag == "" {
 		flag.Usage()
-		os.Exit(0)
+		return
 	}
 
 	if *infoFlag == "count" {

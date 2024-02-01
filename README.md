@@ -137,3 +137,7 @@ Wuliu File Manager (五柳档案管理脚本)
 - 由于数据库缓存（即 files 索引和 filename 索引）在添加文件、修改文件属性、删除文件时
   会自动更新，因此多数情况下只需要 `--update=cache`, 不需要重建数据库。
 
+
+## TODO
+
+- wuliu-orphan --check
