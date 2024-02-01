@@ -25,8 +25,6 @@ var (
 	AlbumsBucket      = []byte("AlbumsBucket")
 	CTimeBucket       = []byte("CTimeBucket")
 	UTimeBucket       = []byte("UTimeBucket")
-	CheckedBucket     = []byte("CheckedBucket")
-	DamagedBucket     = []byte("DamagedBucket")
 )
 
 var Buckets = [][]byte{
@@ -43,8 +41,6 @@ var Buckets = [][]byte{
 	AlbumsBucket,
 	CTimeBucket,
 	UTimeBucket,
-	CheckedBucket,
-	DamagedBucket,
 }
 
 func OpenDB() (*bolt.DB, error) {
@@ -298,10 +294,7 @@ func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
 	albumBuc, e9 := reCreateBucket(AlbumsBucket, tx)
 	ctimeBuc, e10 := reCreateBucket(CTimeBucket, tx)
 	utimeBuc, e11 := reCreateBucket(UTimeBucket, tx)
-	checkBuc, e12 := reCreateBucket(CheckedBucket, tx)
-	dmgBuc, e13 := reCreateBucket(DamagedBucket, tx)
-	if err := WrapErrors(e1, e2, e3, e4, e5, e6,
-		e7, e8, e9, e10, e11, e12, e13); err != nil {
+	if err := WrapErrors(e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11); err != nil {
 		return err
 	}
 
@@ -317,11 +310,8 @@ func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
 		e9 := putSliceAndID(f.Albums, f.ID, albumBuc)
 		e10 := putStrAndID(f.CTime, f.ID, ctimeBuc)
 		e11 := putStrAndID(f.UTime, f.ID, utimeBuc)
-		e12 := putStrAndID(f.Checked, f.ID, checkBuc)
-		e13 := putIdAndBool(f.ID, f.Damaged, dmgBuc)
 
-		if err := WrapErrors(e1, e2, e3, e4, e5, e6,
-			e7, e8, e9, e10, e11, e12, e13); err != nil {
+		if err := WrapErrors(e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11); err != nil {
 			return err
 		}
 	}

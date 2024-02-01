@@ -27,6 +27,7 @@ func main() {
 	checkCWD()
 	makeFolders()
 	writeProjectInfo()
+	writeFileChecked()
 	util.CreateDatabase()
 }
 
@@ -57,4 +58,9 @@ func makeFolders() {
 func writeProjectInfo() {
 	fmt.Println("Create", util.ProjectInfoPath)
 	lo.Must0(util.WriteProjectInfo(util.DefaultWuliuInfo))
+}
+
+func writeFileChecked() {
+	_ = lo.Must(
+		util.WriteJSON([]int{}, util.FileCheckedPath))
 }

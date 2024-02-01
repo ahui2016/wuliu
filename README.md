@@ -18,6 +18,8 @@ Wuliu File Manager (五柳档案管理脚本)
 - wuliu-delete (删除档案)
 - wuliu-list (列印档案、标签、备注、关键词等)
 - wuliu-db (数据库信息，更新缓存)
+- wuliu-checksum (检查档案完整性)
+- wuliu-replace (更新同名档案，覆盖旧档案)
 
 ## wuliu-init
 
@@ -140,6 +142,9 @@ Wuliu File Manager (五柳档案管理脚本)
 - 由于数据库缓存（即 files 索引和 filename 索引）在添加文件、修改文件属性、删除文件时
   会自动更新，因此多数情况下只需要 `--update=cache`, 不需要重建数据库。
 
+## wuliu-checksum
+
+- `wuliu-checksum --renew` 将全部文件的 damaged 设为 false, 上次检查时间设为 epoch
 
 ## TODO
 

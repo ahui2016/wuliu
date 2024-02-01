@@ -17,6 +17,7 @@ const (
 	NormalFilePerm  = 0666
 	NormalDirPerm   = 0750
 	ProjectInfoPath = "project.json"
+	FileCheckedPath = "file_checked.json"
 	DatabasePath    = "project.db"
 )
 
@@ -29,7 +30,10 @@ const (
 	RECYCLEBIN = "recyclebin"
 )
 
-var Separator = string(filepath.Separator)
+var (
+	Epoch     = time.Unix(0, 0).Format(RFC3339)
+	Separator = string(filepath.Separator)
+)
 
 type (
 	Base64String = string
@@ -78,6 +82,12 @@ func (ef *EditFiles) Check() (err error) {
 	return
 }
 
+type FileChecked struct {
+	ID      string // 档案名称的 CRC32
+	Checked string // RFC3339 上次校驗檔案完整性的時間
+	Damaged bool   // 上次校驗結果 (檔案是否損壞)
+}
+
 type File struct {
 	ID          string   `json:"id"`          // 档案名称的 CRC32
 	Filename    string   `json:"filename"`    // 档案名称
@@ -92,8 +102,6 @@ type File struct {
 	Albums      []string `json:"albums"`      // 相册（专辑），主要用于图片和音乐
 	CTime       string   `json:"ctime"`       // RFC3339 檔案入庫時間
 	UTime       string   `json:"utime"`       // RFC3339 檔案更新時間
-	Checked     string   `json:"checked"`     // RFC3339 上次校驗檔案完整性的時間
-	Damaged     bool     `json:"damaged"`     // 上次校驗結果 (檔案是否損壞)
 }
 
 type FileAndMeta struct {
@@ -108,7 +116,6 @@ func NewFile(name string) *File {
 	f.Filename = name
 	f.CTime = now
 	f.UTime = now
-	f.Checked = now
 	return f
 }
 
