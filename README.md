@@ -15,6 +15,9 @@ Wuliu File Manager (五柳档案管理脚本)
 - `cat project.info` (查看专案信息)
 - wuliu-orphan (检查有无孤立档案)
 - wuliu-add (添加档案)
+- wuliu-delete (删除档案)
+- wuliu-list (列印档案、标签、备注、关键词等)
+- wuliu-db (数据库信息，更新缓存)
 
 ## wuliu-init
 

@@ -213,6 +213,25 @@ func RebuildSomeBuckets(db *bolt.DB) error {
 	})
 }
 
+func RebuildCTimeBucket(db *bolt.DB) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		files, err := getAllFiles(tx)
+		if err != nil {
+			return err
+		}
+		b, err := reCreateBucket(CTimeBucket, tx)
+		if err != nil {
+			return err
+		}
+		for _, f := range files {
+			if err := putStrAndID(f.CTime, f.ID, b); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
 func rebuildFilesAndName(tx *bolt.Tx) error {
 	filesBuc, e1 := reCreateBucket(FilesBucket, tx)
 	nameBuc, e2 := reCreateBucket(FilenameBucket, tx)
@@ -287,7 +306,7 @@ func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
 	}
 
 	for _, f := range files {
-		e1 := putStrAndID(f.Checksum, f.ID, csumBuc)
+		e1 := PutToBucket([]byte(f.ID), []byte(f.Checksum), csumBuc)
 		e2 := putIntAndID(f.Size, f.ID, sizeBuc)
 		e3 := putStrAndID(f.Type, f.ID, typeBuc)
 		e4 = putIntAndID(f.Like, f.ID, likeBuc)
