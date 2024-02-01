@@ -36,9 +36,9 @@ func renew(db *bolt.DB) {
 		log.Fatalln("File Exitst:", FileCheckedPath)
 	}
 	ids := allIDs(db)
-	var list []FileChecked
+	var list []*FileChecked
 	for _, id := range ids {
-		fc := FileChecked{id, util.Epoch, false}
+		fc := &FileChecked{id, util.Epoch, false}
 		list = append(list, fc)
 	}
 	_ = lo.Must(

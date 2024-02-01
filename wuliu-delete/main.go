@@ -69,15 +69,16 @@ func printIdAndName(names []string) {
 }
 
 func deleteFiles(toDelete util.FilesToDelete, db *bolt.DB) {
-	if len(toDelete.IDs) > 0 {
-		lo.Must0(util.DeleteFilesByID(toDelete.IDs, db))
-		lo.Must0(util.RebuildCTimeBucket(db))
+	ids := toDelete.IDs
+	if len(ids) == 0 {
+		ids = util.NamesToIds(toDelete.Names)
+	}
+	if len(ids) == 0 {
 		return
 	}
-	if len(toDelete.Names) > 0 {
-		lo.Must0(util.DeleteFilesByName(toDelete.Names, db))
-		lo.Must0(util.RebuildCTimeBucket(db))
-	}
+	lo.Must0(util.DeleteFilesByID(ids, db))
+	lo.Must0(util.RebuildCTimeBucket(db))
+	lo.Must0(util.DeleteFromFileChecked(ids))
 }
 
 func readConfig() (cfg util.FilesToDelete) {

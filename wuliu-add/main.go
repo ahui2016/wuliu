@@ -127,6 +127,7 @@ func addNewFiles(files []*File, db *bolt.DB) {
 	fmt.Println("Update database...")
 	lo.Must0(util.AddFilesToDB(metadatas, db))
 	lo.Must0(util.RebuildCTimeBucket(db))
+	lo.Must0(util.AddToFileChecked(files))
 	fmt.Println("OK")
 }
 
