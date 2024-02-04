@@ -11,6 +11,7 @@ import (
 
 const (
 	GB              = 1 << 30
+	MB              = 1024 * 1024
 	Day             = 24 * 60 * 60
 	RFC3339         = "2006-01-02 15:04:05Z07:00"
 	MIMEOctetStream = "application/octet-stream"
@@ -43,14 +44,23 @@ type (
 type ProjectInfo struct {
 	RepoName         string
 	RepoURL          string
-	OrphanLastCheck  string // 上次检查孤立档案的时间
-	OrphanFilesCount int    // 孤立的档案数量
-	OrphanMetaCount  int    // 孤立的 metadata 数量
+	IsBackup         bool     // 是否副本（副本禁止添加、删除等）
+	Projects         []string // 第一个是主专案，然后是备份专案
+	LastBackupAt     []string // 上次备份时间
+	CheckInterval    int      // 检查完整性, 单位: day
+	CheckSizeLimit   int      // 检查完整性, 单位: MB
+	OrphanLastCheck  string   // 上次检查孤立档案的时间
+	OrphanFilesCount int      // 孤立的档案数量
+	OrphanMetaCount  int      // 孤立的 metadata 数量
 }
 
 var DefaultWuliuInfo = ProjectInfo{
-	RepoName: "Wuliu File Manager",
-	RepoURL:  "https://github.com/ahui2016/wuliu",
+	RepoName:       "Wuliu File Manager",
+	RepoURL:        "https://github.com/ahui2016/wuliu",
+	Projects:       []string{"./"}, // 注意必须确保第一个是 "./", 每个专案地址都以 "/" 结尾
+	LastBackupAt:   []string{Epoch},
+	CheckInterval:  30,
+	CheckSizeLimit: 1024,
 }
 
 // EditFiles 用于批量修改档案属性。

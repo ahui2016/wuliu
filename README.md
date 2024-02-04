@@ -30,10 +30,27 @@ Wuliu File Manager (五柳档案管理脚本)
 - `wuliu-init -v` 列印版本信息
 - `wuliu-init -where` 列印 wuliu-init 的位置
 
-## project.info
+## project.json
 
-建议经常执行 `cat project.info` 查看专案信息。
-当然，也可直接打开 project.info 查看。
+建议经常执行 `cat project.json` 查看专案信息。
+当然，也可直接打开 project.json 查看。
+
+```
+type ProjectInfo struct {
+	RepoName         string
+	RepoURL          string
+	IsBackup         bool     // 是否副本（副本禁止添加、删除等）
+	Projects         []string // 第一个是主专案，然后是备份专案
+	LastBackupAt     []string // 上次备份时间
+	CheckInterval    int      // 检查完整性, 单位: day
+	CheckSizeLimit   int      // 检查完整性, 单位: MB
+	OrphanLastCheck  string   // 上次检查孤立档案的时间
+	OrphanFilesCount int      // 孤立的档案数量
+	OrphanMetaCount  int      // 孤立的 metadata 数量
+}
+```
+
+其中 `Projects` 要注意必须确保第一个是 "./", 并且每个专案地址都以 "/" 结尾。
 
 ## wuliu-orphan
 
