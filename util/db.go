@@ -299,17 +299,17 @@ func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
 	}
 
 	for _, f := range files {
-		e1 := PutToBucket([]byte(f.ID), []byte(f.Checksum), csumBuc)
-		e2 := putIntAndID(f.Size, f.ID, sizeBuc)
-		e3 := putStrAndID(f.Type, f.ID, typeBuc)
-		e4 = putIntAndID(f.Like, f.ID, likeBuc)
-		e5 = putStrAndID(f.Label, f.ID, labelBuc)
-		e6 = putStrAndID(f.Notes, f.ID, notesBuc)
-		e7 := putSliceAndID(f.Keywords, f.ID, kwBuc)
-		e8 := putSliceAndID(f.Collections, f.ID, collBuc)
-		e9 := putSliceAndID(f.Albums, f.ID, albumBuc)
-		e10 := putStrAndID(f.CTime, f.ID, ctimeBuc)
-		e11 := putStrAndID(f.UTime, f.ID, utimeBuc)
+		e1 := putStrAndIDs(f.Checksum, f.ID, csumBuc)
+		e2 := putIntAndIDs(f.Size, f.ID, sizeBuc)
+		e3 := putStrAndIDs(f.Type, f.ID, typeBuc)
+		e4 = putIntAndIDs(f.Like, f.ID, likeBuc)
+		e5 = putStrAndIDs(f.Label, f.ID, labelBuc)
+		e6 = putStrAndIDs(f.Notes, f.ID, notesBuc)
+		e7 := putSliceAndIDs(f.Keywords, f.ID, kwBuc)
+		e8 := putSliceAndIDs(f.Collections, f.ID, collBuc)
+		e9 := putSliceAndIDs(f.Albums, f.ID, albumBuc)
+		e10 := putStrAndID(sf.CTime, f.ID, ctimeBuc)
+		e11 := putStrAndIDs(f.UTime, f.ID, utimeBuc)
 
 		if err := WrapErrors(e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11); err != nil {
 			return err
@@ -355,6 +355,16 @@ func GetFilesByIDs(ids []string, tx *bolt.Tx) (files []*File, err error) {
 	return files, nil
 }
 
+func GetFileByID(id string, b *bolt.Bucket) (f File, err error) {
+	data := b.Get([]byte(id))
+	if data == nil {
+		err = fmt.Errorf("Not Found ID: %s", id)
+		return
+	}
+	err = json.Unmarshal(data, &f)
+	return
+}
+
 func reCreateBucket(name []byte, tx *bolt.Tx) (*bolt.Bucket, error) {
 	if err := tx.DeleteBucket(name); err != nil {
 		return nil, err
@@ -362,7 +372,7 @@ func reCreateBucket(name []byte, tx *bolt.Tx) (*bolt.Bucket, error) {
 	return tx.CreateBucket(name)
 }
 
-func putStrAndID(key, id string, b *bolt.Bucket) error {
+func putStrAndIDs(key, id string, b *bolt.Bucket) error {
 	if key == "" {
 		return nil
 	}
@@ -377,21 +387,21 @@ func putStrAndID(key, id string, b *bolt.Bucket) error {
 	return bucketPutJson(key, []string{id}, b)
 }
 
-func putIntAndID(i int64, id string, b *bolt.Bucket) error {
+func putIntAndIDs(i int64, id string, b *bolt.Bucket) error {
 	if i == 0 {
 		return nil
 	}
 	key := strconv.FormatInt(i, 10)
-	return putStrAndID(key, id, b)
+	return putStrAndIDs(key, id, b)
 
 }
 
-func putSliceAndID(s []string, id string, b *bolt.Bucket) error {
+func putSliceAndIDs(s []string, id string, b *bolt.Bucket) error {
 	if len(s) == 0 {
 		return nil
 	}
 	for _, item := range s {
-		if err := putStrAndID(item, id, b); err != nil {
+		if err := putStrAndIDs(item, id, b); err != nil {
 			return err
 		}
 	}

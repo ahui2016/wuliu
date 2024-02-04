@@ -13,7 +13,12 @@ import (
 )
 
 type (
+	File = util.File
 	FileChecked = util.FileChecked
+)
+
+const (
+	MB = util.MB
 )
 
 var (
@@ -111,6 +116,41 @@ func allIDs(db *bolt.DB) (ids []string) {
 		})
 	})
 	lo.Must0(err)
+	return
+}
+
+// 注意  fcList 的内容也会改变。
+func checkChecksum(root string, fcList []*FileChecked, db *bolt.DB) (checkN, checkedSize int) {
+	now := util.Now()
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(util.FilesBucket)
+		for i := range fcList {
+			needCheck := isFileNeedCheck(fcList[i].Checked, MainProject.CheckInterval)
+			if needCheck {
+				f := lo.Must(util.GetFileByID(fcList[i].ID, b))
+				fmt.Print(".")
+				fcList[i].Damaged = checkFile(root, f)
+				fcList[i].Checked = now
+				checkN += 1
+				checkedSise += f.Size
+			}
+			// checkN > 0 是为了确保至少检查一个档案
+			if checkN > 0 && checkedSize > MainProject.CheckSizeLimit*MB {
+				return nil
+			}
+		}
+		return nil
+	})
+	lo.Must0(err)
+	return
+}
+
+func checkFile(root string, file File) (damaged bool) {
+	fPath := filepath.Join(root, util.FILES, file.Filename)
+	sum := lo.Must(util.FileSum512(fPath)
+	if sum != file.Checksum {
+		damaged = true
+	}
 	return
 }
 
