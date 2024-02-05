@@ -28,7 +28,7 @@ var (
 )
 
 var (
-	renewFlag    = flag.Bool("renew", false, "reset checked time of all files")
+	renewFlag    = flag.Bool("renew", false, "reset checked time and status of all files")
 	projectsFlag = flag.Bool("projects", false, "list all projects")
 	nFlag        = flag.Int("n", 0, "select a project by a number")
 	checkFlag    = flag.Bool("check", false, "check if files are corrupted")
@@ -37,6 +37,10 @@ var (
 func main() {
 	flag.Parse()
 	util.MustInWuliu()
+
+	if !(*renewFlag || *projectsFlag || *checkFlag) {
+		flag.Usage()
+	}
 
 	root := MainProject.Projects[*nFlag]
 	FileCheckedPath = root + util.FileCheckedPath
@@ -53,22 +57,20 @@ func main() {
 	fcList := lo.Must(readFileChecked())
 
 	if *renewFlag {
-		printInfo(root, fcList, db)
-		renew(db)
-		fmt.Println("renew後待檢查檔案數量:", len(fcList))
+		printInfo(root, len(fcList), db)
+		n := renew(db)
+		fmt.Println("renew後待檢查檔案數量:", n)
 		return
 	}
 
 	if *checkFlag {
+		printInfo(root, len(fcList), db)
 		doCheck(root, fcList, db)
 		return
 	}
-
-	flag.Usage()
 }
 
 func doCheck(root string, fcList []*FileChecked, db *bolt.DB) {
-	printInfo(root, fcList, db)
 	checkN, checkedSize := checkChecksum(root, fcList, db)
 	totalSize := util.FileSizeToString(float64(checkedSize), 2)
 	fmt.Println("本次檢查檔案數量:", checkN)
@@ -87,10 +89,10 @@ func printProjectsList() {
 	}
 }
 
-func printInfo(root string, fcList []*FileChecked, db *bolt.DB) {
+func printInfo(root string, n int, db *bolt.DB) {
 	fmt.Println("已選擇專案:", root)
 	fmt.Println("數據庫檔案數量:", bucketKeysCount(db))
-	fmt.Println("待檢查檔案數量:", len(fcList))
+	fmt.Println("待檢查檔案數量:", n)
 }
 
 func printDamaged(fcList []*FileChecked, db *bolt.DB) {
@@ -129,12 +131,15 @@ func openDB(dbPath string) (*bolt.DB, error) {
 }
 
 func readFileChecked() (fcList []*FileChecked, err error) {
+	if util.PathNotExists(FileCheckedPath) {
+		return
+	}
 	data := lo.Must(os.ReadFile(FileCheckedPath))
 	err = json.Unmarshal(data, &fcList)
 	return
 }
 
-func renew(db *bolt.DB) {
+func renew(db *bolt.DB) int {
 	fmt.Println("更新 =>", FileCheckedPath)
 	if util.PathExists(FileCheckedPath) {
 		log.Fatalln("File Exitst:", FileCheckedPath)
@@ -147,6 +152,7 @@ func renew(db *bolt.DB) {
 	}
 	_ = lo.Must(
 		util.WriteJSON(list, FileCheckedPath))
+	return len(ids)
 }
 
 func allIDs(db *bolt.DB) (ids []string) {

@@ -162,6 +162,24 @@ type ProjectInfo struct {
 ## wuliu-checksum
 
 - `wuliu-checksum --renew` 将全部文件的 damaged 设为 false, 上次检查时间设为 epoch
+- `wuliu-checksum --check` 校验文件完整性（看文件是否损坏）
+- `wuliu-checksum --projects` 列印全部专案
+- `wuliu-checksum -n` 通过序号选择专案，默认是 0 (即当前专案)
+
+在执行 `wuliu-checksum` 命令时，有时会显示以下信息：
+
+```
+已選擇專案: ./
+數據庫檔案數量: 5
+待檢查檔案數量: 5
+```
+
+如果发现 "數據庫檔案數量" 与 "待檢查檔案數量" 不一致，
+可以执行 `wuliu-checksum --renew` 进行修正。
+
+执行 `wuliu-checksum --check` 时，会根据 project.json 中的 CheckInterval (检查周期)
+自动判断档案是否需要检查，根据 CheckSizeLimit (检查体积上限) 自动终止检查，防止
+单次检查时间太长。
 
 ## TODO
 
