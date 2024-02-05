@@ -220,7 +220,7 @@ func RebuildCTimeBucket(db *bolt.DB) error {
 			return err
 		}
 		for _, f := range files {
-			if err := putStrAndID(f.CTime, f.ID, b); err != nil {
+			if err := putStrAndIDs(f.CTime, f.ID, b); err != nil {
 				return err
 			}
 		}
@@ -308,7 +308,7 @@ func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
 		e7 := putSliceAndIDs(f.Keywords, f.ID, kwBuc)
 		e8 := putSliceAndIDs(f.Collections, f.ID, collBuc)
 		e9 := putSliceAndIDs(f.Albums, f.ID, albumBuc)
-		e10 := putStrAndID(sf.CTime, f.ID, ctimeBuc)
+		e10 := putStrAndIDs(f.CTime, f.ID, ctimeBuc)
 		e11 := putStrAndIDs(f.UTime, f.ID, utimeBuc)
 
 		if err := WrapErrors(e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11); err != nil {
