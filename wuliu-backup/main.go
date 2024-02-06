@@ -14,33 +14,31 @@ var (
 )
 
 var (
-	projectsFlag = flag.Bool("projects", false, "list all projects")
-	nFlag        = flag.Int("n", 0, "select a project by a number")
-	addFlag      = flag.String("add", "", "add a new backup-project")
-	backupFlag   = flag.Bool("backup", false, "do backup files")
+	projectsFlag  = flag.Bool("projects", false, "list all projects")
+	nFlag         = flag.Int("n", 0, "select a project by a number")
+	backupFlag    = flag.Bool("backup", false, "do backup files")
 )
 
 func main() {
 	flag.Parse()
 	util.MustInWuliu()
 
-	if *addFlag != "" {
-		util.FolderMustEmpty(*addFlag)
-		util.MakeFolders(true)
-		writeProjectInfo(*nameFlag)
-		util.InitFileChecked()
-		util.CreateDatabase()
-		return
-	}
-
 	if *backupFlag {
 		if *nFlag == 0 {
 			log.Fatalln("請使用參數 '-n' 指定備份專案")
 		}
-		backupRoot := MainProject.Projects[*nFlag]
+		bkRoot := MainProject.Projects[*nFlag]
 		return
 	}
 
 }
 
-func backupProjectInfo()
+func syncProjInfo(bkRoot string) error {
+	bkProjInfo := MainProject
+	bkProjInfo.IsBackup = true
+	bkProjInfoPath := filepath.Join(bkRoot, util.ProjectInfoPath)
+	_, err := WriteJSON(bkProjInfo, bkProjInfoPath)
+	return err
+}
+
+func backupProjectInfo() {}

@@ -23,7 +23,6 @@ const (
 )
 
 var (
-	FileCheckedPath string
 	MainProject     = util.ReadProjectInfo()
 )
 
@@ -43,8 +42,7 @@ func main() {
 	}
 
 	root := MainProject.Projects[*nFlag]
-	FileCheckedPath = root + util.FileCheckedPath
-	dbPath := root + util.DatabasePath
+	dbPath := filepath.Join(root, util.DatabasePath)
 
 	if *projectsFlag {
 		printProjectsList()
@@ -54,11 +52,11 @@ func main() {
 	db := lo.Must(openDB(dbPath))
 	defer db.Close()
 
-	fcList := lo.Must(readFileChecked())
+	fcList := lo.Must(readFileChecked(root))
 
 	if *renewFlag {
 		printInfo(root, len(fcList), db)
-		n := renew(db)
+		n := renewFileChecked(root, db)
 		fmt.Println("renew後待檢查檔案數量:", n)
 		return
 	}
@@ -77,9 +75,10 @@ func doCheck(root string, fcList []*FileChecked, db *bolt.DB) {
 	fmt.Println("本次檢查檔案體積:", totalSize)
 	printDamaged(fcList, db)
 	if checkN > 0 {
-		fmt.Println("Update =>", FileCheckedPath)
+		fileCheckedPath := filepath.Join(root, util.FileCheckedPath)
+		fmt.Println("Update =>", fileCheckedPath)
 		_ = lo.Must(
-			util.WriteJSON(fcList, FileCheckedPath))
+			util.WriteJSON(fcList, fileCheckedPath))
 	}
 }
 
@@ -130,29 +129,14 @@ func openDB(dbPath string) (*bolt.DB, error) {
 		dbPath, util.NormalDirPerm, &bolt.Options{Timeout: 1 * time.Second})
 }
 
-func readFileChecked() (fcList []*FileChecked, err error) {
-	if util.PathNotExists(FileCheckedPath) {
+func readFileChecked(root string) (fcList []*FileChecked, err error) {
+	fileCheckedPath := filepath.Join(root, util.FileCheckedPath)
+	if util.PathNotExists(fileCheckedPath) {
 		return
 	}
-	data := lo.Must(os.ReadFile(FileCheckedPath))
+	data := lo.Must(os.ReadFile(fileCheckedPath))
 	err = json.Unmarshal(data, &fcList)
 	return
-}
-
-func renew(db *bolt.DB) int {
-	fmt.Println("更新 =>", FileCheckedPath)
-	if util.PathExists(FileCheckedPath) {
-		log.Fatalln("File Exitst:", FileCheckedPath)
-	}
-	ids := allIDs(db)
-	var list []*FileChecked
-	for _, id := range ids {
-		fc := &FileChecked{id, util.Epoch, false}
-		list = append(list, fc)
-	}
-	_ = lo.Must(
-		util.WriteJSON(list, FileCheckedPath))
-	return len(ids)
 }
 
 func allIDs(db *bolt.DB) (ids []string) {
@@ -209,4 +193,21 @@ func isFileNeedCheck(checked string, intervalDay int) bool {
 	needCheckDate := time.Unix(needCheckUnix, 0).Format(util.RFC3339)
 	// 如果上次校验日期小于(早于) needCheckDate, 就需要再次校验。
 	return checked < needCheckDate
+}
+
+func renewFileChecked(root string, db *bolt.DB) int {
+	fileCheckedPath := filepath.Join(root, FileCheckedPath)
+	fmt.Println("更新 =>", fileCheckedPath)
+	if util.PathExists(fileCheckedPath) {
+		log.Fatalln("File Exitst:", fileCheckedPath)
+	}
+	ids := allIDs(db)
+	var list []*FileChecked
+	for _, id := range ids {
+		fc := &FileChecked{id, Epoch, false}
+		list = append(list, fc)
+	}
+	_ = lo.Must(
+		util.WriteJSON(list, fileCheckedPath))
+	return len(ids)
 }

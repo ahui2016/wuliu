@@ -158,6 +158,25 @@ func FileSum512(name string) (HexString, error) {
 	return hex.EncodeToString(checksum), nil
 }
 
+// https://stackoverflow.com/questions/30376921/how-do-you-copy-a-file-in-go
+func CopyFile(dstPath, srcPath string) error {
+	src, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	dst, err := os.Create(dstPath)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	_, err1 := io.Copy(dst, src)
+	err2 := dst.Sync()
+	return WrapErrors(err1, err2)
+}
+
 // FileSizeToString 把文件大小转换为方便人类阅读的格式。
 // fixed 指定小数点后几位, 设为负数表示不限制小数位。
 func FileSizeToString(size float64, fixed int) string {
