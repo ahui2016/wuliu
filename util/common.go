@@ -28,6 +28,29 @@ func PrintWhereExit(ok bool) {
 	}
 }
 
+func FolderMustEmpty(folder string) {
+	if folder == "" || folder == "." {
+		folder = GetCwd()
+	}
+	if lo.Must(DirIsNotEmpty(folder)) {
+		log.Fatalln("資料夾不為空:", folder)
+	}
+}
+
+func MakeFolders(verbose bool) {
+	for _, folder := range Folders {
+		if verbose {
+			fmt.Println("Create folder:", folder)
+		}
+		lo.Must0(MkdirIfNotExists(folder))
+	}
+}
+
+func InitFileChecked() {
+	_ = lo.Must(
+		util.WriteJSON([]int{}, FileCheckedPath))
+}
+
 func ReadFileChecked() (fcList []*FileChecked) {
 	data := lo.Must(os.ReadFile(FileCheckedPath))
 	lo.Must0(json.Unmarshal(data, &fcList))
@@ -75,7 +98,7 @@ func FindOrphans() (fileOrphans, metaOrphans []string, err error) {
 // NewFilesFromInput 把档案名 (names) 转换为 File, 此时假设档案都在 input 资料夹内。
 func NewFilesFromInput(names []string) (files []*File, err error) {
 	for _, name := range names {
-		filePath := INPUT + "/" + name
+		filePath := filepath.Join(INPUT, name)
 		info, err := os.Lstat(filePath)
 		if err != nil {
 			return nil, err
@@ -128,13 +151,13 @@ func namesInMetadataTrim() ([]string, error) {
 // 注意，这里说的删除是将档案移动到专案根目录的 recyclebin 中，
 // 如果 recyclebin 里有同名档案则直接覆盖。
 func deleteFileByName(name string) {
-	f := FILES + "/" + name
-	m := METADATA + "/" + name + ".json"
+	f := filepath.Join(FILES, name)
+	m := filepath.Join(METADATA, name+".json")
 	for _, oldpath := range []string{f, m} {
 		if PathNotExists(oldpath) {
 			fmt.Println("NotFound =>", oldpath)
 		} else {
-			newpath := RECYCLEBIN + "/" + filepath.Base(oldpath)
+			newpath := filepath.Join(RECYCLEBIN, filepath.Base(oldpath))
 			fmt.Println("move =>", newpath)
 			if err := os.Rename(oldpath, newpath); err != nil {
 				fmt.Println(err)

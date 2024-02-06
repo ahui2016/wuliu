@@ -53,7 +53,7 @@ type ProjectInfo struct {
 }
 ```
 
-其中 `Projects` 要注意必须确保第一个是 "./", 并且每个专案地址都以 "/" 结尾。
+其中 `Projects` 要注意必须确保第一个是 "."。
 
 ## wuliu-orphan
 

@@ -33,6 +33,15 @@ const (
 	RECYCLEBIN = "recyclebin"
 )
 
+var Folders = []string{
+	FILES,
+	METADATA,
+	INPUT,
+	OUTPUT,
+	WEBPAGES,
+	RECYCLEBIN,
+}
+
 var (
 	Epoch     = time.Unix(0, 0).Format(RFC3339)
 	Separator = string(filepath.Separator)
@@ -59,8 +68,7 @@ type ProjectInfo struct {
 func NewProjectInfo(name string) (info ProjectInfo) {
 	info.RepoName = RepoName
 	info.ProjectName = name
-	// 注意必须确保第一个是 "./", 每个专案地址都以 "/" 结尾
-	info.Projects = []string{"./"}
+	info.Projects = []string{"."} // 注意必须确保第一个是 "."
 	info.LastBackupAt = []string{Epoch}
 	info.CheckInterval = 30
 	info.CheckSizeLimit = 1024

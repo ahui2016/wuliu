@@ -15,10 +15,6 @@ var (
 	wFlag    = flag.Bool("where", false, "print where is the command")
 )
 
-var Folders = []string{
-	util.FILES, util.METADATA, util.INPUT, util.OUTPUT, util.WEBPAGES, util.RECYCLEBIN,
-}
-
 func main() {
 	customFlagUsage()
 	flag.Parse()
@@ -29,10 +25,10 @@ func main() {
 		flag.Usage()
 		return
 	}
-	checkCWD()
-	makeFolders()
+	util.FolderMustEmpty(".")
+	util.MakeFolders(true)
 	writeProjectInfo(*nameFlag)
-	writeFileChecked()
+	util.InitFileChecked()
 	util.CreateDatabase()
 }
 
@@ -46,27 +42,8 @@ func customFlagUsage() {
 	}
 }
 
-func checkCWD() {
-	cwd := util.GetCwd()
-	if lo.Must(util.DirIsNotEmpty(cwd)) {
-		log.Fatalln("當前目錄不為空:", cwd)
-	}
-}
-
-func makeFolders() {
-	for _, folder := range Folders {
-		fmt.Println("Create folder:", folder)
-		lo.Must0(util.MkdirIfNotExists(folder))
-	}
-}
-
 func writeProjectInfo(name string) {
 	fmt.Println("Create", util.ProjectInfoPath)
 	info := util.NewProjectInfo(name)
 	lo.Must0(util.WriteProjectInfo(info))
-}
-
-func writeFileChecked() {
-	_ = lo.Must(
-		util.WriteJSON([]int{}, util.FileCheckedPath))
 }

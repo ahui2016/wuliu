@@ -114,13 +114,13 @@ func printNewFiles(files []*File) {
 func addNewFiles(files []*File, db *bolt.DB) {
 	var metadatas []FileAndMeta
 	for _, f := range files {
-		metaPath := util.METADATA + "/" + f.Filename + ".json"
+		metaPath := filepath.Join(util.METADATA, f.Filename+".json")
 		fmt.Println("Create =>", metaPath)
 		meta := lo.Must(util.WriteJSON(f, metaPath))
 		metadatas = append(metadatas, FileAndMeta{f, meta})
 
-		src := util.INPUT + "/" + f.Filename
-		dst := util.FILES + "/" + f.Filename
+		src := filepath.Join(util.INPUT, f.Filename)
+		dst := filepath.Join(util.FILES, f.Filename)
 		fmt.Println("Add =>", dst)
 		lo.Must0(os.Rename(src, dst))
 	}
@@ -141,8 +141,8 @@ func checkExist(files []*File, db *bolt.DB) {
 
 	var dstFiles []string
 	for _, f := range files {
-		dst := util.FILES + "/" + f.Filename
-		meta := util.METADATA + "/" + f.Filename + ".json"
+		dst := filepath.Join(util.FILES, f.Filename)
+		meta := filepath.Join(util.METADATA, f.Filename+".json")
 		dstFiles = append(dstFiles, dst, meta)
 	}
 	var existFiles []string
