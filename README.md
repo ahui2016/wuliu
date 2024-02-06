@@ -20,12 +20,15 @@ Wuliu File Manager (五柳档案管理脚本)
 - wuliu-db (数据库信息，更新缓存)
 - wuliu-checksum (检查档案完整性)
 - wuliu-replace (更新同名档案，覆盖旧档案)
+- wuliu-backup (备份专案)
 
 ## wuliu-init
 
 - 新建/初始化一个专案，主要是新建一些资料夹和数据库、配置等。
 - 只能对一个空资料夹进行初始化
-- 使用方法: 进入一个空资料夹，执行 `wuliu-init` (没有任何参数，只能初始化当前目录)
+- 使用方法: 进入一个空资料夹，执行 `wuliu-init -name` 进行初始化。
+- 注意，请为不同的专案设定不同的名称，备份时有用。
+- 备份专案（详见关于 `wuliu-backup` 的说明）的专案名称必须与源专案一致。
 - `wuliu-init -h` 列印帮助信息
 - `wuliu-init -v` 列印版本信息
 - `wuliu-init -where` 列印 wuliu-init 的位置
@@ -181,6 +184,14 @@ type ProjectInfo struct {
 自动判断档案是否需要检查，根据 CheckSizeLimit (检查体积上限) 自动终止检查，防止
 单次检查时间太长。
 
-## TODO
+## wuliu-backup
 
-- wuliu-orphan --check
+- `wuliu-backup --projects` 列印全部备份专案
+- “备份专案”是指专门用于备份的专案
+- 本软件采用单向备份方式，备份时以“主专案”为准，
+  使备份专案里的档案变成与主专案一样。
+- `wuliu-backup --add` 添加一个备份专案的地址 (必须是一个空资料夹)
+- `wuliu-backup -n` 通过序号选择备份专案
+- `wuliu-backup -backup` 正式执行备份
+- 例如执行命令 `wuliu-backup -n 1` 会列印第 1 个备份专案的信息，但不会执行备份。
+  而执行命令  `wuliu-backup -n=1 -backup` 则会正式执行备份。

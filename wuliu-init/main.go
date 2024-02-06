@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	vFlag = flag.Bool("v", false, "print the version of the command")
-	wFlag = flag.Bool("where", false, "print where is the command")
+	nameFlag = flag.String("name", "", "set a unique name for the project")
+	vFlag    = flag.Bool("v", false, "print the version of the command")
+	wFlag    = flag.Bool("where", false, "print where is the command")
 )
 
 var Folders = []string{
@@ -24,16 +25,20 @@ func main() {
 	util.PrintVersionExit(*vFlag)
 	util.PrintWhereExit(*wFlag)
 
+	if *nameFlag == "" {
+		flag.Usage()
+		return
+	}
 	checkCWD()
 	makeFolders()
-	writeProjectInfo()
+	writeProjectInfo(*nameFlag)
 	writeFileChecked()
 	util.CreateDatabase()
 }
 
 // customFlagUsage 必须在 `flag.Parse()` 之前执行才有效。
 func customFlagUsage() {
-	cmdUsage := "在空资料夹内执行 `wuliu-init` (不带参数) 即可初始化专案。"
+	cmdUsage := "在空资料夹内执行 `wuliu-init -name` 初始化专案。"
 	flag.Usage = func() {
 		fmt.Fprintf(
 			flag.CommandLine.Output(), "Usage of %s:\n%s\n", os.Args[0], cmdUsage)
@@ -55,9 +60,10 @@ func makeFolders() {
 	}
 }
 
-func writeProjectInfo() {
+func writeProjectInfo(name string) {
 	fmt.Println("Create", util.ProjectInfoPath)
-	lo.Must0(util.WriteProjectInfo(util.DefaultWuliuInfo))
+	info := util.NewProjectInfo(name)
+	lo.Must0(util.WriteProjectInfo(info))
 }
 
 func writeFileChecked() {

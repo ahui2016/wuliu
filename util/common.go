@@ -14,9 +14,9 @@ import (
 
 func PrintVersionExit(ok bool) {
 	if ok {
-		fmt.Println(DefaultWuliuInfo.RepoName)
-		fmt.Println(DefaultWuliuInfo.RepoURL)
-		fmt.Println("Version: 2024-01-31")
+		fmt.Println(RepoName)
+		fmt.Println(RepoURL)
+		fmt.Println("Version: 2024-02-06")
 		os.Exit(0)
 	}
 }
@@ -50,8 +50,8 @@ func MustInWuliu() {
 		log.Fatalln("找不到 project.json")
 	}
 	info := ReadProjectInfo()
-	if info.RepoName != DefaultWuliuInfo.RepoName {
-		log.Fatalf("RepoName (%s) != '%s'", info.RepoName, DefaultWuliuInfo.RepoName)
+	if info.RepoName != RepoName {
+		log.Fatalf("RepoName (%s) != '%s'", info.RepoName, RepoName)
 	}
 }
 

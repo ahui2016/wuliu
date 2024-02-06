@@ -299,7 +299,8 @@ func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
 	}
 
 	for _, f := range files {
-		e1 := putStrAndIDs(f.Checksum, f.ID, csumBuc)
+		// e1 := putStrAndIDs(f.Checksum, f.ID, csumBuc)
+		e1 := PutToBucket([]byte(f.ID), []byte(f.Checksum), csumBuc)
 		e2 := putIntAndIDs(f.Size, f.ID, sizeBuc)
 		e3 := putStrAndIDs(f.Type, f.ID, typeBuc)
 		e4 = putIntAndIDs(f.Like, f.ID, likeBuc)

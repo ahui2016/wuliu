@@ -3,6 +3,7 @@ go 1.21.0
 use (
 	./util
 	./wuliu-add
+	./wuliu-backup
 	./wuliu-checksum
 	./wuliu-db
 	./wuliu-delete

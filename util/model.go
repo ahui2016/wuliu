@@ -17,6 +17,8 @@ const (
 	MIMEOctetStream = "application/octet-stream"
 	NormalFilePerm  = 0666
 	NormalDirPerm   = 0750
+	RepoName        = "Wuliu File Manager"
+	RepoURL         = "https://github.com/ahui2016/wuliu"
 	ProjectInfoPath = "project.json"
 	FileCheckedPath = "file_checked.json"
 	DatabasePath    = "project.db"
@@ -42,8 +44,8 @@ type (
 )
 
 type ProjectInfo struct {
-	RepoName         string
-	RepoURL          string
+	RepoName         string   // 用于判断资料夹是否 Wuliu 专案
+	ProjectName      string   // 备份时要求专案名称相同
 	IsBackup         bool     // 是否副本（副本禁止添加、删除等）
 	Projects         []string // 第一个是主专案，然后是备份专案
 	LastBackupAt     []string // 上次备份时间
@@ -54,13 +56,15 @@ type ProjectInfo struct {
 	OrphanMetaCount  int      // 孤立的 metadata 数量
 }
 
-var DefaultWuliuInfo = ProjectInfo{
-	RepoName:       "Wuliu File Manager",
-	RepoURL:        "https://github.com/ahui2016/wuliu",
-	Projects:       []string{"./"}, // 注意必须确保第一个是 "./", 每个专案地址都以 "/" 结尾
-	LastBackupAt:   []string{Epoch},
-	CheckInterval:  30,
-	CheckSizeLimit: 1024,
+func NewProjectInfo(name string) (info ProjectInfo) {
+	info.RepoName = RepoName
+	info.ProjectName = name
+	// 注意必须确保第一个是 "./", 每个专案地址都以 "/" 结尾
+	info.Projects = []string{"./"}
+	info.LastBackupAt = []string{Epoch}
+	info.CheckInterval = 30
+	info.CheckSizeLimit = 1024
+	return
 }
 
 // EditFiles 用于批量修改档案属性。
