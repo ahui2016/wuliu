@@ -37,7 +37,7 @@ func main() {
 	if *nFlag > 0 {
 		bkRoot := getBkRoot()
 		mainStatus, bkStatus := getProjectsStatus(".", bkRoot)
-		printStatus(mainStatus, bkStatus)
+		printStatus(mainStatus, bkStatus, *nFlag)
 		if err := checkStatus(mainStatus, bkStatus); err != nil {
 			log.Fatalln(err)
 		}
@@ -126,14 +126,16 @@ func checkStatus(mainStatus, bkStatus ProjectStatus) error {
 	return nil
 }
 
-func printStatus(mainStatus, bkStatus ProjectStatus) {
+func printStatus(mainStatus, bkStatus ProjectStatus, n int) {
 	fmt.Printf("源專案\t\t%s\n", mainStatus.Root)
 	fmt.Printf("檔案數量\t%d\n", mainStatus.FilesCount)
 	fmt.Printf("體積合計\t%s\n", mainStatus.TotalSize)
 	fmt.Printf("受損檔案\t%d\n", mainStatus.DamagedCount)
+	fmt.Printf("上次備份時間\t%s\n", mainStatus.LastBackupAt[0])
 	fmt.Println()
 	fmt.Printf("目標專案\t%s\n", bkStatus.Root)
 	fmt.Printf("檔案數量\t%d\n", bkStatus.FilesCount)
 	fmt.Printf("體積合計\t%s\n", bkStatus.TotalSize)
 	fmt.Printf("受損檔案\t%d\n", bkStatus.DamagedCount)
+	fmt.Printf("上次備份時間\t%s\n", mainStatus.LastBackupAt[n])
 }

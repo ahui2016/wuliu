@@ -196,6 +196,8 @@ type ProjectInfo struct {
 - 编辑 backupRoot 里的 project.json, 把 IsBackup 的值改为 true
 - 编辑主专案中的 project.json, 把 backupRoot 的路径添加到 Projects 列表中。
   注意，路径里的反斜杠改要为 "\\" 或 "/"
+- 编辑主专案中的 project.json, 在 LastBackupAt 中添加一个时间
+  （可以是空字符串 ""）
 
 以上是创建新备份专案的方法，以下是 wuliu-backup 的其他命令：
 
