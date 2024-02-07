@@ -23,13 +23,13 @@ const (
 )
 
 var (
-	MainProject     = util.ReadProjectInfo()
+	MainProject = util.ReadProjectInfo()
 )
 
 var (
 	renewFlag    = flag.Bool("renew", false, "reset checked time and status of all files")
 	projectsFlag = flag.Bool("projects", false, "list all projects")
-	nFlag        = flag.Int("n", 0, "select a project by a number")
+	nFlag        = flag.Int("n", 0, "select a project by a number (default: 0)")
 	checkFlag    = flag.Bool("check", false, "check if files are corrupted")
 )
 
@@ -49,10 +49,10 @@ func main() {
 		return
 	}
 
-	db := lo.Must(openDB(dbPath))
+	db := lo.Must(util.OpenDB(root))
 	defer db.Close()
 
-	fcList := lo.Must(readFileChecked(root))
+	fcList := lo.Must(util.ReadFileChecked(root))
 
 	if *renewFlag {
 		printInfo(root, len(fcList), db)
@@ -105,15 +105,6 @@ func printDamaged(fcList []*FileChecked, db *bolt.DB) {
 	}
 }
 
-func getDamaged(fcList []*FileChecked) (ids []string) {
-	for _, fc := range fcList {
-		if fc.Damaged {
-			ids = append(ids, fc.ID)
-		}
-	}
-	return
-}
-
 func bucketKeysCount(db *bolt.DB) (n int) {
 	err := db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(util.FilesBucket)
@@ -121,21 +112,6 @@ func bucketKeysCount(db *bolt.DB) (n int) {
 		return nil
 	})
 	lo.Must0(err)
-	return
-}
-
-func openDB(dbPath string) (*bolt.DB, error) {
-	return bolt.Open(
-		dbPath, util.NormalDirPerm, &bolt.Options{Timeout: 1 * time.Second})
-}
-
-func readFileChecked(root string) (fcList []*FileChecked, err error) {
-	fileCheckedPath := filepath.Join(root, util.FileCheckedPath)
-	if util.PathNotExists(fileCheckedPath) {
-		return
-	}
-	data := lo.Must(os.ReadFile(fileCheckedPath))
-	err = json.Unmarshal(data, &fcList)
 	return
 }
 
@@ -196,7 +172,7 @@ func isFileNeedCheck(checked string, intervalDay int) bool {
 }
 
 func renewFileChecked(root string, db *bolt.DB) int {
-	fileCheckedPath := filepath.Join(root, FileCheckedPath)
+	fileCheckedPath := filepath.Join(root, util.FileCheckedPath)
 	fmt.Println("更新 =>", fileCheckedPath)
 	if util.PathExists(fileCheckedPath) {
 		log.Fatalln("File Exitst:", fileCheckedPath)
@@ -204,7 +180,7 @@ func renewFileChecked(root string, db *bolt.DB) int {
 	ids := allIDs(db)
 	var list []*FileChecked
 	for _, id := range ids {
-		fc := &FileChecked{id, Epoch, false}
+		fc := &FileChecked{id, util.Epoch, false}
 		list = append(list, fc)
 	}
 	_ = lo.Must(

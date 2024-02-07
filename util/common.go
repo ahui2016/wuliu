@@ -47,18 +47,22 @@ func MakeFolders(verbose bool) {
 }
 
 func InitFileChecked() {
-	_ = lo.Must(
-		util.WriteJSON([]int{}, FileCheckedPath))
+	_ = lo.Must(WriteJSON([]int{}, FileCheckedPath))
 }
 
-func ReadFileChecked() (fcList []*FileChecked) {
-	data := lo.Must(os.ReadFile(FileCheckedPath))
-	lo.Must0(json.Unmarshal(data, &fcList))
+func ReadFileChecked(root string) (fcList []*FileChecked, err error) {
+	fileCheckedPath := filepath.Join(root, FileCheckedPath)
+	if PathNotExists(fileCheckedPath) {
+		return
+	}
+	data := lo.Must(os.ReadFile(fileCheckedPath))
+	err = json.Unmarshal(data, &fcList)
 	return
 }
 
-func ReadProjectInfo() (info ProjectInfo) {
-	data := lo.Must(os.ReadFile(ProjectInfoPath))
+func ReadProjectInfo(root string) (info ProjectInfo) {
+	infoPath := filepath.Join(root, ProjectInfoPath)
+	data := lo.Must(os.ReadFile(infoPath))
 	lo.Must0(json.Unmarshal(data, &info))
 	return
 }
@@ -72,7 +76,7 @@ func MustInWuliu() {
 	if PathNotExists(ProjectInfoPath) {
 		log.Fatalln("找不到 project.json")
 	}
-	info := ReadProjectInfo()
+	info := ReadProjectInfo(".")
 	if info.RepoName != RepoName {
 		log.Fatalf("RepoName (%s) != '%s'", info.RepoName, RepoName)
 	}
@@ -85,7 +89,7 @@ func FindOrphans() (fileOrphans, metaOrphans []string, err error) {
 		return
 	}
 	fileOrphans, metaOrphans = lo.Difference(files, metas)
-	info := ReadProjectInfo()
+	info := ReadProjectInfo(".")
 	info.OrphanLastCheck = Now()
 	info.OrphanFilesCount = len(fileOrphans)
 	info.OrphanMetaCount = len(metaOrphans)
@@ -197,20 +201,26 @@ func PrintFilesSimple(files []*File) {
 }
 
 func AddToFileChecked(files []*File) error {
-	fcList := ReadFileChecked()
+	fcList, err := ReadFileChecked(".")
+	if err != nil {
+		return err
+	}
 	for _, f := range files {
 		fc := &FileChecked{f.ID, f.CTime, false}
 		fcList = append(fcList, fc)
 	}
-	_, err := WriteJSON(fcList, FileCheckedPath)
+	_, err = WriteJSON(fcList, FileCheckedPath)
 	return err
 }
 
 func DeleteFromFileChecked(ids []string) error {
-	oldList := ReadFileChecked()
+	oldList, err := ReadFileChecked(".")
+	if err != nil {
+		return err
+	}
 	fcList := slices.DeleteFunc(oldList, func(fc *FileChecked) bool {
 		return slices.Contains(ids, fc.ID)
 	})
-	_, err := WriteJSON(fcList, FileCheckedPath)
+	_, err = WriteJSON(fcList, FileCheckedPath)
 	return err
 }

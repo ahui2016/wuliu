@@ -187,10 +187,12 @@ type ProjectInfo struct {
 ## wuliu-backup
 
 创建新备份专案的方法：
+（差点就为这个功能写程序了，写到一半发现违反“编程简单第一”原则，就改成手动操作。）
 
 - 请先进入一个空资料夹（新的备份专案的根目录，以下称为 backupRoot）
 - 把现有专案（以下称为“主专案”）的 files, metadata 这两个资料夹，
-  以及 project.db, project.json 这两个文件复制到 backupRoot 中。
+  以及 project.db, project.json 这两个档案复制到 backupRoot 中。
+  其他资料夹和档案可复制可不复制。
 - 编辑 backupRoot 里的 project.json, 把 IsBackup 的值改为 true
 - 编辑主专案中的 project.json, 把 backupRoot 的路径添加到 Projects 列表中。
   注意，路径里的反斜杠改要为 "\\" 或 "/"
@@ -205,3 +207,9 @@ type ProjectInfo struct {
 - `wuliu-backup -backup` 正式执行备份
 - 例如执行命令 `wuliu-backup -n 1` 会列印第 1 个备份专案的信息，但不会执行备份。
   而执行命令  `wuliu-backup -n=1 -backup` 则会正式执行备份。
+- 建议在执行 `wuliu-backup -n` 查看信息前，先执行 `wuliu-db -update=cache`
+- 有时还可能需要去备份专案的根目录里执行  `wuliu-db -update=cache`
+
+## TODO
+
+- 备份档案禁止 add, delete 等命令。

@@ -75,6 +75,14 @@ func NewProjectInfo(name string) (info ProjectInfo) {
 	return
 }
 
+type ProjectStatus struct {
+	*ProjectInfo
+	Root         string // 专案根目录
+	TotalSize    string // 全部檔案體積合計(字符串)
+	FilesCount   int    // 檔案數量合計
+	DamagedCount int    // 受損檔案數量合計
+}
+
 // EditFiles 用于批量修改档案属性。
 type EditFiles struct {
 	IDs         []string `json:"ids"`         // 通过 ID 指定档案

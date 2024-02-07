@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -43,14 +44,15 @@ var Buckets = [][]byte{
 	UTimeBucket,
 }
 
-func OpenDB() (*bolt.DB, error) {
+func OpenDB(root string) (*bolt.DB, error) {
+	dbPath := filepath.Join(root, DatabasePath)
 	return bolt.Open(
-		DatabasePath, NormalDirPerm, &bolt.Options{Timeout: 1 * time.Second})
+		dbPath, NormalDirPerm, &bolt.Options{Timeout: 1 * time.Second})
 }
 
 func CreateDatabase() {
 	fmt.Println("Create", DatabasePath)
-	db := lo.Must(OpenDB())
+	db := lo.Must(OpenDB("."))
 	defer db.Close()
 	lo.Must0(createBuckets(db))
 }
@@ -171,6 +173,29 @@ func KeyExistsInBucket(key []byte, b *bolt.Bucket) bool {
 	return b.Get(key) != nil
 }
 
+func DatabaseFilesSize(db *bolt.DB) (fileN int, totalSize string, err error) {
+	err = db.View(func(tx *bolt.Tx) error {
+		total := 0
+		b := tx.Bucket(SizeBucket)
+		err := b.ForEach(func(k, v []byte) error {
+			size, err := strconv.Atoi(string(k))
+			if err != nil {
+				return err
+			}
+			n := len(strings.Split(string(v), ","))
+			fileN += n
+			total += size * n
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+		totalSize = FileSizeToString(float64(total), 2)
+		return nil
+	})
+	return
+}
+
 // RebuildDatabase 删除数据库，然后重建数据库并且重新填充数据。
 func RebuildDatabase() {
 	if PathExists(DatabasePath) {
@@ -178,7 +203,7 @@ func RebuildDatabase() {
 		lo.Must0(os.Remove(DatabasePath))
 	}
 	fmt.Println("Rebuilding database...")
-	db := lo.Must(OpenDB())
+	db := lo.Must(OpenDB("."))
 	defer db.Close()
 	lo.Must0(createBuckets(db))
 	lo.Must0(rebuildAllBuckets(db))
