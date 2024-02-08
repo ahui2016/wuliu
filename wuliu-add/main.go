@@ -27,6 +27,7 @@ var (
 func main() {
 	flag.Parse()
 	util.MustInWuliu()
+	util.CheckNotAllowInBackup()
 	checkOrphan()
 
 	db := lo.Must(util.OpenDB())

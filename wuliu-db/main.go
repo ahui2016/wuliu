@@ -75,5 +75,6 @@ func updateCache(db *bolt.DB) error {
 
 func printTotalSize(db *bolt.DB) {
 	fileN, totalSize := lo.Must2(util.DatabaseFilesSize(db))
-	fmt.Printf("Total: %d files, %s\n", fileN, totalStr)
+	totalSizeStr := FileSizeToString(float64(totalSize), 2)
+	fmt.Printf("Total: %d files, %s\n", fileN, totalSizeStr)
 }

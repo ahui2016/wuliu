@@ -201,16 +201,18 @@ type ProjectInfo struct {
 
 以上是创建新备份专案的方法，以下是 wuliu-backup 的其他命令：
 
-- `wuliu-backup --projects` 列印全部备份专案
-- “备份专案”是指专门用于备份的专案
-- 本软件采用单向备份方式，备份时以“主专案”为准，
-  使备份专案里的档案变成与主专案一样。
-- `wuliu-backup -n` 通过序号选择备份专案
+- `wuliu-backup --projects` 列印全部备份专案（目标专案）
+- “目标专案”是指专门用于备份的专案
+- 本软件采用单向备份方式，备份时以“源专案”为准，
+  使目标专案里的档案变成与源专案一样。
+- `wuliu-backup -n` 通过序号选择目标专案
 - `wuliu-backup -backup` 正式执行备份
 - 例如执行命令 `wuliu-backup -n 1` 会列印第 1 个备份专案的信息，但不会执行备份。
   而执行命令  `wuliu-backup -n=1 -backup` 则会正式执行备份。
 - 建议在执行 `wuliu-backup -n` 查看信息前，先执行 `wuliu-db -update=cache`
-- 有时还可能需要去备份专案的根目录里执行  `wuliu-db -update=cache`
+- 有时还可能需要去目标专案的根目录里执行  `wuliu-db -update=cache`
+- 当档案数量较少时，建议先在源专案与目标专案两边都执行 `wuliu-db -update=rebuild`
+  因为备份时需要使用数据库，而重建数据库有助于确保数据库与实际档案信息保持一致。
 
 ## TODO
 

@@ -20,6 +20,7 @@ var (
 func main() {
 	flag.Parse()
 	util.MustInWuliu()
+	util.CheckNotAllowInBackup()
 
 	if *cfgPath+*newFlag == "" {
 		flag.Usage()

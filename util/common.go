@@ -82,6 +82,20 @@ func MustInWuliu() {
 	}
 }
 
+func CheckNotAllowInBackup() {
+	projInfo := ReadProjectInfo(".")
+	if err := notAllowInBackup(projInfo.IsBackup); err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func notAllowInBackup(isBackup bool) error {
+	if isBackup {
+		return fmt.Errorf("這是備份專案, 不可使用該功能")
+	}
+	return nil
+}
+
 func FindOrphans() (fileOrphans, metaOrphans []string, err error) {
 	files, e1 := namesInFiles()
 	metas, e2 := namesInMetadataTrim()

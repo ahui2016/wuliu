@@ -180,6 +180,9 @@ func CopyFile(dstPath, srcPath string) error {
 // FileSizeToString 把文件大小转换为方便人类阅读的格式。
 // fixed 指定小数点后几位, 设为负数表示不限制小数位。
 func FileSizeToString(size float64, fixed int) string {
+	if size == 0 {
+		return "0"
+	}
 	format := fmt.Sprintf("%%.%df", fixed)
 	if fixed < 0 {
 		format = "%f"
