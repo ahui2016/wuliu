@@ -211,9 +211,15 @@ type ProjectInfo struct {
   而执行命令  `wuliu-backup -n=1 -backup` 则会正式执行备份。
 - 建议在执行 `wuliu-backup -n` 查看信息前，先执行 `wuliu-db -update=cache`
 - 有时还可能需要去目标专案的根目录里执行  `wuliu-db -update=cache`
-- 当档案数量较少时，建议先在源专案与目标专案两边都执行 `wuliu-db -update=rebuild`
+- 当档案数量较少时，建议先在源专案与目标专案两边都执行
+  `wuliu-orphan --check` 和 `wuliu-db -update=rebuild`
   因为备份时需要使用数据库，而重建数据库有助于确保数据库与实际档案信息保持一致。
+- 备份后，请进入目标专案执行 `wuliu-db -update=rebuild`,
+  备份过程中发生错误时，请进入目标专案执行 `wuliu-orphan --check` 和
+  `wuliu-db -update=rebuild`, 因为备份程序只会自动备份
+  files, metadata, project.json, 但不会更新目标专案的 project.db
 
 ## TODO
 
 - 备份档案禁止 add, delete 等命令。
+- 更好地整合 `wuliu-orphan --check`

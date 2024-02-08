@@ -45,6 +45,7 @@ func main() {
 	}
 
 	if *backupFlag {
+		fmt.Println("備份開始")
 		mainDB := lo.Must(util.OpenDB("."))
 		defer mainDB.Close()
 
@@ -52,9 +53,11 @@ func main() {
 		bkDB := lo.Must(util.OpenDB(bkRoot))
 		defer bkDB.Close()
 
+		lo.Must0(syncProjInfo(bkRoot))
+		lo.Must0(syncFilesToBK(".", bkRoot, mainDB, bkDB))
+		fmt.Printf("\n備份結束\n")
 		return
 	}
-
 }
 
 func getBkRoot() string {
@@ -168,22 +171,105 @@ func printStatus(mainStatus, bkStatus ProjectStatus, n int) {
 	fmt.Printf("上次備份時間: %s\n", backupAtDiff)
 }
 
-func syncToBkProj(bkRoot string, mainDB, bkDB *bolt.DB) {
-	files, err := getChangedFiles
+func syncFilesToBK(mainRoot, bkRoot string, mainDB, bkDB *bolt.DB) err {
+	files, err := getChangedFiles(mainRoot, bkRoot, mainDB, bkDB)
+	if err != nil {
+		return err
+	}
+	return files.Sync()
 }
 
 type ChangedFiles struct {
-	MainDB     *bolt.DB
-	BkDB       *bolt.DB
+	MainRoot   string
+	BkRoot     string
 	Deleted    []string
 	Updated    []string
 	Overwrited []string
 	Added      []string
 }
 
-func getChangedFiles(mainDB, bkDB *bolt.DB) (files ChangedFiles, err error) {
-	files.MainDB = mainDB
-	files.BkDB = bkDB
+func (files ChangedFiles) Sync() (err error) {
+	if err = files.syncDelete(); err != nil {
+		fmt.Println("Error: delete", err)
+		return
+	}
+	if err = files.syncUpdate(); err != nil {
+		fmt.Println("Error: upddate", err)
+		return
+	}
+	if err = files.syncOverwrite(); err != nil {
+		fmt.Println("Error: overwrite", err)
+		return
+	}
+	if err = files.syncAdd(); err != nil {
+		fmt.Println("Error: add", err)
+		return
+	}
+	return nil
+}
+
+func (files ChangedFiles) syncDelete() error {
+	for _, name := range files.Deleted {
+		fmt.Print(".")
+		filePath := filepath.Join(files.BkRoot, util.FILES, name)
+		metaPath := filepath.Join(files.BkRoot, util.METADATA, name+".json")
+		e1 := os.Remove(metaPath)
+		e2 := os.Remove(filePath)
+		if err = util.WrapErrors(e1, e2); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (files ChangedFiles) syncUpdate() error {
+	for _, name := range files.Updated {
+		fmt.Print(".")
+		if err = overwriteMetadata(name, files.BkRoot, files.MainRoot); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func overwriteMetadata(name, bkRoot, mainRoot string) error {
+	src := filepath.Join(mainRoot, util.METADATA, name+".json")
+	dst := filepath.Join(bkRoot, util.METADATA, name+".json")
+	return util.CopyFile(dst, src)
+}
+
+func (files ChangedFiles) syncOverwrite() error {
+	for _, name := range files.Overwrited {
+		fmt.Print(".")
+		if err = overwriteFile(name, files.BkRoot, files.MainRoot); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func overwriteFile(name, bkRoot, mainRoot string) error {
+	src := filepath.Join(mainRoot, util.FILES, name)
+	dst := filepath.Join(bkRoot, util.FILES, name)
+	return util.CopyFile(dst, src)
+}
+
+func (files ChangedFiles) syncAdd() error {
+	for _, name := range files.Added {
+		fmt.Print(".")
+		if err = overwriteMetadata(name, files.BkRoot, files.MainRoot); err != nil {
+			return err
+		}
+		if err = overwriteFile(name, files.BkRoot, files.MainRoot); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func getChangedFiles(mainRoot, bkRoot string, mainDB, bkDB *bolt.DB) (files ChangedFiles, err error) {
+	files.MainRoot = mainRoot
+	files.BkRoot = bkRoot
 
 	err = bkDB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(util.FilesBucket)
@@ -200,19 +286,19 @@ func getChangedFiles(mainDB, bkDB *bolt.DB) (files ChangedFiles, err error) {
 
 			// 已被刪除的檔案
 			if mainFile == nil {
-				files.Deleted = append(files.Deleted, bkFile.ID)
+				files.Deleted = append(files.Deleted, bkFile.Filename)
 				return nil
 			}
 
 			// 更新了內容的檔案
 			if bkFile.Checksum != mainFile.Checksum {
-				files.Overwrited = append(files.Overwrited, bkFile.ID)
+				files.Overwrited = append(files.Overwrited, bkFile.Filename)
 				return nil
 			}
 
 			// 更新了屬性(metadata/json)的檔案
 			if bkFile.UTime != mainFileUTime {
-				files.Updated = append(files.Updated, bkFile.ID)
+				files.Updated = append(files.Updated, bkFile.Filename)
 			}
 			return nil
 		})
@@ -235,7 +321,7 @@ func getChangedFiles(mainDB, bkDB *bolt.DB) (files ChangedFiles, err error) {
 				return err
 			}
 			if bkFile == nil {
-				files.Added = appedn(files.Added, mainFile.ID)
+				files.Added = appedn(files.Added, mainFile.Filename)
 			}
 			return nil
 		})
