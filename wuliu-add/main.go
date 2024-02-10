@@ -29,7 +29,6 @@ func main() {
 	flag.Parse()
 	util.MustInWuliu()
 	util.CheckNotAllowInBackup()
-	checkOrphan()
 
 	db := lo.Must(util.OpenDB("."))
 	defer db.Close()
@@ -63,7 +62,7 @@ func readConfig() (cfg EditFiles) {
 	data := lo.Must(os.ReadFile(*cfgPath))
 	lo.Must0(json.Unmarshal(data, &cfg))
 	if len(cfg.IDs) > 0 {
-		log.Fatalln("添加新档案时不可通过 ID 指定档案")
+		log.Fatalln("添加新檔案時不可通過 ID 指定檔案")
 	}
 	return
 }
@@ -99,7 +98,7 @@ func findNewFiles() []*File {
 
 func printNewFiles(files []*File) {
 	if len(files) == 0 {
-		fmt.Println("在input资料夹中未发现新档案")
+		fmt.Println("在input資料夾中未發現新檔案")
 		return
 	}
 	if *cfgPath != "" {
@@ -163,14 +162,5 @@ func checkExist(files []*File, db *bolt.DB) {
 func printIdAndName(files []*File) {
 	for _, f := range files {
 		fmt.Println(f.ID, f.Filename)
-	}
-}
-
-func checkOrphan() {
-	info := util.ReadProjectInfo(".")
-	if info.OrphanFilesCount+info.OrphanMetaCount > 0 {
-		fmt.Println("發現孤立檔案, 請執行 wuliu-orphan 進行檢查")
-		fmt.Println("上次檢查時間:", info.OrphanLastCheck)
-		os.Exit(0)
 	}
 }

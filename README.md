@@ -214,7 +214,7 @@ type ProjectInfo struct {
 - 当档案数量较少时，建议先在源专案与目标专案两边都执行
   `wuliu-orphan --check` 和 `wuliu-db -update=rebuild`
   因为备份时需要使用数据库，而重建数据库有助于确保数据库与实际档案信息保持一致。
-- 备份后，请进入目标专案执行 `wuliu-db -update=rebuild`,
+- **【注意！】** 备份后，必须进入目标专案执行 `wuliu-db -update=rebuild`,
   备份过程中发生错误时，请进入目标专案执行 `wuliu-orphan --check` 和
   `wuliu-db -update=rebuild`, 因为备份程序只会自动备份
   files, metadata, project.json, 但不会更新目标专案的 project.db

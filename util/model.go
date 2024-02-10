@@ -53,16 +53,13 @@ type (
 )
 
 type ProjectInfo struct {
-	RepoName         string   // 用于判断资料夹是否 Wuliu 专案
-	ProjectName      string   // 备份时要求专案名称相同
-	IsBackup         bool     // 是否副本（副本禁止添加、删除等）
-	Projects         []string // 第一个是主专案，然后是备份专案
-	LastBackupAt     []string // 上次备份时间
-	CheckInterval    int      // 检查完整性, 单位: day
-	CheckSizeLimit   int      // 检查完整性, 单位: MB
-	OrphanLastCheck  string   // 上次检查孤立档案的时间
-	OrphanFilesCount int      // 孤立的档案数量
-	OrphanMetaCount  int      // 孤立的 metadata 数量
+	RepoName       string   // 用于判断资料夹是否 Wuliu 专案
+	ProjectName    string   // 备份时要求专案名称相同
+	IsBackup       bool     // 是否副本（副本禁止添加、删除等）
+	Projects       []string // 第一个是主专案，然后是备份专案
+	LastBackupAt   []string // 上次备份时间
+	CheckInterval  int      // 检查完整性, 单位: day
+	CheckSizeLimit int      // 检查完整性, 单位: MB
 }
 
 func NewProjectInfo(name string) (info ProjectInfo) {

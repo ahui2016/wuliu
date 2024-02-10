@@ -44,10 +44,10 @@ func main() {
 		mainDB, bkDB *bolt.DB
 	)
 	if *nFlag > 0 {
-		bkRoot := getBkRoot()
-		mainDB := lo.Must(util.OpenDB("."))
+		bkRoot = getBkRoot()
+		mainDB = lo.Must(util.OpenDB("."))
 		defer mainDB.Close()
-		bkDB := lo.Must(util.OpenDB(bkRoot))
+		bkDB = lo.Must(util.OpenDB(bkRoot))
 		defer bkDB.Close()
 	}
 
@@ -55,7 +55,8 @@ func main() {
 		mainStatus, bkStatus := getProjectsStatus(".", bkRoot, mainDB, bkDB)
 		printStatus(mainStatus, bkStatus, *nFlag)
 		if err := checkStatus(mainStatus, bkStatus); err != nil {
-			log.Fatalln(err)
+			fmt.Println("Error!", err)
+			return
 		}
 	}
 
@@ -66,7 +67,7 @@ func main() {
 		}
 		fmt.Println("備份開始")
 
-		lo.Must0(syncProjInfo(bkRoot))
+		lo.Must0(syncProjInfo(bkRoot, *nFlag))
 		lo.Must0(syncFilesToBK(".", bkRoot, mainDB, bkDB))
 		fmt.Printf("\n備份結束\n")
 		return
@@ -120,10 +121,19 @@ func printProjectsList() {
 	}
 }
 
-func syncProjInfo(bkRoot string) error {
+func syncProjInfo(bkRoot string, n int) error {
+	now := util.Now()
+	MainProjInfo.LastBackupAt[0] = now
+	MainProjInfo.LastBackupAt[n] = now
+	fmt.Println("Update =>", util.ProjectInfoPath)
+	if err := util.WriteProjectInfo(MainProjInfo); err != nil {
+		return err
+	}
+
 	bkProjInfo := MainProjInfo
 	bkProjInfo.IsBackup = true
 	bkProjInfoPath := filepath.Join(bkRoot, util.ProjectInfoPath)
+	fmt.Println("Update =>", bkProjInfoPath)
 	_, err := util.WriteJSON(bkProjInfo, bkProjInfoPath)
 	return err
 }
@@ -135,7 +145,8 @@ func checkStatus(mainStatus, bkStatus ProjectStatus) error {
 		return fmt.Errorf("專案名稱不一致: '%s' ≠ '%s'\n", mainStatus.ProjectName, bkStatus.ProjectName)
 	}
 	if !bkStatus.IsBackup {
-		return fmt.Errorf("不是備份專案: %s 裏的 IsBackup 是 false\n")
+		bkProjInfoPath := filepath.Join(bkStatus.Root, util.ProjectInfoPath)
+		return fmt.Errorf("不是備份專案: %s 裏的 IsBackup 是 false\n", bkProjInfoPath)
 	}
 	if mainStatus.DamagedCount+bkStatus.DamagedCount > 0 {
 		return fmt.Errorf("發現受損檔案，必須修復後纔能備份。\n")

@@ -16,7 +16,7 @@ func PrintVersionExit(ok bool) {
 	if ok {
 		fmt.Println(RepoName)
 		fmt.Println(RepoURL)
-		fmt.Println("Version: 2024-02-06")
+		fmt.Println("Version: 2024-02-10")
 		os.Exit(0)
 	}
 }
@@ -103,13 +103,6 @@ func FindOrphans() (fileOrphans, metaOrphans []string, err error) {
 		return
 	}
 	fileOrphans, metaOrphans = lo.Difference(files, metas)
-	info := ReadProjectInfo(".")
-	info.OrphanLastCheck = Now()
-	info.OrphanFilesCount = len(fileOrphans)
-	info.OrphanMetaCount = len(metaOrphans)
-	if err = WriteProjectInfo(info); err != nil {
-		return nil, nil, err
-	}
 	return
 }
 

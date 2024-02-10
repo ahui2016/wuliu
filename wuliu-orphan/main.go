@@ -31,8 +31,9 @@ func findOrphans() {
 	}
 	fmt.Println()
 	util.PrintList(fileOrphans)
+
 	fmt.Print("metadata-orphans:")
-	if len(fileOrphans) == 0 {
+	if len(metaOrphans) == 0 {
 		fmt.Print(" (none)")
 	}
 	fmt.Println()
