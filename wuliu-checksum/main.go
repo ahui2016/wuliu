@@ -1,14 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/ahui2016/wuliu/util"
 	"github.com/samber/lo"
 	bolt "go.etcd.io/bbolt"
 	"log"
-	"os"
 	"path/filepath"
 	"time"
 )
@@ -23,7 +21,7 @@ const (
 )
 
 var (
-	MainProject = util.ReadProjectInfo()
+	MainProject = util.ReadProjectInfo(".")
 )
 
 var (
@@ -42,7 +40,6 @@ func main() {
 	}
 
 	root := MainProject.Projects[*nFlag]
-	dbPath := filepath.Join(root, util.DatabasePath)
 
 	if *projectsFlag {
 		printProjectsList()

@@ -31,7 +31,7 @@ func main() {
 		return
 	}
 
-	db := lo.Must(util.OpenDB())
+	db := lo.Must(util.OpenDB("."))
 	defer db.Close()
 	cfg := readConfig()
 

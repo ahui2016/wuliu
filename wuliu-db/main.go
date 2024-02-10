@@ -7,10 +7,7 @@ import (
 	"github.com/samber/lo"
 	bolt "go.etcd.io/bbolt"
 	"log"
-	"os"
 	"slices"
-	"strconv"
-	"strings"
 )
 
 var (
@@ -24,7 +21,7 @@ func main() {
 
 	var db *bolt.DB
 	if *infoFlag != "" || *updateFlag == "cache" {
-		db = lo.Must(util.OpenDB())
+		db = lo.Must(util.OpenDB("."))
 		defer db.Close()
 	}
 
@@ -75,6 +72,6 @@ func updateCache(db *bolt.DB) error {
 
 func printTotalSize(db *bolt.DB) {
 	fileN, totalSize := lo.Must2(util.DatabaseFilesSize(db))
-	totalSizeStr := FileSizeToString(float64(totalSize), 2)
+	totalSizeStr := util.FileSizeToString(float64(totalSize), 2)
 	fmt.Printf("Total: %d files, %s\n", fileN, totalSizeStr)
 }

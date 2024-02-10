@@ -9,6 +9,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 	"log"
 	"os"
+	"path/filepath"
 	"slices"
 )
 
@@ -30,7 +31,7 @@ func main() {
 	util.CheckNotAllowInBackup()
 	checkOrphan()
 
-	db := lo.Must(util.OpenDB())
+	db := lo.Must(util.OpenDB("."))
 	defer db.Close()
 
 	files := findNewFiles()
@@ -166,7 +167,7 @@ func printIdAndName(files []*File) {
 }
 
 func checkOrphan() {
-	info := util.ReadProjectInfo()
+	info := util.ReadProjectInfo(".")
 	if info.OrphanFilesCount+info.OrphanMetaCount > 0 {
 		fmt.Println("發現孤立檔案, 請執行 wuliu-orphan 進行檢查")
 		fmt.Println("上次檢查時間:", info.OrphanLastCheck)

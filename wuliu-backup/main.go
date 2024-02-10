@@ -1,12 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/ahui2016/wuliu/util"
 	"github.com/juju/utils/v4/du"
 	"github.com/samber/lo"
+	bolt "go.etcd.io/bbolt"
 	"log"
+	"os"
 	"path/filepath"
 )
 
@@ -21,6 +24,7 @@ var (
 )
 
 type (
+	File          = util.File
 	FileChecked   = util.FileChecked
 	ProjectInfo   = util.ProjectInfo
 	ProjectStatus = util.ProjectStatus
@@ -35,9 +39,20 @@ func main() {
 		return
 	}
 
+	var (
+		bkRoot       string
+		mainDB, bkDB *bolt.DB
+	)
 	if *nFlag > 0 {
 		bkRoot := getBkRoot()
-		mainStatus, bkStatus := getProjectsStatus(".", bkRoot)
+		mainDB := lo.Must(util.OpenDB("."))
+		defer mainDB.Close()
+		bkDB := lo.Must(util.OpenDB(bkRoot))
+		defer bkDB.Close()
+	}
+
+	if *nFlag > 0 {
+		mainStatus, bkStatus := getProjectsStatus(".", bkRoot, mainDB, bkDB)
 		printStatus(mainStatus, bkStatus, *nFlag)
 		if err := checkStatus(mainStatus, bkStatus); err != nil {
 			log.Fatalln(err)
@@ -45,13 +60,11 @@ func main() {
 	}
 
 	if *backupFlag {
+		if *nFlag < 1 {
+			fmt.Println("請使用參數 '-n' 指定目標專案")
+			return
+		}
 		fmt.Println("備份開始")
-		mainDB := lo.Must(util.OpenDB("."))
-		defer mainDB.Close()
-
-		bkRoot := getBkRoot()
-		bkDB := lo.Must(util.OpenDB(bkRoot))
-		defer bkDB.Close()
 
 		lo.Must0(syncProjInfo(bkRoot))
 		lo.Must0(syncFilesToBK(".", bkRoot, mainDB, bkDB))
@@ -138,9 +151,9 @@ func checkBackupDiskUsage(volumePath string, addUpSize int) error {
 	}
 	var margin uint64 = 1 << 30 // 1GB
 	available := usage.Available()
-	sizeStr := util.FileSizeToString(float64(sizeStr), 2)
+	sizeStr := util.FileSizeToString(float64(addUpSize), 2)
 	availableStr := util.FileSizeToString(float64(available), 2)
-	if uint64(addUp)+margin > available {
+	if uint64(addUpSize)+margin > available {
 		return fmt.Errorf("磁盤空間不足: %s\nwant %s, available %s\n", volumePath, sizeStr, availableStr)
 	}
 	return nil
@@ -171,7 +184,7 @@ func printStatus(mainStatus, bkStatus ProjectStatus, n int) {
 	fmt.Printf("上次備份時間: %s\n", backupAtDiff)
 }
 
-func syncFilesToBK(mainRoot, bkRoot string, mainDB, bkDB *bolt.DB) err {
+func syncFilesToBK(mainRoot, bkRoot string, mainDB, bkDB *bolt.DB) error {
 	files, err := getChangedFiles(mainRoot, bkRoot, mainDB, bkDB)
 	if err != nil {
 		return err
@@ -215,7 +228,7 @@ func (files ChangedFiles) syncDelete() error {
 		metaPath := filepath.Join(files.BkRoot, util.METADATA, name+".json")
 		e1 := os.Remove(metaPath)
 		e2 := os.Remove(filePath)
-		if err = util.WrapErrors(e1, e2); err != nil {
+		if err := util.WrapErrors(e1, e2); err != nil {
 			return err
 		}
 	}
@@ -225,7 +238,7 @@ func (files ChangedFiles) syncDelete() error {
 func (files ChangedFiles) syncUpdate() error {
 	for _, name := range files.Updated {
 		fmt.Print(".")
-		if err = overwriteMetadata(name, files.BkRoot, files.MainRoot); err != nil {
+		if err := overwriteMetadata(name, files.BkRoot, files.MainRoot); err != nil {
 			return err
 		}
 	}
@@ -241,7 +254,7 @@ func overwriteMetadata(name, bkRoot, mainRoot string) error {
 func (files ChangedFiles) syncOverwrite() error {
 	for _, name := range files.Overwrited {
 		fmt.Print(".")
-		if err = overwriteFile(name, files.BkRoot, files.MainRoot); err != nil {
+		if err := overwriteFile(name, files.BkRoot, files.MainRoot); err != nil {
 			return err
 		}
 	}
@@ -257,10 +270,10 @@ func overwriteFile(name, bkRoot, mainRoot string) error {
 func (files ChangedFiles) syncAdd() error {
 	for _, name := range files.Added {
 		fmt.Print(".")
-		if err = overwriteMetadata(name, files.BkRoot, files.MainRoot); err != nil {
+		if err := overwriteMetadata(name, files.BkRoot, files.MainRoot); err != nil {
 			return err
 		}
-		if err = overwriteFile(name, files.BkRoot, files.MainRoot); err != nil {
+		if err := overwriteFile(name, files.BkRoot, files.MainRoot); err != nil {
 			return err
 		}
 	}
@@ -273,7 +286,7 @@ func getChangedFiles(mainRoot, bkRoot string, mainDB, bkDB *bolt.DB) (files Chan
 
 	err = bkDB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(util.FilesBucket)
-		err := b.ForEach(func(k, v []byte) error {
+		return b.ForEach(func(k, v []byte) error {
 			bkFile, err := unmarshalFile(v)
 			if err != nil {
 				return err
@@ -297,12 +310,11 @@ func getChangedFiles(mainRoot, bkRoot string, mainDB, bkDB *bolt.DB) (files Chan
 			}
 
 			// 更新了屬性(metadata/json)的檔案
-			if bkFile.UTime != mainFileUTime {
+			if bkFile.UTime != mainFile.UTime {
 				files.Updated = append(files.Updated, bkFile.Filename)
 			}
 			return nil
 		})
-		return nil
 	})
 	if err != nil {
 		return
@@ -311,7 +323,7 @@ func getChangedFiles(mainRoot, bkRoot string, mainDB, bkDB *bolt.DB) (files Chan
 	// 新增的檔案
 	err = mainDB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(util.FilesBucket)
-		err := b.ForEach(func(k, v []byte) error {
+		return b.ForEach(func(k, v []byte) error {
 			mainFile, err := unmarshalFile(v)
 			if err != nil {
 				return err
@@ -321,18 +333,17 @@ func getChangedFiles(mainRoot, bkRoot string, mainDB, bkDB *bolt.DB) (files Chan
 				return err
 			}
 			if bkFile == nil {
-				files.Added = appedn(files.Added, mainFile.Filename)
+				files.Added = append(files.Added, mainFile.Filename)
 			}
 			return nil
 		})
-		return nil
 	})
 	return
 }
 
 // 如果 err == nil && f == nil, 则意味着 id 不存在。
 func getFileByID(id string, db *bolt.DB) (f *File, err error) {
-	err = mainDB.View(func(tx *bolt.Tx) error {
+	err = db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(util.FilesBucket)
 		data := b.Get([]byte(id))
 		if data == nil {

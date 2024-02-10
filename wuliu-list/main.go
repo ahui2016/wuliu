@@ -17,7 +17,7 @@ var (
 func main() {
 	flag.Parse()
 	util.MustInWuliu()
-	db := lo.Must(util.OpenDB())
+	db := lo.Must(util.OpenDB("."))
 	defer db.Close()
 
 	lo.Must0(listFiles(*nFlag, db))
