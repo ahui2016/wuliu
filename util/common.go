@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 )
 
@@ -47,16 +46,17 @@ func MakeFolders(verbose bool) {
 }
 
 func InitFileChecked() {
-	_ = lo.Must(WriteJSON([]int{}, FileCheckedPath))
+	m := make(map[int]int)
+	_ = lo.Must(WriteJSON(m, FileCheckedPath))
 }
 
-func ReadFileChecked(root string) (fcList []*FileChecked, err error) {
+func ReadFileChecked(root string) (fcMap map[string]*FileChecked, err error) {
 	fileCheckedPath := filepath.Join(root, FileCheckedPath)
 	if PathNotExists(fileCheckedPath) {
 		return
 	}
 	data := lo.Must(os.ReadFile(fileCheckedPath))
-	err = json.Unmarshal(data, &fcList)
+	err = json.Unmarshal(data, &fcMap)
 	return
 }
 
@@ -208,26 +208,35 @@ func PrintFilesSimple(files []*File) {
 }
 
 func AddToFileChecked(files []*File) error {
-	fcList, err := ReadFileChecked(".")
+	fcMap, err := ReadFileChecked(".")
 	if err != nil {
 		return err
 	}
 	for _, f := range files {
 		fc := &FileChecked{f.ID, f.CTime, false}
-		fcList = append(fcList, fc)
+		fcMap[f.ID] = fc
 	}
-	_, err = WriteJSON(fcList, FileCheckedPath)
+	_, err = WriteJSON(fcMap, FileCheckedPath)
 	return err
 }
 
 func DeleteFromFileChecked(ids []string) error {
-	oldList, err := ReadFileChecked(".")
+	fcMap, err := ReadFileChecked(".")
 	if err != nil {
 		return err
 	}
-	fcList := slices.DeleteFunc(oldList, func(fc *FileChecked) bool {
-		return slices.Contains(ids, fc.ID)
-	})
-	_, err = WriteJSON(fcList, FileCheckedPath)
+	for _, id := range ids {
+		delete(fcMap, id)
+	}
+	_, err = WriteJSON(fcMap, FileCheckedPath)
 	return err
+}
+
+func DamagedOfFileChecked(fcMap map[string]*FileChecked) (ids []string) {
+	for _, fc := range fcMap {
+		if fc.Damaged == true {
+			ids = append(ids, fc.ID)
+		}
+	}
+	return
 }

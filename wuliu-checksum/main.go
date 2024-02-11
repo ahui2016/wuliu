@@ -49,33 +49,33 @@ func main() {
 	db := lo.Must(util.OpenDB(root))
 	defer db.Close()
 
-	fcList := lo.Must(util.ReadFileChecked(root))
+	fcMap := lo.Must(util.ReadFileChecked(root))
 
 	if *renewFlag {
-		printInfo(root, len(fcList), db)
+		printInfo(root, len(fcMap), db)
 		n := renewFileChecked(root, db)
 		fmt.Println("renew後待檢查檔案數量:", n)
 		return
 	}
 
 	if *checkFlag {
-		printInfo(root, len(fcList), db)
-		doCheck(root, fcList, db)
+		printInfo(root, len(fcMap), db)
+		doCheck(root, fcMap, db)
 		return
 	}
 }
 
-func doCheck(root string, fcList []*FileChecked, db *bolt.DB) {
-	checkN, checkedSize := checkChecksum(root, fcList, db)
+func doCheck(root string, fcMap map[string]*FileChecked, db *bolt.DB) {
+	checkN, checkedSize := checkChecksum(root, fcMap, db)
 	totalSize := util.FileSizeToString(float64(checkedSize), 2)
 	fmt.Println("本次檢查檔案數量:", checkN)
 	fmt.Println("本次檢查檔案體積:", totalSize)
-	printDamaged(fcList, db)
+	printDamaged(fcMap, db)
 	if checkN > 0 {
 		fileCheckedPath := filepath.Join(root, util.FileCheckedPath)
 		fmt.Println("Update =>", fileCheckedPath)
 		_ = lo.Must(
-			util.WriteJSON(fcList, fileCheckedPath))
+			util.WriteJSON(fcMap, fileCheckedPath))
 	}
 }
 
@@ -91,10 +91,8 @@ func printInfo(root string, n int, db *bolt.DB) {
 	fmt.Println("待檢查檔案數量:", n)
 }
 
-func printDamaged(fcList []*FileChecked, db *bolt.DB) {
-	ids := lo.FilterMap(fcList, func(fc *FileChecked, _ int) (string, bool) {
-		return fc.ID, fc.Damaged
-	})
+func printDamaged(fcMap map[string]*FileChecked, db *bolt.DB) {
+	ids := util.DamagedOfFileChecked(fcMap)
 	names := lo.Must(util.IdsToNames(ids, db))
 	fmt.Println("已損壞的檔案:", len(ids))
 	for i := range ids {
@@ -124,18 +122,18 @@ func allIDs(db *bolt.DB) (ids []string) {
 	return
 }
 
-// 注意  fcList 的内容也会改变。
-func checkChecksum(root string, fcList []*FileChecked, db *bolt.DB) (checkN int, checkedSize int64) {
+// 注意，該函數運行後, fcMap 的内容也会改变。
+func checkChecksum(root string, fcMap map[string]*FileChecked, db *bolt.DB) (checkN int, checkedSize int64) {
 	now := util.Now()
 	err := db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(util.FilesBucket)
-		for i := range fcList {
-			needCheck := isFileNeedCheck(fcList[i].Checked, MainProject.CheckInterval)
+		for id := range fcMap {
+			needCheck := isFileNeedCheck(fcMap[id].Checked, MainProject.CheckInterval)
 			if needCheck {
-				f := lo.Must(util.GetFileByID(fcList[i].ID, b))
+				f := lo.Must(util.GetFileByID(id, b))
 				fmt.Print(".")
-				fcList[i].Damaged = checkFile(root, f)
-				fcList[i].Checked = now
+				fcMap[id].Damaged = checkFile(root, f)
+				fcMap[id].Checked = now
 				checkN += 1
 				checkedSize += f.Size
 			}
@@ -175,12 +173,12 @@ func renewFileChecked(root string, db *bolt.DB) int {
 		log.Fatalln("File Exitst:", fileCheckedPath)
 	}
 	ids := allIDs(db)
-	var list []*FileChecked
+	m := make(map[string]*FileChecked)
 	for _, id := range ids {
-		fc := &FileChecked{id, util.Epoch, false}
-		list = append(list, fc)
+		fc := &FileChecked{ID: id, Checked: util.Epoch, Damaged: false}
+		m[id] = fc
 	}
 	_ = lo.Must(
-		util.WriteJSON(list, fileCheckedPath))
+		util.WriteJSON(m, fileCheckedPath))
 	return len(ids)
 }

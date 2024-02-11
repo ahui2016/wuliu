@@ -21,6 +21,7 @@ var (
 	projectsFlag = flag.Bool("projects", false, "list all projects")
 	nFlag        = flag.Int("n", 0, "select a project by a number")
 	backupFlag   = flag.Bool("backup", false, "do backup files")
+	fixFlag      = flag.Bool("fix", false, "try to fix files automatically")
 )
 
 type (
@@ -43,28 +44,30 @@ func main() {
 		bkRoot       string
 		mainDB, bkDB *bolt.DB
 	)
+
 	if *nFlag > 0 {
 		bkRoot = getBkRoot()
 		mainDB = lo.Must(util.OpenDB("."))
 		defer mainDB.Close()
 		bkDB = lo.Must(util.OpenDB(bkRoot))
 		defer bkDB.Close()
-	}
 
-	if *nFlag > 0 {
 		mainStatus, bkStatus := getProjectsStatus(".", bkRoot, mainDB, bkDB)
 		printStatus(mainStatus, bkStatus, *nFlag)
-		if err := checkStatus(mainStatus, bkStatus); err != nil {
+		if err := checkStatus(mainStatus, bkStatus, *fixFlag); err != nil {
 			fmt.Println("Error!", err)
 			return
 		}
 	}
 
-	if *backupFlag {
+	if *backupFlag || *fixFlag {
 		if *nFlag < 1 {
 			fmt.Println("請使用參數 '-n' 指定目標專案")
 			return
 		}
+	}
+
+	if *backupFlag {
 		fmt.Println("備份開始")
 
 		lo.Must0(syncProjInfo(bkRoot, *nFlag))
@@ -72,6 +75,14 @@ func main() {
 		fmt.Printf("\n備份結束\n")
 		return
 	}
+
+	if *fixFlag {
+		fmt.Printf("\n嘗試自動修復受損檔案...\n")
+		lo.Must0(autoFix(".", bkRoot, mainDB, bkDB))
+		return
+	}
+
+	flag.Usage()
 }
 
 func getBkRoot() string {
@@ -84,10 +95,8 @@ func getBkRoot() string {
 func getProjectsStatus(mainRoot, bkRoot string, mainDB, bkDB *bolt.DB) (mainStatus, bkStatus ProjectStatus) {
 	mainProjInfo := util.ReadProjectInfo(mainRoot)
 	fileN, totalSize := lo.Must2(util.DatabaseFilesSize(mainDB))
-	fcList := lo.Must(util.ReadFileChecked("."))
-	damagedFiles := lo.Filter(fcList, func(fc *FileChecked, _ int) bool {
-		return fc.Damaged
-	})
+	fcMap := lo.Must(util.ReadFileChecked("."))
+	damagedFiles := util.DamagedOfFileChecked(fcMap)
 	mainStatus.ProjectInfo = &mainProjInfo
 	mainStatus.Root = "."
 	mainStatus.TotalSize = totalSize
@@ -96,10 +105,8 @@ func getProjectsStatus(mainRoot, bkRoot string, mainDB, bkDB *bolt.DB) (mainStat
 
 	bkProjInfo := util.ReadProjectInfo(bkRoot)
 	fileN, totalSize = lo.Must2(util.DatabaseFilesSize(bkDB))
-	fcList = lo.Must(util.ReadFileChecked(bkRoot))
-	damagedFiles = lo.Filter(fcList, func(fc *FileChecked, _ int) bool {
-		return fc.Damaged
-	})
+	fcMap = lo.Must(util.ReadFileChecked(bkRoot))
+	damagedFiles = util.DamagedOfFileChecked(fcMap)
 	bkStatus.ProjectInfo = &bkProjInfo
 	bkStatus.Root = bkRoot
 	bkStatus.TotalSize = totalSize
@@ -140,7 +147,7 @@ func syncProjInfo(bkRoot string, n int) error {
 
 // 检查 ProjectName 相同，检查 IsBakcup == true, 列印两个数据库的档案数量、
 // 上次备份日期、损坏档案，有损坏档案禁止备份。
-func checkStatus(mainStatus, bkStatus ProjectStatus) error {
+func checkStatus(mainStatus, bkStatus ProjectStatus, fix bool) error {
 	if mainStatus.ProjectName != bkStatus.ProjectName {
 		return fmt.Errorf("專案名稱不一致: '%s' ≠ '%s'\n", mainStatus.ProjectName, bkStatus.ProjectName)
 	}
@@ -148,7 +155,7 @@ func checkStatus(mainStatus, bkStatus ProjectStatus) error {
 		bkProjInfoPath := filepath.Join(bkStatus.Root, util.ProjectInfoPath)
 		return fmt.Errorf("不是備份專案: %s 裏的 IsBackup 是 false\n", bkProjInfoPath)
 	}
-	if mainStatus.DamagedCount+bkStatus.DamagedCount > 0 {
+	if !fix && mainStatus.DamagedCount+bkStatus.DamagedCount > 0 {
 		return fmt.Errorf("發現受損檔案，必須修復後纔能備份。\n")
 	}
 	sizeDiff := mainStatus.TotalSize - bkStatus.TotalSize
@@ -276,9 +283,7 @@ func overwriteFileAndMeta(name, bkRoot, mainRoot string) error {
 	if err := overwriteMetadata(name, bkRoot, mainRoot); err != nil {
 		return err
 	}
-	if err := overwriteFile(name, bkRoot, mainRoot); err != nil {
-		return err
-	}
+	return overwriteFile(name, bkRoot, mainRoot)
 }
 
 func overwriteFile(name, bkRoot, mainRoot string) error {
@@ -378,5 +383,76 @@ func getFileByID(id string, db *bolt.DB) (f *File, err error) {
 
 func unmarshalFile(data []byte) (f File, err error) {
 	err = json.Unmarshal(data, &f)
+	return
+}
+
+func autoFix(mainRoot, bkRoot string, mainDB, bkDB *bolt.DB) error {
+	if err := autoFixOneWay(mainRoot, bkRoot, mainDB); err != nil {
+		return err
+	}
+	return autoFixOneWay(bkRoot, mainRoot, bkDB)
+}
+
+// 從 root1 和 db 中找出受損檔案, 再從 root2 中尋找有用檔案。
+// 有用檔案是指與受損檔案對應的完整檔案。
+func autoFixOneWay(root1, root2 string, db *bolt.DB) error {
+	fcMap, err := util.ReadFileChecked(root1)
+	if err != nil {
+		return err
+	}
+	ids := util.DamagedOfFileChecked(fcMap)
+	if len(ids) == 0 {
+		fmt.Println("無受損檔案 =>", root1)
+		return nil
+	}
+	damagedFiles, err := getFilesByIDs(ids, db)
+	if err != nil {
+		return err
+	}
+	changed, err := fixFiles(root1, root2, damagedFiles, fcMap)
+	if err != nil {
+		return err
+	}
+	if changed {
+		fileCheckedPath := filepath.Join(root1, util.FileCheckedPath)
+		fmt.Println("Update =>", fileCheckedPath)
+		_, err := util.WriteJSON(fcMap, fileCheckedPath)
+		return err
+	}
+	return nil
+}
+
+// files 是 root1 里的受损档案, fcMap 是 root1 的档案检查列表。
+// 如果 changed==true, 說明 fcMap 的内容已改變。
+func fixFiles(root1, root2 string, files []*File, fcMap map[string]*FileChecked) (changed bool, err error) {
+	var fixedIDs []string
+	for _, f := range files {
+		filepath1 := filepath.Join(root1, util.FILES, f.Filename)
+		filepath2 := filepath.Join(root2, util.FILES, f.Filename)
+		sum, err := util.FileSum512(filepath2)
+		if err != nil {
+			return false, err
+		}
+		if sum != f.Checksum {
+			fmt.Println("未修復 =>", filepath1)
+			continue
+		}
+		fmt.Println("發現有用檔案 =>", filepath2)
+		fmt.Println("自動修復 =>", filepath1)
+		if err = util.CopyFile(filepath1, filepath2); err != nil {
+			return false, err
+		}
+		fixedIDs = append(fixedIDs, f.ID)
+		fcMap[f.ID].Damaged = false
+		changed = true
+	}
+	return
+}
+
+func getFilesByIDs(ids []string, db *bolt.DB) (files []*File, err error) {
+	err = db.View(func(tx *bolt.Tx) error {
+		files, err = util.GetFilesByIDs(ids, tx)
+		return err
+	})
 	return
 }
