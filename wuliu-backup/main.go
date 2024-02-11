@@ -265,11 +265,20 @@ func overwriteMetadata(name, bkRoot, mainRoot string) error {
 func (files ChangedFiles) syncOverwrite() error {
 	for _, name := range files.Overwrited {
 		fmt.Print(".")
-		if err := overwriteFile(name, files.BkRoot, files.MainRoot); err != nil {
+		if err := overwriteFileAndMeta(name, files.BkRoot, files.MainRoot); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func overwriteFileAndMeta(name, bkRoot, mainRoot string) error {
+	if err := overwriteMetadata(name, bkRoot, mainRoot); err != nil {
+		return err
+	}
+	if err := overwriteFile(name, bkRoot, mainRoot); err != nil {
+		return err
+	}
 }
 
 func overwriteFile(name, bkRoot, mainRoot string) error {
@@ -281,10 +290,7 @@ func overwriteFile(name, bkRoot, mainRoot string) error {
 func (files ChangedFiles) syncAdd() error {
 	for _, name := range files.Added {
 		fmt.Print(".")
-		if err := overwriteMetadata(name, files.BkRoot, files.MainRoot); err != nil {
-			return err
-		}
-		if err := overwriteFile(name, files.BkRoot, files.MainRoot); err != nil {
+		if err := overwriteFileAndMeta(name, files.BkRoot, files.MainRoot); err != nil {
 			return err
 		}
 	}

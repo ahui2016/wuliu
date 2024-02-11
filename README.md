@@ -221,5 +221,8 @@ type ProjectInfo struct {
 
 ## TODO
 
+- replace file
+- auto fix damaged files
+- export files
 - 备份档案禁止 add, delete 等命令。
 - 更好地整合 `wuliu-orphan --check`
