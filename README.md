@@ -221,6 +221,10 @@ type ProjectInfo struct {
 
 ## TODO
 
+- output => rename to buffer
+- IdsForm
+- export by id, export by IDs(json)
+- delete by IDs only (not by names)
 - replace file
 - auto fix damaged files
 - export files

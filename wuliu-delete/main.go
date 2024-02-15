@@ -47,19 +47,17 @@ func newJsonFile() {
 	if util.PathExists(*newFlag) {
 		log.Fatalln("file exists:", *newFlag)
 	}
-	v := util.FilesToDelete{IDs: []string{}, Names: []string{}}
 	lo.Must(
-		util.WriteJSON(v, *newFlag))
+		util.WriteJSON([]string{}, *newFlag))
 }
 
-func printConfig(toDelete util.FilesToDelete, db *bolt.DB) {
-	if len(toDelete.IDs) > 0 {
-		names := lo.Must(util.IdsToNames(toDelete.IDs, db))
+func printConfig(ids []string, db *bolt.DB) {
+	if len(ids) > 0 {
+		// 如果在数据库中找不到 id, 也不会报错，
+		// 因此 ids 与 names 的数量可能不一致，需要以 names 为准。
+		names := lo.Must(util.IdsToNames(ids, db))
 		printIdAndName(names)
 		return
-	}
-	if len(toDelete.Names) > 0 {
-		printIdAndName(toDelete.Names)
 	}
 }
 
@@ -69,11 +67,7 @@ func printIdAndName(names []string) {
 	}
 }
 
-func deleteFiles(toDelete util.FilesToDelete, db *bolt.DB) {
-	ids := toDelete.IDs
-	if len(ids) == 0 {
-		ids = util.NamesToIds(toDelete.Names)
-	}
+func deleteFiles(ids []string, db *bolt.DB) {
 	if len(ids) == 0 {
 		return
 	}
@@ -82,12 +76,11 @@ func deleteFiles(toDelete util.FilesToDelete, db *bolt.DB) {
 	lo.Must0(util.DeleteFromFileChecked(ids))
 }
 
-func readConfig() (cfg util.FilesToDelete) {
+func readConfig() (ids []string) {
 	data := lo.Must(os.ReadFile(*cfgPath))
-	lo.Must0(json.Unmarshal(data, &cfg))
-	lo.Must0(cfg.Check())
-	if len(cfg.IDs)+len(cfg.Names) == 0 {
-		log.Fatalln(*cfgPath, "未填寫要刪除的檔案")
+	lo.Must0(json.Unmarshal(data, &ids))
+	if len(ids) == 0 {
+		log.Fatalln("未填寫要刪除的檔案", *cfgPath)
 	}
 	return
 }

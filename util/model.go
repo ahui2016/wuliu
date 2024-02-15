@@ -28,7 +28,7 @@ const (
 	FILES      = "files"
 	METADATA   = "metadata"
 	INPUT      = "input"
-	OUTPUT     = "output"
+	BUFFER     = "buffer"
 	WEBPAGES   = "webpages"
 	RECYCLEBIN = "recyclebin"
 )
@@ -37,7 +37,7 @@ var Folders = []string{
 	FILES,
 	METADATA,
 	INPUT,
-	OUTPUT,
+	BUFFER,
 	WEBPAGES,
 	RECYCLEBIN,
 }
@@ -144,23 +144,6 @@ func NewFile(name string) *File {
 	f.CTime = now
 	f.UTime = now
 	return f
-}
-
-type FilesToDelete struct {
-	IDs   []string
-	Names []string
-}
-
-func (files *FilesToDelete) Check() error {
-	idsLength := len(files.IDs)
-	namesLength := len(files.Names)
-	if idsLength+namesLength == 0 {
-		return fmt.Errorf("未指定要刪除的檔案")
-	}
-	if idsLength > 0 && namesLength > 0 {
-		return fmt.Errorf("只能指定 ID 或檔案名稱，不可兩者同時指定。")
-	}
-	return nil
 }
 
 func NamesToIds(names []string) (ids []string) {
