@@ -33,6 +33,23 @@ Wuliu File Manager (五柳档案管理脚本)
 - `wuliu-init -v` 列印版本信息
 - `wuliu-init -where` 列印 wuliu-init 的位置
 
+### 资料夹
+
+初始化后，会得到一些资料夹。
+
+- **input** (專用於添加新檔案)
+- **files** (執行 wuliu-add 後, input 裏的檔案會移動到 files 裏)
+- **metadata** (files 裏的每個檔案都有一個對應的屬性檔案 (json檔案))
+- **buffer** (用於導出檔案或修改檔案)
+- **webpages** (生成網頁便於檢索檔案)
+- **recyclebin** (執行 wuliu-delete 刪除的檔案會被移進這裏)
+
+其中，尤其需要注意 input 與 buffer 的區別，
+一個是專用於添加新檔案，一個是用於更新檔案（或修改檔案屬性）。
+
+並且, wuliu-add 命令只能操作 input 資料夾,
+wuliu-export, wuliu-import 和 wuliu-overwrite 只能操作 buffer 資料夾。
+
 ## project.json
 
 建议经常执行 `cat project.json` 查看专案信息。
@@ -217,6 +234,21 @@ type ProjectInfo struct {
   备份过程中发生错误时，请进入目标专案执行 `wuliu-orphan --check` 和
   `wuliu-db -update=rebuild`, 因为备份程序只会自动备份
   files, metadata, project.json, 但不会更新目标专案的 project.db
+
+### 修復受損檔案
+
+- 如果發現受損檔案，可使用 `wuliu-backup -fix` 命令嘗試自動修復。
+- 使用該命令時，需要同時使用參數 `-n` 指定目標專案。
+- 如果自動修復失敗（通常因為兩邊專案裏的同一檔案都受損了），
+  可換一個目標專案再嘗試修復。
+- 如果仍無法修復，則需要手動修復。
+
+手動修復方法如下：
+
+- 方法一：使用 wuliu-export 命令導出受損檔案，然後刪除受損檔案。
+- 方法二：使用 wuliu-overwrite 覆蓋受損檔案。
+
+wuliu-export 與 wuliu-overwrite 的使用方法詳見本文的其他章節。
 
 ## TODO
 
