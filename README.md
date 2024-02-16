@@ -19,14 +19,14 @@ Wuliu File Manager (五柳档案管理脚本)
 - wuliu-list (列印档案、标签、备注、关键词等)
 - wuliu-db (数据库信息，更新缓存)
 - wuliu-checksum (检查档案完整性)
-- wuliu-replace (更新同名档案，覆盖旧档案)
 - wuliu-backup (备份专案)
+- wuliu-export (導出檔案或檔案屬性)
 
 ## wuliu-init
 
 - 新建/初始化一个专案，主要是新建一些资料夹和数据库、配置等。
 - 只能对一个空资料夹进行初始化
-- 使用方法: 进入一个空资料夹，执行 `wuliu-init -name` 进行初始化。
+- 使用方法: 进入一个空资料夹，执行 `wuliu-init -name [NAME]` 进行初始化。
 - 注意，请为不同的专案设定不同的名称，备份时有用。
 - 备份专案（详见关于 `wuliu-backup` 的说明）的专案名称必须与源专案一致。
 - `wuliu-init -h` 列印帮助信息
@@ -49,6 +49,10 @@ Wuliu File Manager (五柳档案管理脚本)
 
 並且, wuliu-add 命令只能操作 input 資料夾,
 wuliu-export, wuliu-import 和 wuliu-overwrite 只能操作 buffer 資料夾。
+
+**【注意】**:
+請勿直接修改 files 與 metadata 裏的檔案。
+如需修改，請導出後修改，然後再使用 wuliu-overwrite 覆蓋舊檔案。
 
 ## project.json
 
@@ -138,8 +142,8 @@ type ProjectInfo struct {
 ## wuliu-delete
 
 - 该命令删除添加档案，包括删除对应的 json 档案和数据库中的条目
-- `wuliu-delete -id` 通过档案 ID 指定需要删除的档案（只能指定一个）
-- `wuliu-delete -name` 通过档案名称指定需要删除的档案（只能指定一个）
+- `wuliu-delete -id [ID]` 通过档案 ID 指定需要删除的档案（只能指定一个）
+- `wuliu-delete -name [NAME]` 通过档案名称指定需要删除的档案（只能指定一个）
 - `wuliu-delete --newjson delete.json` 在专案根目录生成一个 delete.json 档案模板，
   方便批量填写需要删除的档案。
 - 在 delete.json 中填写要删除的一个或多个档案的 id
@@ -183,12 +187,12 @@ type ProjectInfo struct {
 - `wuliu-checksum --renew` 将全部文件的 damaged 设为 false, 上次检查时间设为 epoch
 - `wuliu-checksum --check` 校验文件完整性（看文件是否损坏）
 - `wuliu-checksum --projects` 列印全部专案
-- `wuliu-checksum -n` 通过序号选择专案，默认是 0 (即当前专案)
+- `wuliu-checksum -n [N]` 通过序号选择专案，默认是 0 (即当前专案)
 
 在执行 `wuliu-checksum` 命令时，有时会显示以下信息：
 
 ```
-已選擇專案: ./
+已選擇專案: .
 數據庫檔案數量: 5
 待檢查檔案數量: 5
 ```
@@ -221,19 +225,19 @@ type ProjectInfo struct {
 - “目标专案”是指专门用于备份的专案
 - 本软件采用单向备份方式，备份时以“源专案”为准，
   使目标专案里的档案变成与源专案一样。
-- `wuliu-backup -n` 通过序号选择目标专案
+- `wuliu-backup -n [N]` 通过序号选择目标专案
 - `wuliu-backup -backup` 正式执行备份
 - 例如执行命令 `wuliu-backup -n 1` 会列印第 1 个备份专案的信息，但不会执行备份。
   而执行命令  `wuliu-backup -n=1 -backup` 则会正式执行备份。
-- 建议在执行 `wuliu-backup -n` 查看信息前，先执行 `wuliu-db -update=cache`
+- 建议在执行 `wuliu-backup -n [N]` 查看信息前，先执行 `wuliu-db -update=cache`
 - 有时还可能需要去目标专案的根目录里执行  `wuliu-db -update=cache`
 - 当档案数量较少时，建议先在源专案与目标专案两边都执行
   `wuliu-orphan --check` 和 `wuliu-db -update=rebuild`
   因为备份时需要使用数据库，而重建数据库有助于确保数据库与实际档案信息保持一致。
 - **【注意！】** 备份后，必须进入目标专案执行 `wuliu-db -update=rebuild`,
-  备份过程中发生错误时，请进入目标专案执行 `wuliu-orphan --check` 和
-  `wuliu-db -update=rebuild`, 因为备份程序只会自动备份
-  files, metadata, project.json, 但不会更新目标专案的 project.db
+  备份过程中发生错误时，请对目标专案执行 `wuliu-orphan --check` 和
+  `wuliu-db -update=rebuild`, 因为备份程序只会自动备份 files, metadata,
+  project.json, 但不会更新目标专案的 project.db
 
 ### 修復受損檔案
 
@@ -249,6 +253,29 @@ type ProjectInfo struct {
 - 方法二：使用 wuliu-overwrite 覆蓋受損檔案。
 
 wuliu-export 與 wuliu-overwrite 的使用方法詳見本文的其他章節。
+
+## wuliu-export
+
+- `wuliu-export -file [ID]` 通過檔案 ID 指定要導出的檔案
+- `wuliu-export -meta [ID]` 通過檔案 ID 指定要導出的檔案屬性 (json)
+- `wuliu-export -id [ID]` 通過檔案 ID 導出的一個檔案及其屬性
+- `wuliu-export -batch [FILENAME]` 通過一個 json 檔案進行批量導出。
+  (批量導出功能暫時不做，因為預估該功能需求不大)
+
+被導出的檔案一律導出到 buffer 資料夾中。
+
+## wuliu-overwrite
+
+- 執行 `wuliu-overwrite` 查看待覆蓋檔案列表
+- 在該列表中可以看到，凡是 *非json* 檔案都將覆蓋 files,
+  凡是 *json* 檔案都將覆蓋 metadata.
+- 如果其中有 json 檔案想覆蓋 files, 請執行 `wuliu-overwrite -newjson overwrite.json`
+  然後編輯 overwrite.json, 根據需要把其中的 "metadata" 改為 "files".
+  (此時，還可以刪除 overwrite.json 裏的一部分檔案名稱，只有保留在列表中的檔案纔會被覆蓋。)
+- 經過上述操作後，執行 `wuliu-overwrite -json overwrite.json` 查看待覆蓋檔案列表
+- 執行 `wuliu-overwrite -json overwrite.json -danger` 或
+  `wuliu-overwrite -danger` 正式覆蓋。
+- 如果不使用 `-danger` 參數，則只是查看待覆蓋檔案列表，不會真正發生覆蓋。
 
 ## TODO
 
