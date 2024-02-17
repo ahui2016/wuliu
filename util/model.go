@@ -53,13 +53,14 @@ type (
 )
 
 type ProjectInfo struct {
-	RepoName       string   // 用于判断资料夹是否 Wuliu 专案
-	ProjectName    string   // 备份时要求专案名称相同
-	IsBackup       bool     // 是否副本（副本禁止添加、删除等）
-	Projects       []string // 第一个是主专案，然后是备份专案
-	LastBackupAt   []string // 上次备份时间
-	CheckInterval  int      // 检查完整性, 单位: day
-	CheckSizeLimit int      // 检查完整性, 单位: MB
+	RepoName        string   // 用于判断资料夹是否 Wuliu 专案
+	ProjectName     string   // 备份时要求专案名称相同
+	IsBackup        bool     // 是否副本（副本禁止添加、删除等）
+	Projects        []string // 第一个是主专案，然后是备份专案
+	LastBackupAt    []string // 上次备份时间
+	CheckInterval   int      // 检查完整性, 单位: day
+	CheckSizeLimit  int      // 检查完整性, 单位: MB
+	ExportSizeLimit int64    // 導出檔案體積上限，單位: MB
 }
 
 func NewProjectInfo(name string) (info ProjectInfo) {
@@ -69,6 +70,7 @@ func NewProjectInfo(name string) (info ProjectInfo) {
 	info.LastBackupAt = []string{Epoch}
 	info.CheckInterval = 30
 	info.CheckSizeLimit = 1024
+	info.ExportSizeLimit = 300
 	return
 }
 

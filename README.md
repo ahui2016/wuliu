@@ -1,6 +1,13 @@
 # wuliu
 
-Wuliu File Manager (五柳档案管理脚本)
+Wuliu File Manager (五柳檔案管理腳本)
+
+## 主要功能
+
+- 給檔案增加更多屬性，例如: 備注、標籤、關鍵詞。
+- 檢查檔案完整性
+- 方便地備份
+- 方便地修復受損檔案
 
 ## 名词
 
@@ -17,13 +24,6 @@ Wuliu File Manager (五柳档案管理脚本)
 **【注意】**: 
 這些腳本為了編程方便，犧牲了易用性，因此在使用過程中必須
 一邊閱讀本文 (README.md) 一邊使用。
-
-## 主要功能
-
-- 給檔案增加更多屬性，例如: 備注、標籤、關鍵詞。
-- 檢查檔案完整性
-- 方便地備份
-- 方便地修復受損檔案
 
 ## Scripts
 
@@ -79,16 +79,14 @@ wuliu-export, wuliu-import 和 wuliu-overwrite 只能操作 buffer 資料夾。
 
 ```
 type ProjectInfo struct {
-	RepoName         string
-	RepoURL          string
-	IsBackup         bool     // 是否副本（副本禁止添加、删除等）
-	Projects         []string // 第一个是主专案，然后是备份专案
-	LastBackupAt     []string // 上次备份时间
-	CheckInterval    int      // 检查完整性, 单位: day
-	CheckSizeLimit   int      // 检查完整性, 单位: MB
-	OrphanLastCheck  string   // 上次检查孤立档案的时间
-	OrphanFilesCount int      // 孤立的档案数量
-	OrphanMetaCount  int      // 孤立的 metadata 数量
+	RepoName        string   // 用于判断资料夹是否 Wuliu 专案
+	ProjectName     string   // 备份时要求专案名称相同
+	IsBackup        bool     // 是否副本（副本禁止添加、删除等）
+	Projects        []string // 第一个是主专案，然后是备份专案
+	LastBackupAt    []string // 上次备份时间
+	CheckInterval   int      // 检查完整性, 单位: day
+	CheckSizeLimit  int      // 检查完整性, 单位: MB
+	ExportSizeLimit int      // 導出檔案體積上限，單位: MB
 }
 ```
 
@@ -172,6 +170,8 @@ type ProjectInfo struct {
 
 - `wuliu-list` 列印最近 15 个档案 (ID, 体积, 档案名称)
 - `wuliu-list n=100` 列印最近 100 个档案，按 CTime 倒序排列 (CTime 是入库时间)
+- `wuliu-list > list.txt` 可把結果保存到一個檔案中。
+- 如果結果超過 100 個檔案，則需要使用 `-all` 參數纔能列出全部 (該功能暫時不做)
 
 ## 数据库 (bolt)
 
@@ -279,6 +279,9 @@ wuliu-export 與 wuliu-overwrite 的使用方法詳見本文的其他章節。
 - `wuliu-export -id [ID]` 通過檔案 ID 導出的一個檔案及其屬性
 - `wuliu-export -batch [FILENAME]` 通過一個 json 檔案進行批量導出。
   (批量導出功能暫時不做，因為預估該功能需求不大)
+- **注意** 默認只能導出 300MB 以下的檔案。
+  - 修改 project.json 中的 ExportSizeLimit 可更改該限制 (單位:MB)
+- 如需導出大體積檔案，建議手動複製。
 
 被導出的檔案一律導出到 buffer 資料夾中。
 
