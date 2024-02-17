@@ -15,6 +15,8 @@ const (
 
 var (
 	fileFlag = flag.String("file", "", "specify a file ID and export the file")
+	metaFlag = flag.String("meta", "", "specify a file ID and export the file's metadata(json)")
+	idFlag   = flag.String("id", "", "specify a file ID and export the file and its metadata")
 )
 
 func main() {
@@ -25,10 +27,28 @@ func main() {
 
 	projInfo := util.ReadProjectInfo(".")
 
+	if *idFlag != "" {
+		if err := exportMeta(*idFlag, db); err != nil {
+			fmt.Println("Error!", err)
+		}
+		if err := exportFile(*idFlag, db, projInfo); err != nil {
+			fmt.Println("Error!", err)
+		}
+		return
+	}
+
 	if *fileFlag != "" {
 		if err := exportFile(*fileFlag, db, projInfo); err != nil {
 			fmt.Println("Error!", err)
 		}
+		return
+	}
+
+	if *metaFlag != "" {
+		if err := exportMeta(*metaFlag, db); err != nil {
+			fmt.Println("Error!", err)
+		}
+		return
 	}
 
 }
@@ -43,6 +63,20 @@ func exportFile(id string, db *bolt.DB, info util.ProjectInfo) error {
 	}
 	src := filepath.Join(util.FILES, f.Filename)
 	dst := filepath.Join(util.BUFFER, f.Filename)
+	fmt.Println("Export =>", dst)
+	if util.PathExists(dst) {
+		return fmt.Errorf("file exists: %s", dst)
+	}
+	return util.CopyFile(dst, src)
+}
+
+func exportMeta(id string, db *bolt.DB) error {
+	f, err := getFileByID(id, db)
+	if err != nil {
+		return err
+	}
+	src := filepath.Join(util.METADATA, f.Filename+".json")
+	dst := filepath.Join(util.BUFFER, f.Filename+".json")
 	fmt.Println("Export =>", dst)
 	if util.PathExists(dst) {
 		return fmt.Errorf("file exists: %s", dst)
