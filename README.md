@@ -4,10 +4,26 @@ Wuliu File Manager (五柳档案管理脚本)
 
 ## 名词
 
-- 档案 = 文件 = file
-- 资料夹 = 文件夹 = folder = directory
-- 专案 = 项目 = project
+- 档案(檔案) = 文件 = file
+- 资料夹(資料夾) = 文件夹 = folder = directory
+- 专案(專案) = 项目 = project
 - 列印 = 打印/显示 = print
+
+## 编程简单第一
+
+- 非常重视编程简单
+- 运行效率和使用方便都是次要的
+
+**【注意】**: 
+這些腳本為了編程方便，犧牲了易用性，因此在使用過程中必須
+一邊閱讀本文 (README.md) 一邊使用。
+
+## 主要功能
+
+- 給檔案增加更多屬性，例如: 備注、標籤、關鍵詞。
+- 檢查檔案完整性
+- 方便地備份
+- 方便地修復受損檔案
 
 ## Scripts
 
@@ -21,6 +37,8 @@ Wuliu File Manager (五柳档案管理脚本)
 - wuliu-checksum (检查档案完整性)
 - wuliu-backup (备份专案)
 - wuliu-export (導出檔案或檔案屬性)
+- wuliu-import
+- wuliu-like (點讚，方便尋找精品或常用檔案)
 
 ## wuliu-init
 
