@@ -84,7 +84,7 @@ func findNewFiles() []*File {
 			fmt.Println("Not Found:", name)
 		}
 	}
-	files := lo.Must(util.NewFilesFromInput(filenames))
+	files := lo.Must(util.NewFilesFrom(filenames, util.INPUT))
 	for i := range files {
 		files[i].Like = cfg.Like
 		files[i].Label = cfg.Label
