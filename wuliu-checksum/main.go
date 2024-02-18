@@ -130,7 +130,7 @@ func checkChecksum(root string, fcMap map[string]*FileChecked, db *bolt.DB) (che
 		for id := range fcMap {
 			needCheck := isFileNeedCheck(fcMap[id].Checked, MainProject.CheckInterval)
 			if needCheck {
-				f := lo.Must(util.GetFileByID(id, b))
+				f := lo.Must(util.GetFileInBucket(id, b))
 				fmt.Print(".")
 				fcMap[id].Damaged = checkFile(root, f)
 				fcMap[id].Checked = now

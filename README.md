@@ -32,6 +32,7 @@ Wuliu File Manager (五柳檔案管理腳本)
 - wuliu-orphan (检查有无孤立档案)
 - wuliu-add (添加档案)
 - wuliu-delete (删除档案)
+- wuliu-rename (更改檔案名稱)
 - wuliu-list (列印档案、标签、备注、关键词等)
 - wuliu-db (数据库信息，更新缓存)
 - wuliu-checksum (检查档案完整性)
@@ -74,19 +75,19 @@ wuliu-export, wuliu-import 和 wuliu-overwrite 只能操作 buffer 資料夾。
 
 ## project.json
 
-建议经常执行 `cat project.json` 查看专案信息。
+执行 `cat project.json` 可查看专案信息。
 当然，也可直接打开 project.json 查看。
 
 ```
 type ProjectInfo struct {
-	RepoName        string   // 用于判断资料夹是否 Wuliu 专案
-	ProjectName     string   // 备份时要求专案名称相同
-	IsBackup        bool     // 是否副本（副本禁止添加、删除等）
-	Projects        []string // 第一个是主专案，然后是备份专案
-	LastBackupAt    []string // 上次备份时间
-	CheckInterval   int      // 检查完整性, 单位: day
-	CheckSizeLimit  int      // 检查完整性, 单位: MB
-	ExportSizeLimit int      // 導出檔案體積上限，單位: MB
+    RepoName        string   // 用于判断资料夹是否 Wuliu 专案
+    ProjectName     string   // 备份时要求专案名称相同
+    IsBackup        bool     // 是否副本（副本禁止添加、删除等）
+    Projects        []string // 第一个是主专案，然后是备份专案
+    LastBackupAt    []string // 上次备份时间
+    CheckInterval   int      // 检查完整性, 单位: day
+    CheckSizeLimit  int      // 检查完整性, 单位: MB
+    ExportSizeLimit int      // 導出檔案體積上限，單位: MB
 }
 ```
 
@@ -128,21 +129,21 @@ type ProjectInfo struct {
 
 ```
 {
-	ID			string	`json:"id"`				// 档案名称的 CRC32
-	Filename	string	`json:"filename"`			// 档案名称
-	Checksum	string	`json:"checksum"`		// BLAKE2b
-	Size		int64	`json:"size"`				// length in bytes for regular files
-	Type		string	`json:"type"`				// 檔案類型, 例: text/js, office/docx
-	Like		int64	`json:"like"`				// 點贊
-	Label		string	`json:"label"`			// 标签，便於搜尋
-	Notes		string	`json:"notes"`			// 備註，便於搜尋
-	Keywords	[]string	`json:"keywords"`		// 關鍵詞, 便於搜尋
-	Collections	[]string	`json:"collections"`		// 集合（分组），一个档案可属于多个集合
-	Albums		[]string	`json:"albums"`			// 相册（专辑），主要用于图片和音乐
-	CTime		string	`json:"ctime"`			// RFC3339 檔案入庫時間
-	UTime		string	`json:"utime"`			// RFC3339 檔案更新時間
-	Checked	string	`json:"checked"`			// RFC3339 上次校驗檔案完整性的時間
-	Damaged	bool	`json:"damaged"`		// 上次校驗結果 (檔案是否損壞)
+    ID          string    `json:"id"`          // 档案名称的 CRC32
+    Filename    string    `json:"filename"`    // 档案名称
+    Checksum    string    `json:"checksum"`    // BLAKE2b
+    Size        int64     `json:"size"`        // length in bytes for regular files
+    Type        string    `json:"type"`        // 檔案類型, 例: text/js, office/docx
+    Like        int64     `json:"like"`        // 點贊
+    Label       string    `json:"label"`       // 标签，便於搜尋
+    Notes       string    `json:"notes"`       // 備註，便於搜尋
+    Keywords    []string  `json:"keywords"`    // 關鍵詞, 便於搜尋
+    Collections []string  `json:"collections"` // 集合（分组），一个档案可属于多个集合
+    Albums      []string  `json:"albums"`      // 相册（专辑），主要用于图片和音乐
+    CTime       string    `json:"ctime"`       // RFC3339 檔案入庫時間
+    UTime       string    `json:"utime"`       // RFC3339 檔案更新時間
+    Checked     string    `json:"checked"`     // RFC3339 上次校驗檔案完整性的時間
+    Damaged     bool      `json:"damaged"`     // 上次校驗結果 (檔案是否損壞)
 }
 ```
 
@@ -154,6 +155,11 @@ type ProjectInfo struct {
 - Keywords, Collections 等 `[]string` 类型，都排序，排序后转为纯字符
   （用逗号空格 `, ` 分隔）方便保存到 kv 数据库。
 - 因此 `[]string` 类型在用户输入时不允许包含逗号、顿号和空格。
+- 請勿直接修改 metadata 裏的檔案。
+  如需修改，請導出後修改，然後再使用 wuliu-overwrite 覆蓋舊檔案。
+- 手動修改檔案屬性時，請勿直接修改 ID, Filename, Checksum, Size.
+- ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
+  如需更改檔案名稱，請使用 wuliu-rename 命令。
 
 ## wuliu-delete
 
@@ -165,6 +171,17 @@ type ProjectInfo struct {
 - 在 delete.json 中填写要删除的一个或多个档案的 id
 - `wuliu-delete --json delete.json ` 通过 delete.json 指定需要删除的档案（可指定多个）
 - 需要添加属性 `--danger` 才能真正删除档案，否则就只是列出 delete.json 的内容
+
+## wuliu-rename
+
+ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
+而且, files 與 metadata 的檔案名稱也要同時更改，因此，
+如需更改檔案名稱，請使用 wuliu-rename 命令，不要手動更改。
+
+- `wuliu-rename -id=[ID] -name [NAME]` 其中 ID 是舊ID, NAME 是新檔名。
+- 更改檔名不會修改 UTime(檔案更新時間)
+- 注意 Windows 不允許檔案名稱包含這些字符: `\ / : * ? " < > |`
+  如果不小心使用了這些字符，或者遇到其他問題，可手動更改檔名，再執行 `wuliu-db -update=rebuild`
 
 ## wuliu-list
 
@@ -297,9 +314,15 @@ wuliu-export 與 wuliu-overwrite 的使用方法詳見本文的其他章節。
 - 執行 `wuliu-overwrite -json overwrite.json -danger` 或
   `wuliu-overwrite -danger` 正式覆蓋。
 - 如果不使用 `-danger` 參數，則只是查看待覆蓋檔案列表，不會真正發生覆蓋。
+- 請勿直接修改 metadata 裏的檔案。
+  如需修改，請導出後修改，然後再使用 wuliu-overwrite 覆蓋舊檔案。
+- 【注意】手動修改檔案屬性時，請勿直接修改 ID, Filename, Checksum, Size.
+- ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
+  如需更改檔案名稱，請使用 wuliu-rename 命令。
 
 ## TODO
 
+- 刪除 FilenameBucket
 - output => rename to buffer
 - IdsForm
 - export by id, export by IDs(json)

@@ -203,7 +203,18 @@ func DeleteFilesByID(ids []string, db *bolt.DB) error {
 func PrintFilesSimple(files []*File) {
 	for _, f := range files {
 		size := FileSizeToString(float64(f.Size), 0)
-		fmt.Printf("%s\t(%s) %s\n", f.ID, size, f.Filename)
+		size = fmt.Sprintf("(%s)", size)
+		size = paddingRight(size, " ", 9)
+		fmt.Printf("%s\t%s %s\n", f.ID, size, f.Filename)
+	}
+}
+
+func paddingRight(s, char string, length int) string {
+	for {
+		if len(s) >= length {
+			return s
+		}
+		s += char
 	}
 }
 

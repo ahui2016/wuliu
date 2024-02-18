@@ -54,7 +54,7 @@ func main() {
 }
 
 func exportFile(id string, db *bolt.DB, info util.ProjectInfo) error {
-	f, err := getFileByID(id, db)
+	f, err := util.GetFileInDB(id, db)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func exportFile(id string, db *bolt.DB, info util.ProjectInfo) error {
 }
 
 func exportMeta(id string, db *bolt.DB) error {
-	f, err := getFileByID(id, db)
+	f, err := util.GetFileInDB(id, db)
 	if err != nil {
 		return err
 	}
@@ -84,20 +84,11 @@ func exportMeta(id string, db *bolt.DB) error {
 	return util.CopyFile(dst, src)
 }
 
-func getFileByID(id string, db *bolt.DB) (f util.File, err error) {
-	err = db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(util.FilesBucket)
-		f, err = util.GetFileByID(id, b)
-		return err
-	})
-	return
-}
-
-func checkSizeLimit(size int64, info util.ProjectInfo) error {
+func checkSizeLimit(size int64, info util.ProjectInfo) (err error) {
 	limit := info.ExportSizeLimit * MB
 	if size > limit {
 		sizeStr := util.FileSizeToString(float64(size), 2)
-		return fmt.Errorf("檔案體積(%s) 超過上限(%d MB)", sizeStr, info.ExportSizeLimit)
+		err = fmt.Errorf("檔案體積(%s) 超過上限(%d MB)", sizeStr, info.ExportSizeLimit)
 	}
-	return nil
+	return
 }

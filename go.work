@@ -11,4 +11,5 @@ use (
 	./wuliu-init
 	./wuliu-list
 	./wuliu-orphan
+	./wuliu-rename
 )

@@ -7,6 +7,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -14,7 +15,6 @@ import (
 
 var (
 	FilesBucket       = []byte("FilesBucket")
-	FilenameBucket    = []byte("FilenameBucket")
 	ChecksumBucket    = []byte("ChecksumBucket")
 	SizeBucket        = []byte("SizeBucket")
 	TypeBucket        = []byte("TypeBucket")
@@ -30,7 +30,6 @@ var (
 
 var Buckets = [][]byte{
 	FilesBucket,
-	FilenameBucket,
 	ChecksumBucket,
 	SizeBucket,
 	TypeBucket,
@@ -66,7 +65,7 @@ func createBuckets(db *bolt.DB) error {
 	})
 }
 
-func PutToBucket(key []byte, value []byte, b *bolt.Bucket) error {
+func PutToBucket(key, value []byte, b *bolt.Bucket) error {
 	if KeyExistsInBucket(key, b) {
 		return fmt.Errorf("key exists: %s", key)
 	}
@@ -94,14 +93,8 @@ func bucketGetStrSlice(key string, b *bolt.Bucket) ([]string, error) {
 func AddFilesToDB(files []FileAndMeta, db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		filesBuc := tx.Bucket(FilesBucket)
-		filenameBuc := tx.Bucket(FilenameBucket)
 		for _, f := range files {
-			id := []byte(f.ID)
-			filename := []byte(f.Filename)
-			if err := PutToBucket(id, f.Metadata, filesBuc); err != nil {
-				return err
-			}
-			if err := PutToBucket(filename, id, filenameBuc); err != nil {
+			if err := PutToBucket([]byte(f.ID), f.Metadata, filesBuc); err != nil {
 				return err
 			}
 		}
@@ -112,16 +105,6 @@ func AddFilesToDB(files []FileAndMeta, db *bolt.DB) error {
 func DeleteInDB(ids []string, db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		filesBuc := tx.Bucket(FilesBucket)
-		filenames, err := idsToNames(ids, filesBuc)
-		if err != nil {
-			return err
-		}
-		filenameBuc := tx.Bucket(FilenameBucket)
-		for _, name := range filenames {
-			if err := filenameBuc.Delete([]byte(name)); err != nil {
-				return err
-			}
-		}
 		for _, id := range ids {
 			if err := filesBuc.Delete([]byte(id)); err != nil {
 				return err
@@ -211,7 +194,7 @@ func RebuildDatabase() {
 // rebuildAllBuckets 重建全部数据桶，几乎等于重建整个数据库。
 func rebuildAllBuckets(db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		if err := rebuildFilesAndName(tx); err != nil {
+		if err := rebuildFilesBucket(tx); err != nil {
 			return err
 		}
 		files, e1 := getAllFiles(tx)
@@ -251,10 +234,26 @@ func RebuildCTimeBucket(db *bolt.DB) error {
 	})
 }
 
-func rebuildFilesAndName(tx *bolt.Tx) error {
-	filesBuc, e1 := reCreateBucket(FilesBucket, tx)
-	nameBuc, e2 := reCreateBucket(FilenameBucket, tx)
-	if err := WrapErrors(e1, e2); err != nil {
+// RenameCTime 在更改檔案名稱時順便更新 CTimeBucket.
+func RenameCTime(ctime, oldid, newid string, tx *bolt.Tx) error {
+	ctimeBuc := tx.Bucket(CTimeBucket)
+	ids, err := bucketGetStrSlice(ctime, ctimeBuc)
+	if err != nil {
+		return err
+	}
+	if ids == nil {
+		return fmt.Errorf("RenameCTime: get '%s' is nil", ctime)
+	}
+	ids = slices.DeleteFunc(ids, func(id string) bool {
+		return id == oldid
+	})
+	ids = append(ids, newid)
+	return bucketPutJson(ctime, ids, ctimeBuc)
+}
+
+func rebuildFilesBucket(tx *bolt.Tx) error {
+	filesBuc, err := reCreateBucket(FilesBucket, tx)
+	if err != nil {
 		return err
 	}
 	files, err := getAllFilesMetadata()
@@ -262,9 +261,7 @@ func rebuildFilesAndName(tx *bolt.Tx) error {
 		return err
 	}
 	for _, f := range files {
-		e1 := bucketPutJson(f.ID, f, filesBuc)
-		e2 := nameBuc.Put([]byte(f.Filename), []byte(f.ID))
-		if err := WrapErrors(e1, e2); err != nil {
+		if err := bucketPutJson(f.ID, f, filesBuc); err != nil {
 			return err
 		}
 	}
@@ -379,13 +376,22 @@ func GetFilesByIDs(ids []string, tx *bolt.Tx) (files []*File, err error) {
 	return files, nil
 }
 
-func GetFileByID(id string, b *bolt.Bucket) (f File, err error) {
+func GetFileInBucket(id string, b *bolt.Bucket) (f File, err error) {
 	data := b.Get([]byte(id))
 	if data == nil {
 		err = fmt.Errorf("Not Found ID: %s", id)
 		return
 	}
 	err = json.Unmarshal(data, &f)
+	return
+}
+
+func GetFileInDB(id string, db *bolt.DB) (f File, err error) {
+	err = db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(FilesBucket)
+		f, err = GetFileInBucket(id, b)
+		return err
+	})
 	return
 }
 

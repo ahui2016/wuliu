@@ -1,8 +1,11 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/samber/lo"
 	"hash/crc32"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -146,6 +149,12 @@ func NewFile(name string) *File {
 	f.CTime = now
 	f.UTime = now
 	return f
+}
+
+func ReadFile(filePath string) (f File) {
+	data := lo.Must(os.ReadFile(filePath))
+	lo.Must0(json.Unmarshal(data, &f))
+	return
 }
 
 func NamesToIds(names []string) (ids []string) {
