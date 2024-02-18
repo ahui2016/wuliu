@@ -68,9 +68,9 @@ func readConfig() (cfg EditFiles) {
 }
 
 func findNewFiles() []*File {
-	inputNames := lo.Must(util.FindNewFiles())
+	inputNames := lo.Must(util.NamesInFiles())
 	if *cfgPath == "" {
-		return lo.Must(util.NewFilesFromInput(inputNames))
+		return lo.Must(util.NewFilesFrom(inputNames, util.INPUT))
 	}
 	cfg := readConfig()
 	if len(cfg.Filenames) == 0 {

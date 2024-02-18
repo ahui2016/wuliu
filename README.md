@@ -66,8 +66,8 @@ Wuliu File Manager (五柳檔案管理腳本)
 其中，尤其需要注意 input 與 buffer 的區別，
 一個是專用於添加新檔案，一個是用於更新檔案（或修改檔案屬性）。
 
-並且, wuliu-add 命令只能操作 input 資料夾,
-wuliu-export, wuliu-import 和 wuliu-overwrite 只能操作 buffer 資料夾。
+並且, wuliu-add 和 wuliu-import 命令只能操作 input 資料夾,
+wuliu-export 和 wuliu-overwrite 命令只能操作 buffer 資料夾。
 
 **【注意】**:
 請勿直接修改 files 與 metadata 裏的檔案。
@@ -180,8 +180,6 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 
 - `wuliu-rename -id=[ID] -name [NAME]` 其中 ID 是舊ID, NAME 是新檔名。
 - 更改檔名不會修改 UTime(檔案更新時間)
-- 注意 Windows 不允許檔案名稱包含這些字符: `\ / : * ? " < > |`
-  如果不小心使用了這些字符，或者遇到其他問題，可手動更改檔名，再執行 `wuliu-db -update=rebuild`
 
 ## wuliu-list
 
@@ -322,13 +320,3 @@ wuliu-export 與 wuliu-overwrite 的使用方法詳見本文的其他章節。
 
 ## TODO
 
-- 刪除 FilenameBucket
-- output => rename to buffer
-- IdsForm
-- export by id, export by IDs(json)
-- delete by IDs only (not by names)
-- replace file
-- auto fix damaged files
-- export files
-- 备份档案禁止 add, delete 等命令。
-- 更好地整合 `wuliu-orphan --check`

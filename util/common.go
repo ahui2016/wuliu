@@ -97,7 +97,7 @@ func notAllowInBackup(isBackup bool) error {
 }
 
 func FindOrphans() (fileOrphans, metaOrphans []string, err error) {
-	files, e1 := namesInFiles()
+	files, e1 := NamesInFiles()
 	metas, e2 := namesInMetadataTrim()
 	if err = WrapErrors(e1, e2); err != nil {
 		return
@@ -106,10 +106,10 @@ func FindOrphans() (fileOrphans, metaOrphans []string, err error) {
 	return
 }
 
-// NewFilesFromInput 把档案名 (names) 转换为 File, 此时假设档案都在 input 资料夹内。
-func NewFilesFromInput(names []string) (files []*File, err error) {
+// NewFilesFrom 把档案名 (names) 转换为 files, 此时假设档案在 folder 资料夹内。
+func NewFilesFrom(names []string, folder string) (files []*File, err error) {
 	for _, name := range names {
-		filePath := filepath.Join(INPUT, name)
+		filePath := filepath.Join(folder, name)
 		info, err := os.Lstat(filePath)
 		if err != nil {
 			return nil, err
@@ -121,7 +121,7 @@ func NewFilesFromInput(names []string) (files []*File, err error) {
 		f := NewFile(name)
 		f.Checksum = checksum
 		f.Size = info.Size()
-		f.Type = typeByFilename(name)
+		f.Type = TypeByFilename(name)
 		f.Keywords = []string{}
 		f.Collections = []string{}
 		f.Albums = []string{}
@@ -130,12 +130,12 @@ func NewFilesFromInput(names []string) (files []*File, err error) {
 	return
 }
 
-func FindNewFiles() ([]string, error) {
-	return namesInInput()
+func NamesInFiles() ([]string, error) {
+	return GetFilenamesBase(FILES)
 }
 
-func namesInFiles() ([]string, error) {
-	return GetFilenamesBase(FILES)
+func NamesInBuffer() ([]string, error) {
+	return GetFilenamesBase(BUFFER)
 }
 
 func namesInInput() ([]string, error) {

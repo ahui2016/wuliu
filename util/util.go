@@ -210,7 +210,7 @@ func StringKeysOf(m map[string]any) (keys []string) {
 }
 
 // https://github.com/gofiber/fiber/blob/master/utils/http.go (edited).
-func typeByFilename(filename string) (filetype string) {
+func TypeByFilename(filename string) (filetype string) {
 	ext := filepath.Ext(filename)
 	ext = strings.ToLower(ext)
 	if len(ext) == 0 {

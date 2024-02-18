@@ -29,28 +29,24 @@ func main() {
 	if *idFlag != "" && *nameFlag == "" {
 		log.Fatalln("Required '-name'")
 	}
-
 	if *idFlag != "" && *nameFlag != "" {
-		if err := checkFilename(*nameFlag); err != nil {
-			fmt.Println("Error!", err)
-			return
-		}
-		file := lo.Must(util.GetFileInDB(*idFlag, db))
+		err := checkFilename(*nameFlag)
+		printErrorExit(err)
+
+		file, err := util.GetFileInDB(*idFlag, db)
+		printErrorExit(err)
+
 		fm, err := renameMeta(file.Filename, *nameFlag)
-		if err != nil {
-			fmt.Println("Error!", err)
-			return
-		}
-		if err := renameFile(file.Filename, *nameFlag); err != nil {
-			fmt.Println("Error!", err)
-			return
-		}
+		printErrorExit(err)
+
+		err = renameFile(file.Filename, *nameFlag)
+		printErrorExit(err)
+
 		fmt.Println("Update database...")
-		if err := renameInDB(*idFlag, fm, db); err != nil {
-			fmt.Println("Error!", err)
-			return
-		}
+		err = renameInDB(*idFlag, fm, db)
+		printErrorExit(err)
 		fmt.Println("OK")
+
 		return
 	}
 	flag.Usage()
@@ -114,4 +110,11 @@ func renameInDB(oldID string, newfile util.FileAndMeta, db *bolt.DB) error {
 
 		return util.RenameCTime(newfile.CTime, oldID, newfile.ID, tx)
 	})
+}
+
+func printErrorExit(err error) {
+	if err != nil {
+		fmt.Println("Error!", err)
+		os.Exit(1)
+	}
 }
