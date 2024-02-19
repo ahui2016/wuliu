@@ -314,9 +314,11 @@ wuliu-export 與 wuliu-overwrite 的使用方法詳見本文的其他章節。
 - 如果不使用 `-danger` 參數，則只是查看待覆蓋檔案列表，不會真正發生覆蓋。
 - 請勿直接修改 metadata 裏的檔案。
   如需修改，請導出後修改，然後再使用 wuliu-overwrite 覆蓋舊檔案。
-- 【注意】手動修改檔案屬性時，請勿直接修改 ID, Filename, Checksum, Size.
+- 【注意】手動修改檔案屬性時，請勿直接修改 ID, Filename, Checksum, Size, Type, UTime.
 - ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
   如需更改檔案名稱，請使用 wuliu-rename 命令。
 
 ## TODO
 
+- wuliu-rename 修改 file type
+- wuliu-overwrite 发现一对档案（档案及其属性同时存在）时，避免写两次属性档案。
