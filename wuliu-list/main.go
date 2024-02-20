@@ -12,6 +12,7 @@ type File = util.File
 
 var (
 	nFlag = flag.Int("n", 15, "default: 15")
+	ascFlag = flag.Bool("asc", false, "sort in ascending order")
 )
 
 func main() {
@@ -20,34 +21,49 @@ func main() {
 	db := lo.Must(util.OpenDB("."))
 	defer db.Close()
 
-	lo.Must0(listFiles(*nFlag, db))
+	files := lo.Must(sortByCTime(*nFlag, !*ascFlag, db))
+	util.PrintFilesSimple(files)
 }
 
-func listFiles(limitN int, db *bolt.DB) error {
+func sortByCTime(limitN int, descending bool, db *bolt.DB) (files []*File, err error) {
+	return sortedFiles(util.CTimeBucket, limitN, descending, db)
+}
+
+func sortedFiles(bucketName []byte, limitN int, descending bool, db *bolt.DB) (files []*File, err error) {
 	var fileIDs []string
-	return db.View(func(tx *bolt.Tx) error {
-		n := 0
-		b := tx.Bucket(util.CTimeBucket)
-		c := b.Cursor()
-		for k, v := c.Last(); k != nil; k, v = c.Prev() {
-			var ids []string
-			if err := json.Unmarshal(v, &ids); err != nil {
-				return err
-			}
-			fileIDs = append(fileIDs, ids...)
-			n += len(ids)
-			if n >= limitN {
-				break
-			}
+	err = db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(bucketName)
+		if descending {
+			fileIDs, err = getIdsDescending(limitN, b)
 		}
-		if len(fileIDs) > limitN {
-			fileIDs = fileIDs[:limitN]
-		}
-		files, err := util.GetFilesByIDs(fileIDs, tx)
 		if err != nil {
 			return err
 		}
-		util.PrintFilesSimple(files)
-		return nil
+		files, err = util.GetFilesByIDs(fileIDs, tx)
+		return err
 	})
+	return
+}
+
+// 假設該 bucket 中的每個 key 都對應多個 fileID.
+// 並且假設每個 fileID 只能對應一個 key.
+func getIdsDescending(limitN int, b *bolt.Bucket) (fileIDs []string, err error) {
+	c := b.Cursor()
+	n := 0
+	for k, v := c.Last(); k != nil; k, v = c.Prev() {
+		var ids []string
+		if err := json.Unmarshal(v, &ids); err != nil {
+			return nil, err
+		}
+		// 假設每個 fileID 只能對應一個 key, 因此 fileIDs 裏沒有重複項，不需要去重處理。
+		fileIDs = append(fileIDs, ids...)
+		n += len(ids)
+		if n >= limitN {
+			break
+		}
+	}
+	if len(fileIDs) > limitN {
+		fileIDs = fileIDs[:limitN]
+	}
+	return
 }
