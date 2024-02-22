@@ -3,16 +3,20 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"github.com/ahui2016/wuliu/util"
 	"github.com/samber/lo"
 	bolt "go.etcd.io/bbolt"
+	"slices"
+	"strconv"
 )
 
 type File = util.File
 
 var (
-	nFlag = flag.Int("n", 15, "default: 15")
-	ascFlag = flag.Bool("asc", false, "sort in ascending order")
+	nFlag       = flag.Int("n", 15, "default: 15")
+	ascFlag     = flag.Bool("asc", false, "sort in ascending order")
+	orderbyFlag = flag.String("orderby", "ctime", "size/like/utime")
 )
 
 func main() {
@@ -21,21 +25,39 @@ func main() {
 	db := lo.Must(util.OpenDB("."))
 	defer db.Close()
 
-	files := lo.Must(sortByCTime(*nFlag, !*ascFlag, db))
+	files := lo.Must(sortBy(*orderbyFlag, *nFlag, !*ascFlag, db))
 	util.PrintFilesSimple(files)
 }
 
-func sortByCTime(limitN int, descending bool, db *bolt.DB) (files []*File, err error) {
-	return sortedFiles(util.CTimeBucket, limitN, descending, db)
+func sortBy(orderby string, limitN int, descending bool, db *bolt.DB) (files []*File, err error) {
+	bucketName := bucketNameFrom(orderby)
+	fmt.Printf("\n檔案排序依據: %s, %s\n\n", bucketName, ascOrDesc(descending))
+	return sortedFiles(bucketName, limitN, descending, db)
+}
+
+func ascOrDesc(descending bool) string {
+	if descending {
+		return "descending"
+	}
+	return "ascending"
+}
+
+func bucketNameFrom(orderby string) []byte {
+	switch orderby {
+	case "size":
+		return util.SizeBucket
+	case "like":
+		return util.LikeBucket
+	case "utime":
+		return util.UTimeBucket
+	default:
+		return util.CTimeBucket
+	}
 }
 
 func sortedFiles(bucketName []byte, limitN int, descending bool, db *bolt.DB) (files []*File, err error) {
-	var fileIDs []string
 	err = db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(bucketName)
-		if descending {
-			fileIDs, err = getIdsDescending(limitN, b)
-		}
+		fileIDs, err := sortedIDs(tx, bucketName, limitN, descending)
 		if err != nil {
 			return err
 		}
@@ -43,6 +65,18 @@ func sortedFiles(bucketName []byte, limitN int, descending bool, db *bolt.DB) (f
 		return err
 	})
 	return
+}
+
+func sortedIDs(tx *bolt.Tx, bucketName []byte, limitN int, descending bool) (fileIDs []string, err error) {
+	b := tx.Bucket(bucketName)
+	if string(bucketName) == string(util.SizeBucket) {
+		return orderBySizeLimit(limitN, descending, b)
+	}
+	if descending {
+		return getIdsDescending(limitN, b)
+	}
+	// TODO
+	return nil, nil
 }
 
 // 假設該 bucket 中的每個 key 都對應多個 fileID.
@@ -66,4 +100,53 @@ func getIdsDescending(limitN int, b *bolt.Bucket) (fileIDs []string, err error) 
 		fileIDs = fileIDs[:limitN]
 	}
 	return
+}
+
+func orderBySizeLimit(limitN int, descending bool, sizeBuc *bolt.Bucket) (fileIDs []string, err error) {
+	sizeToIds, err := sizeOfFiles(sizeBuc)
+	if err != nil {
+		return nil, err
+	}
+	keys := orderBySize(descending, sizeToIds)
+	n := 0
+	for _, size := range keys {
+		ids := sizeToIds[size]
+		fileIDs = append(fileIDs, ids...)
+		n += len(ids)
+		if n >= limitN {
+			break
+		}
+	}
+	if len(fileIDs) > limitN {
+		fileIDs = fileIDs[:limitN]
+	}
+	return
+}
+
+// 對 sizeToIds 的 keys 進行排序, 並返回 keys.
+func orderBySize(descending bool, sizeToIds map[int64][]string) []int64 {
+	keys := lo.Keys(sizeToIds)
+	slices.Sort(keys)
+	if !descending {
+		return keys
+	}
+	slices.Reverse(keys)
+	return keys
+}
+
+func sizeOfFiles(sizeBuc *bolt.Bucket) (map[int64][]string, error) {
+	sizeToIds := make(map[int64][]string)
+	err := sizeBuc.ForEach(func(k, v []byte) error {
+		size, err := strconv.ParseInt(string(k), 10, 64)
+		if err != nil {
+			return err
+		}
+		var ids []string
+		if err := json.Unmarshal(v, &ids); err != nil {
+			return err
+		}
+		sizeToIds[size] = ids
+		return nil
+	})
+	return sizeToIds, err
 }

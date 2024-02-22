@@ -186,7 +186,8 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 - `wuliu-list` 列印最近 15 个档案 (ID, 体积, 档案名称)
 - `wuliu-list n=100` 列印最近 100 个档案，按 CTime 倒序排列 (CTime 是入库时间)
 - 默認按 CTime 排序，使用參數 `-orderby [INDEX]` 可按其他維度排序
-  (例如 filename, size, like, utime 等)
+  (例如 size, like, utime 等)
+  (注意，有時需要先執行 `wuliu-db -update=cache` 更新數據庫緩存。)
 - 例: `wuliu-list -orderby utime` 列印最近修改過的 15 个档案
 - 默認從大到小排序 (descending), 使用參數 `-asc` 改為從小到大排序 (ascending)。
 - 例: `wuliu-list -orderby size` 列印體積最大的 15 个档案
@@ -195,6 +196,7 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 - 如果結果超過 100 個檔案，則需要使用 `-all` 參數纔能列出全部 (該功能暫時不做)
 
 上面是 wuliu-list 列印檔案的功能，另外, wuliu-list 還有其他功能，如下所示:
+(注意，有時需要先執行 `wuliu-db -update=cache` 更新數據庫緩存。)
 
 - `wuliu-list -labels` 列印全部標籤
 - `wuliu-list -notes` 列印全部備註

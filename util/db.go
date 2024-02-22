@@ -156,17 +156,17 @@ func KeyExistsInBucket(key []byte, b *bolt.Bucket) bool {
 	return b.Get(key) != nil
 }
 
-func DatabaseFilesSize(db *bolt.DB) (fileN, totalSize int, err error) {
+func DatabaseFilesSize(db *bolt.DB) (fileN int, totalSize int64, err error) {
 	err = db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(SizeBucket)
 		err := b.ForEach(func(k, v []byte) error {
-			size, err := strconv.Atoi(string(k))
+			size, err := strconv.ParseInt(string(k), 10, 64)
 			if err != nil {
 				return err
 			}
 			n := len(strings.Split(string(v), ","))
 			fileN += n
-			totalSize += size * n
+			totalSize += size * int64(n)
 			return nil
 		})
 		if err != nil {
