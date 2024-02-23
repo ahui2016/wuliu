@@ -75,8 +75,7 @@ func sortedIDs(tx *bolt.Tx, bucketName []byte, limitN int, descending bool) (fil
 	if descending {
 		return getIdsDescending(limitN, b)
 	}
-	// TODO
-	return nil, nil
+	return getIdsAscending(limitN, b)
 }
 
 // 假設該 bucket 中的每個 key 都對應多個 fileID.
@@ -85,6 +84,29 @@ func getIdsDescending(limitN int, b *bolt.Bucket) (fileIDs []string, err error) 
 	c := b.Cursor()
 	n := 0
 	for k, v := c.Last(); k != nil; k, v = c.Prev() {
+		var ids []string
+		if err := json.Unmarshal(v, &ids); err != nil {
+			return nil, err
+		}
+		// 假設每個 fileID 只能對應一個 key, 因此 fileIDs 裏沒有重複項，不需要去重處理。
+		fileIDs = append(fileIDs, ids...)
+		n += len(ids)
+		if n >= limitN {
+			break
+		}
+	}
+	if len(fileIDs) > limitN {
+		fileIDs = fileIDs[:limitN]
+	}
+	return
+}
+
+// 假設該 bucket 中的每個 key 都對應多個 fileID.
+// 並且假設每個 fileID 只能對應一個 key.
+func getIdsAscending(limitN int, b *bolt.Bucket) (fileIDs []string, err error) {
+	c := b.Cursor()
+	n := 0
+	for k, v := c.First(); k != nil; k, v = c.Next() {
 		var ids []string
 		if err := json.Unmarshal(v, &ids); err != nil {
 			return nil, err
