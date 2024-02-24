@@ -20,6 +20,7 @@ var (
 func main() {
 	flag.Parse()
 	util.MustInWuliu()
+	util.CheckNotAllowInBackup()
 	db := lo.Must(util.OpenDB("."))
 	defer db.Close()
 
@@ -31,20 +32,20 @@ func main() {
 	}
 	if *idFlag != "" && *nameFlag != "" {
 		err := checkFilename(*nameFlag)
-		printErrorExit(err)
+		util.PrintErrorExit(err)
 
 		file, err := util.GetFileInDB(*idFlag, db)
-		printErrorExit(err)
+		util.PrintErrorExit(err)
 
 		fm, err := renameMeta(file.Filename, *nameFlag)
-		printErrorExit(err)
+		util.PrintErrorExit(err)
 
 		err = renameFile(file.Filename, *nameFlag)
-		printErrorExit(err)
+		util.PrintErrorExit(err)
 
 		fmt.Println("Update database...")
 		err = renameInDB(*idFlag, fm, db)
-		printErrorExit(err)
+		util.PrintErrorExit(err)
 		fmt.Println("OK")
 
 		return
@@ -113,7 +114,7 @@ func renameInDB(oldID string, newfile util.FileAndMeta, db *bolt.DB) error {
 	})
 }
 
-func printErrorExit(err error) {
+func util.PrintErrorExit(err error) {
 	if err != nil {
 		fmt.Println("Error!", err)
 		os.Exit(1)

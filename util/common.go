@@ -15,7 +15,7 @@ func PrintVersionExit(ok bool) {
 	if ok {
 		fmt.Println(RepoName)
 		fmt.Println(RepoURL)
-		fmt.Println("Version: 2024-02-10")
+		fmt.Println("Version: 2024-02-23")
 		os.Exit(0)
 	}
 }
@@ -47,6 +47,7 @@ func MakeFolders(verbose bool) {
 
 func InitFileChecked() {
 	m := make(map[int]int)
+	fmt.Println("Create", FileCheckedPath)
 	_ = lo.Must(WriteJSON(m, FileCheckedPath))
 }
 
@@ -138,7 +139,7 @@ func NamesInBuffer() ([]string, error) {
 	return GetFilenamesBase(BUFFER)
 }
 
-func namesInInput() ([]string, error) {
+func NamesInInput() ([]string, error) {
 	return GetFilenamesBase(INPUT)
 }
 

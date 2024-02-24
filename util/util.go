@@ -26,6 +26,13 @@ func WrapErrors(allErrors ...error) (wrapped error) {
 	return
 }
 
+func PrintErrorExit(err error) {
+	if err != nil {
+		fmt.Println("Error!", err)
+		os.Exit(1)
+	}
+}
+
 func GetCwd() string {
 	return lo.Must(os.Getwd())
 }

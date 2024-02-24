@@ -10,6 +10,7 @@ use (
 	./wuliu-export
 	./wuliu-init
 	./wuliu-list
+	./wuliu-metadata
 	./wuliu-orphan
 	./wuliu-overwrite
 	./wuliu-rename

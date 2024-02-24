@@ -80,7 +80,7 @@ func NewProjectInfo(name string) (info ProjectInfo) {
 type ProjectStatus struct {
 	*ProjectInfo
 	Root         string // 专案根目录
-	TotalSize    int    // 全部檔案體積合計
+	TotalSize    int64  // 全部檔案體積合計
 	FilesCount   int    // 檔案數量合計
 	DamagedCount int    // 受損檔案數量合計
 }

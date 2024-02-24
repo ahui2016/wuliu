@@ -81,8 +81,6 @@ func main() {
 		lo.Must0(autoFix(".", bkRoot, mainDB, bkDB))
 		return
 	}
-
-	flag.Usage()
 }
 
 func getBkRoot() string {
@@ -162,7 +160,7 @@ func checkStatus(mainStatus, bkStatus ProjectStatus, fix bool) error {
 	return checkBackupDiskUsage(bkStatus.Root, sizeDiff)
 }
 
-func checkBackupDiskUsage(volumePath string, addUpSize int) error {
+func checkBackupDiskUsage(volumePath string, addUpSize int64) error {
 	usage := du.NewDiskUsage(volumePath)
 	if addUpSize <= 0 {
 		return nil

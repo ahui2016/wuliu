@@ -52,7 +52,7 @@ func newJsonFile() {
 	if util.PathExists(*newFlag) {
 		log.Fatalln("file exists:", *newFlag)
 	}
-	names := lo.Must(util.FindNewFiles())
+	names := lo.Must(util.NamesInInput())
 	v := util.NewEditFiles([]string{}, names)
 	lo.Must(
 		util.WriteJSON(v, *newFlag))
@@ -60,7 +60,8 @@ func newJsonFile() {
 
 func readConfig() (cfg EditFiles) {
 	data := lo.Must(os.ReadFile(*cfgPath))
-	lo.Must0(json.Unmarshal(data, &cfg))
+	err := json.Unmarshal(data, &cfg)
+	util.PrintErrorExit(err)
 	if len(cfg.IDs) > 0 {
 		log.Fatalln("添加新檔案時不可通過 ID 指定檔案")
 	}
@@ -68,7 +69,7 @@ func readConfig() (cfg EditFiles) {
 }
 
 func findNewFiles() []*File {
-	inputNames := lo.Must(util.NamesInFiles())
+	inputNames := lo.Must(util.NamesInInput())
 	if *cfgPath == "" {
 		return lo.Must(util.NewFilesFrom(inputNames, util.INPUT))
 	}

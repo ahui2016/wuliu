@@ -38,6 +38,8 @@ Wuliu File Manager (五柳檔案管理腳本)
 - wuliu-checksum (检查档案完整性)
 - wuliu-backup (备份专案)
 - wuliu-export (導出檔案或檔案屬性)
+- wuliu-overwrite (更新單個檔案或檔案屬性)
+- wuliu-metadata (批量修改多個檔案的屬性)
 - wuliu-import
 - wuliu-like (點讚，方便尋找精品或常用檔案)
 
@@ -193,7 +195,6 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 - 例: `wuliu-list -orderby size` 列印體積最大的 15 个档案
 - 例: `wuliu-list -orderby=size -asc` 列印體積最小的 15 个档案
 - `wuliu-list > list.txt` 可把結果保存到一個檔案中。
-- 如果結果超過 100 個檔案，則需要使用 `-all` 參數纔能列出全部 (該功能暫時不做)
 
 上面是 wuliu-list 列印檔案的功能，另外, wuliu-list 還有其他功能，如下所示:
 (注意，有時需要先執行 `wuliu-db -update=cache` 更新數據庫緩存。)
@@ -320,7 +321,8 @@ wuliu-export 與 wuliu-overwrite 的使用方法詳見本文的其他章節。
 
 ## wuliu-overwrite
 
-- 執行 `wuliu-overwrite` 查看待覆蓋檔案列表
+- 執行 `wuliu-overwrite` 查看待覆蓋檔案列表。
+  (注意，待覆蓋檔案應存放在 buffer 資料夾中。)
 - 在該列表中可以看到，凡是 *非json* 檔案都將覆蓋 files,
   凡是 *json* 檔案都將覆蓋 metadata.
 - 如果其中有 json 檔案想覆蓋 files, 請執行 `wuliu-overwrite -newjson overwrite.json`
@@ -336,7 +338,33 @@ wuliu-export 與 wuliu-overwrite 的使用方法詳見本文的其他章節。
 - ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
   如需更改檔案名稱，請使用 wuliu-rename 命令。
 
+## wuliu-metadata
+
+該命令用於批量修改多個檔案的屬性。
+
+執行 `wuliu-metadata --newjson metadata.json` 可生成檔案 metadata.json, 其結構如下:
+
+```
+type EditFiles struct {
+    IDs         []string `json:"ids"`         // 通过 ID 指定档案
+    Filenames   []string `json:"filenames"`   // 通过档案名称指定档案
+    Like        int64    `json:"like"`        // 點贊
+    Label       string   `json:"label"`       // 标签，便於搜尋
+    Notes       string   `json:"notes"`       // 備註，便於搜尋
+    Keywords    []string `json:"keywords"`    // 關鍵詞, 便於搜尋
+    Collections []string `json:"collections"` // 集合（分组），一个档案可属于多个集合
+    Albums      []string `json:"albums"`      // 相册（专辑），主要用于图片和音乐
+}
+```
+
+執行 `wuliu-metadata -json metadata.json` 可批量修改多個檔案的屬性，
+其中，通過 IDs 指定要修改的檔案 ID, 請勿填寫 Filenames.
+
+默認只有填寫了內容的項目會被修改，空值項目保持不變。
+如果想讓空值也生效，請使用參數 `-omitempty=false`,
+例如 `wuliu-metadata -json metadata.json -omitempty=false`
+
 ## TODO
 
-- wuliu-rename 修改 file type
-- wuliu-overwrite 发现一对档案（档案及其属性同时存在）时，避免写两次属性档案。
+- wuliu-overwrite 批量修改檔案屬性
+- wuliu-list -ctime="2024-02-01" 通過日期前綴後列印檔案

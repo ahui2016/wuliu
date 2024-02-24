@@ -26,6 +26,7 @@ var (
 func main() {
 	flag.Parse()
 	util.MustInWuliu()
+	util.CheckNotAllowInBackup()
 	db := lo.Must(util.OpenDB("."))
 	defer db.Close()
 
@@ -41,7 +42,7 @@ func main() {
 
 	if *danger {
 		err := overwriteFiles(files, db)
-		printErrorExit(err)
+		util.PrintErrorExit(err)
 	} else {
 		printFiles(files)
 	}
@@ -207,11 +208,4 @@ func filetypeToTarget(filetype string) string {
 		return "metadata"
 	}
 	return "files"
-}
-
-func printErrorExit(err error) {
-	if err != nil {
-		fmt.Println("Error!", err)
-		os.Exit(1)
-	}
 }
