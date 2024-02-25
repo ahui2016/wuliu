@@ -89,7 +89,7 @@ type ProjectStatus struct {
 type EditFiles struct {
 	IDs         []string `json:"ids"`         // 通过 ID 指定档案
 	Filenames   []string `json:"filenames"`   // 通过档案名称指定档案
-	Like        int64    `json:"like"`        // 點贊
+	Like        int      `json:"like"`        // 點贊
 	Label       string   `json:"label"`       // 标签，便於搜尋
 	Notes       string   `json:"notes"`       // 備註，便於搜尋
 	Keywords    []string `json:"keywords"`    // 關鍵詞, 便於搜尋
@@ -126,7 +126,7 @@ type File struct {
 	Checksum    string   `json:"checksum"`    // BLAKE2b
 	Size        int64    `json:"size"`        // length in bytes for regular files
 	Type        string   `json:"type"`        // 檔案類型, 例: text/js, office/docx
-	Like        int64    `json:"like"`        // 點贊
+	Like        int      `json:"like"`        // 點贊
 	Label       string   `json:"label"`       // 标签，便於搜尋
 	Notes       string   `json:"notes"`       // 備註，便於搜尋
 	Keywords    []string `json:"keywords"`    // 關鍵詞, 便於搜尋

@@ -323,7 +323,7 @@ func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
 		e1 := PutToBucket([]byte(f.ID), []byte(f.Checksum), csumBuc)
 		e2 := putIntAndIDs(f.Size, f.ID, sizeBuc)
 		e3 := putStrAndIDs(f.Type, f.ID, typeBuc)
-		e4 = putIntAndIDs(f.Like, f.ID, likeBuc)
+		e4 = putIntAndIDs(int64(f.Like), f.ID, likeBuc)
 		e5 = putStrAndIDs(f.Label, f.ID, labelBuc)
 		e6 = putStrAndIDs(f.Notes, f.ID, notesBuc)
 		e7 := putSliceAndIDs(f.Keywords, f.ID, kwBuc)

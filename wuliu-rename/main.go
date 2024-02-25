@@ -62,7 +62,7 @@ func renameMeta(oldname, newname string) (fm util.FileAndMeta, err error) {
 	}
 	file := util.ReadFile(src)
 	file.Filename = newname
-	file.Type = TypeByFilename(newname)
+	file.Type = util.TypeByFilename(newname)
 	file.ID = util.NameToID(newname)
 	meta, err := util.WriteJSON(file, dst)
 	fm.File = &file
@@ -112,11 +112,4 @@ func renameInDB(oldID string, newfile util.FileAndMeta, db *bolt.DB) error {
 
 		return util.RenameCTime(newfile.CTime, oldID, newfile.ID, tx)
 	})
-}
-
-func util.PrintErrorExit(err error) {
-	if err != nil {
-		fmt.Println("Error!", err)
-		os.Exit(1)
-	}
 }

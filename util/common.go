@@ -205,12 +205,12 @@ func PrintFilesSimple(files []*File) {
 	for _, f := range files {
 		size := FileSizeToString(float64(f.Size), 0)
 		size = fmt.Sprintf("(%s)", size)
-		size = paddingRight(size, " ", 9)
+		size = PaddingRight(size, " ", 9)
 		fmt.Printf("%s\t%s %s\n", f.ID, size, f.Filename)
 	}
 }
 
-func paddingRight(s, char string, length int) string {
+func PaddingRight(s, char string, length int) string {
 	for {
 		if len(s) >= length {
 			return s

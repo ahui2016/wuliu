@@ -27,8 +27,6 @@ func main() {
 	flag.Parse()
 	util.MustInWuliu()
 	util.CheckNotAllowInBackup()
-	db := lo.Must(util.OpenDB("."))
-	defer db.Close()
 
 	if *newFlag != "" {
 		if err := newJsonFile(); err != nil {
@@ -41,6 +39,8 @@ func main() {
 	checkFilesEmpty(files)
 
 	if *danger {
+		db := lo.Must(util.OpenDB("."))
+		defer db.Close()
 		err := overwriteFiles(files, db)
 		util.PrintErrorExit(err)
 	} else {

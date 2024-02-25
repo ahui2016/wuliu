@@ -358,7 +358,7 @@ type EditFiles struct {
 ```
 
 執行 `wuliu-metadata -json metadata.json` 可批量修改多個檔案的屬性，
-其中，通過 IDs 指定要修改的檔案 ID, 請勿填寫 Filenames.
+其中，通過 ids 指定要修改的檔案 ID, 請勿填寫 filenames.
 
 默認只有填寫了內容的項目會被修改，空值項目保持不變。
 如果想讓空值也生效，請使用參數 `-omitempty=false`,
