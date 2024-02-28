@@ -22,7 +22,7 @@ type (
 var (
 	newFlag   = flag.String("newjson", "", "create a JSON file for modifying metadata")
 	cfgPath   = flag.String("json", "", "use a JSON file to modify metadata")
-	omitempty = flag.Bool("omitempty", true, "ignore empty values, default: true")
+	omitempty = flag.Bool("omitempty", true, "ignore empty values")
 	danger    = flag.Bool("danger", false, "really do modifay metadata")
 )
 
@@ -49,7 +49,7 @@ func main() {
 	files = updateFiles(cfg, files)
 
 	if *danger {
-		err := overwriteMetadata(files)
+		err := overwriteMetadata(files, db)
 		util.PrintErrorExit(err)
 	} else {
 		printMetadata(files)
@@ -65,9 +65,25 @@ func newJsonFile() error {
 	return err
 }
 
-func overwriteMetadata(files []File) error {
-	fmt.Println("overwriteMetadata")
-	return nil
+func overwriteMetadata(files []File, db *bolt.DB) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(util.FilesBucket)
+		for _, f := range files {
+			metaPath := filepath.Join(util.METADATA, f.Filename+".json")
+			fmt.Println("Update =>", metaPath)
+			if util.PathNotExists(metaPath) {
+				fmt.Println("Warning! 找不到", metaPath)
+			}
+			data, err := util.WriteJSON(f, metaPath)
+			if err != nil {
+				return err
+			}
+			if err = b.Put([]byte(f.ID), data); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func printMetadata(files []File) {

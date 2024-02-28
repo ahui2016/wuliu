@@ -187,7 +187,6 @@ func deleteFilesByName(names []string, db *bolt.DB) error {
 }
 
 // DeleteFilesByID 尝试删除档案，包括档案本身, metadata 以及数据库条目。
-// 找不到 ID 则忽略，不会报错。
 // 注意，这里说的删除是将档案移动到专案根目录的 recyclebin 中，
 // 如果 recyclebin 里有同名档案则直接覆盖。
 func DeleteFilesByID(ids []string, db *bolt.DB) error {

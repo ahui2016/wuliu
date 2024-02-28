@@ -93,7 +93,8 @@ func printInfo(root string, n int, db *bolt.DB) {
 
 func printDamaged(fcMap map[string]*FileChecked, db *bolt.DB) {
 	ids := util.DamagedOfFileChecked(fcMap)
-	names := lo.Must(util.IdsToNames(ids, db))
+	names, err := util.IdsToNames(ids, db)
+	util.PrintErrorExit(err)
 	fmt.Println("已損壞的檔案:", len(ids))
 	for i := range ids {
 		fmt.Println(ids[i], names[i])

@@ -119,7 +119,7 @@ func idsToNames(ids []string, filesBuc *bolt.Bucket) (names []string, err error)
 		// 如果找不到 id, 则忽略，不报错。
 		v := filesBuc.Get([]byte(id))
 		if v == nil {
-			continue
+			return nil, fmt.Errorf("not found id: %s", id)
 		}
 		var f File
 		if err := json.Unmarshal(v, &f); err != nil {

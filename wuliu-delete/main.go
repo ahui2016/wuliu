@@ -52,18 +52,17 @@ func newJsonFile() {
 }
 
 func printConfig(ids []string, db *bolt.DB) {
-	if len(ids) > 0 {
-		// 如果在数据库中找不到 id, 也不会报错，
-		// 因此 ids 与 names 的数量可能不一致，需要以 names 为准。
-		names := lo.Must(util.IdsToNames(ids, db))
-		printIdAndName(names)
-		return
-	}
+	fmt.Printf("\n刪除檔案預覽:\n")
+	fmt.Printf("(尚未實際執行，使用參數 '-danger' 纔會實際執行)\n\n")
+	names, err := util.IdsToNames(ids, db)
+	util.PrintErrorExit(err)
+	printIdAndName(names)
+	fmt.Println()
 }
 
 func printIdAndName(names []string) {
 	for _, name := range names {
-		fmt.Println(util.NameToID(name), name)
+		fmt.Printf("%s: %s\n", util.NameToID(name), name)
 	}
 }
 

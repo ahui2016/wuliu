@@ -109,7 +109,9 @@ func printNewFiles(files []*File) {
 	}
 	for _, f := range files {
 		size := util.FileSizeToString(float64(f.Size), 2)
-		fmt.Printf("(%s) %s\n", size, f.Filename)
+		size = fmt.Sprintf("(%s)", size)
+		size = util.PaddingRight(size, " ", 11)
+		fmt.Printf("%s %s\n", size, f.Filename)
 	}
 }
 
@@ -162,6 +164,6 @@ func checkExist(files []*File, db *bolt.DB) {
 
 func printIdAndName(files []*File) {
 	for _, f := range files {
-		fmt.Println(f.ID, f.Filename)
+		fmt.Printf("%s: %s\n", f.ID, f.Filename)
 	}
 }
