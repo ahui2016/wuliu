@@ -209,7 +209,7 @@ func FileSizeToString(size float64, fixed int) string {
 	return fmt.Sprintf(format, sizeGB)
 }
 
-func StringKeysOf(m map[string]any) (keys []string) {
+func StringSetToSlice(m map[string]bool) (keys []string) {
 	for k := range m {
 		keys = append(keys, k)
 	}

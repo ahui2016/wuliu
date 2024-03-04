@@ -7,7 +7,6 @@ import (
 	bolt "go.etcd.io/bbolt"
 	"os"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -81,7 +80,7 @@ func bucketPutJson(k string, v any, b *bolt.Bucket) error {
 }
 
 func bucketPutMapAsSlice(k string, m map[string]bool, b *bolt.Bucket) error {
-	v := util.StringKeysOf(m)
+	v := StringSetToSlice(m)
 	return bucketPutJson(k, v, b)
 }
 
@@ -92,9 +91,9 @@ func bucketGetStrSlice(key string, b *bolt.Bucket) (map[string]bool, error) {
 	if data == nil {
 		return nil, nil
 	}
-	strSlice := []string{}
+	var strSlice []string
 	err := json.Unmarshal(data, &strSlice)
-	return util.StringSliceToSet(strSlice), err
+	return StringSliceToSet(strSlice), err
 }
 
 func AddFilesToDB(files []FileAndMeta, db *bolt.DB) error {
@@ -416,6 +415,9 @@ func putStrAndIDs(key, id string, b *bolt.Bucket) error {
 		return err
 	}
 	if ids != nil {
+		if ids[id] {
+			return nil
+		}
 		ids[id] = true
 		return bucketPutMapAsSlice(key, ids, b)
 	}
@@ -453,7 +455,11 @@ func putIdAndBool(id string, v bool, b *bolt.Bucket) error {
 func getKeysAndIdsLength(b *bolt.Bucket) (map[string]int, error) {
 	keyAndLength := make(map[string]int)
 	err := b.ForEach(func(k, v []byte) error {
-		keyAndLength[string(k)] = len(string(v))
+		var ids []string
+		if err := json.Unmarshal(v, &ids); err != nil {
+			return err
+		}
+		keyAndLength[string(k)] = len(ids)
 		return nil
 	})
 	return keyAndLength, err
