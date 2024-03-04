@@ -80,14 +80,21 @@ func bucketPutJson(k string, v any, b *bolt.Bucket) error {
 	return b.Put([]byte(k), data)
 }
 
-func bucketGetStrSlice(key string, b *bolt.Bucket) ([]string, error) {
+func bucketPutMapAsSlice(k string, m map[string]bool, b *bolt.Bucket) error {
+	v := util.StringKeysOf(m)
+	return bucketPutJson(k, v, b)
+}
+
+// keywords, collections, albums 在數據庫中以 slice(array) 的形式保存,
+// 但實際上是一個集合 (其中的項目不可重复), 因此取出數據後轉為 map.
+func bucketGetStrSlice(key string, b *bolt.Bucket) (map[string]bool, error) {
 	data := b.Get([]byte(key))
 	if data == nil {
 		return nil, nil
 	}
 	strSlice := []string{}
 	err := json.Unmarshal(data, &strSlice)
-	return strSlice, err
+	return util.StringSliceToSet(strSlice), err
 }
 
 func AddFilesToDB(files []FileAndMeta, db *bolt.DB) error {
@@ -244,11 +251,9 @@ func RenameCTime(ctime, oldid, newid string, tx *bolt.Tx) error {
 	if ids == nil {
 		return fmt.Errorf("RenameCTime: get '%s' is nil", ctime)
 	}
-	ids = slices.DeleteFunc(ids, func(id string) bool {
-		return id == oldid
-	})
-	ids = append(ids, newid)
-	return bucketPutJson(ctime, ids, ctimeBuc)
+	delete(ids, oldid)
+	ids[newid] = true
+	return bucketPutMapAsSlice(ctime, ids, ctimeBuc)
 }
 
 func rebuildFilesBucket(tx *bolt.Tx) error {
@@ -411,8 +416,8 @@ func putStrAndIDs(key, id string, b *bolt.Bucket) error {
 		return err
 	}
 	if ids != nil {
-		ids = append(ids, id)
-		return bucketPutJson(key, ids, b)
+		ids[id] = true
+		return bucketPutMapAsSlice(key, ids, b)
 	}
 	return bucketPutJson(key, []string{id}, b)
 }

@@ -18,6 +18,8 @@ var (
 	ascFlag     = flag.Bool("asc", false, "sort in ascending order")
 	orderbyFlag = flag.String("orderby", "ctime", "size/like/utime")
 	kwFlag      = flag.Bool("keywords", false, "print all keywords")
+	collFlag    = flag.Bool("collections", false, "print all collections")
+	albumFlag   = flag.Bool("albums", false, "print all albums")
 )
 
 func main() {
@@ -28,6 +30,14 @@ func main() {
 
 	if *kwFlag {
 		printKeywords(db)
+		return
+	}
+	if *collFlag {
+		printCollections(db)
+		return
+	}
+	if *albumFlag {
+		printAlbums(db)
 		return
 	}
 
@@ -180,12 +190,24 @@ func sizeOfFiles(sizeBuc *bolt.Bucket) (map[int64][]string, error) {
 }
 
 func printKeywords(db *bolt.DB) {
-	keywords, err := util.GetKeysAndIdsLength(util.KeywordsBucket, db)
+	printKeysAndLength(util.KeywordsBucket, db)
+}
+
+func printCollections(db *bolt.DB) {
+	printKeysAndLength(util.CollectionsBucket, db)
+}
+
+func printAlbums(db *bolt.DB) {
+	printKeysAndLength(util.AlbumsBucket, db)
+}
+
+func printKeysAndLength(bucketName []byte, db *bolt.DB) {
+	keywords, err := util.GetKeysAndIdsLength(bucketName, db)
 	util.PrintErrorExit(err)
 	if len(keywords) == 0 {
 		fmt.Println("(none)")
 	}
 	for k, n := range keywords {
-		fmt.Printf("%s (%d)", k, n)
+		fmt.Printf("%s (%d)\n", k, n)
 	}
 }

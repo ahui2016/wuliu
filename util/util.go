@@ -216,6 +216,15 @@ func StringKeysOf(m map[string]any) (keys []string) {
 	return
 }
 
+// StringSliceToSet 用 map 當作 set
+func StringSliceToSet(s []string) map[string]bool {
+	m := make(map[string]bool, len(s))
+	for _, key := range s {
+		m[key] = true
+	}
+	return m
+}
+
 // https://github.com/gofiber/fiber/blob/master/utils/http.go (edited).
 func TypeByFilename(filename string) (filetype string) {
 	ext := filepath.Ext(filename)
