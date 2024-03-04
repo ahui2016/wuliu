@@ -17,6 +17,7 @@ var (
 	nFlag       = flag.Int("n", 15, "default: 15")
 	ascFlag     = flag.Bool("asc", false, "sort in ascending order")
 	orderbyFlag = flag.String("orderby", "ctime", "size/like/utime")
+	kwFlag      = flag.Bool("keywords", false, "print all keywords")
 )
 
 func main() {
@@ -24,6 +25,11 @@ func main() {
 	util.MustInWuliu()
 	db := lo.Must(util.OpenDB("."))
 	defer db.Close()
+
+	if *kwFlag {
+		printKeywords(db)
+		return
+	}
 
 	files := lo.Must(sortBy(*orderbyFlag, *nFlag, !*ascFlag, db))
 	util.PrintFilesSimple(files)
@@ -171,4 +177,15 @@ func sizeOfFiles(sizeBuc *bolt.Bucket) (map[int64][]string, error) {
 		return nil
 	})
 	return sizeToIds, err
+}
+
+func printKeywords(db *bolt.DB) {
+	keywords, err := util.GetKeysAndIdsLength(util.KeywordsBucket, db)
+	util.PrintErrorExit(err)
+	if len(keywords) == 0 {
+		fmt.Println("(none)")
+	}
+	for k, n := range keywords {
+		fmt.Printf("%s (%d)", k, n)
+	}
 }

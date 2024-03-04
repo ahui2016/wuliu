@@ -444,3 +444,21 @@ func putIdAndBool(id string, v bool, b *bolt.Bucket) error {
 	}
 	return nil
 }
+
+func getKeysAndIdsLength(b *bolt.Bucket) (map[string]int, error) {
+	keyAndLength := make(map[string]int)
+	err := b.ForEach(func(k, v []byte) error {
+		keyAndLength[string(k)] = len(string(v))
+		return nil
+	})
+	return keyAndLength, err
+}
+
+func GetKeysAndIdsLength(bucketName []byte, db *bolt.DB) (keyAndLength map[string]int, err error) {
+	err = db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(bucketName)
+		keyAndLength, err = getKeysAndIdsLength(b)
+		return err
+	})
+	return
+}
