@@ -17,6 +17,8 @@ var (
 	nFlag       = flag.Int("n", 15, "default: 15")
 	ascFlag     = flag.Bool("asc", false, "sort in ascending order")
 	orderbyFlag = flag.String("orderby", "ctime", "size/like/utime")
+	labelFlag   = flag.Bool("labels", false, "print all labels")
+	notesFlag   = flag.Bool("notes", false, "print all notes")
 	kwFlag      = flag.Bool("keywords", false, "print all keywords")
 	collFlag    = flag.Bool("collections", false, "print all collections")
 	albumFlag   = flag.Bool("albums", false, "print all albums")
@@ -28,6 +30,14 @@ func main() {
 	db := lo.Must(util.OpenDB("."))
 	defer db.Close()
 
+	if *labelFlag {
+		printLabels(db)
+		return
+	}
+	if *notesFlag {
+		printNotes(db)
+		return
+	}
 	if *kwFlag {
 		printKeywords(db)
 		return
@@ -187,6 +197,14 @@ func sizeOfFiles(sizeBuc *bolt.Bucket) (map[int64][]string, error) {
 		return nil
 	})
 	return sizeToIds, err
+}
+
+func printLabels(db *bolt.DB) {
+	printKeysAndLength(util.LabelBucket, db)
+}
+
+func printNotes(db *bolt.DB) {
+	printKeysAndLength(util.NotesBucket, db)
 }
 
 func printKeywords(db *bolt.DB) {
