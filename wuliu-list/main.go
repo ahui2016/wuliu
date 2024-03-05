@@ -9,6 +9,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 	"slices"
 	"strconv"
+	"strings"
 )
 
 type File = util.File
@@ -62,7 +63,8 @@ func main() {
 
 func sortBy(orderby string, limitN int, descending bool, db *bolt.DB) (files []*File, err error) {
 	bucketName := bucketNameFrom(orderby)
-	fmt.Printf("\n檔案排序依據: %s, %s\n\n", bucketName, ascOrDesc(descending))
+	sortName := strings.TrimSuffix(string(bucketName), "Bucket")
+	fmt.Printf("\n檔案排序依據: %s, %s\n\n", sortName, ascOrDesc(descending))
 	return sortedFiles(bucketName, limitN, descending, db)
 }
 
