@@ -209,6 +209,56 @@ func PrintFilesSimple(files []*File) {
 	}
 }
 
+func PrintFilesMore(files []*File) {
+	for _, f := range files {
+		size := FileSizeToString(float64(f.Size), 0)
+		size = fmt.Sprintf("(%s)", size)
+		size = PaddingRight(size, " ", 9)
+		fmt.Printf("%s\t%s %s\n", f.ID, size, f.Filename)
+		printLike(f.Like)
+		printLabel(f.Label)
+		printNotes(f.Notes)
+		if f.Like != 0 || f.Label+f.Notes != "" {
+			fmt.Println()
+		}
+		printSlice(f.Keywords, "Keywords")
+		printSlice(f.Collections, "Collections")
+		printSlice(f.Albums, "Albums")
+		fmt.Println()
+	}
+}
+
+func printLike(like int) {
+	for i := 0; i < like; i++ {
+		fmt.Print("♥")
+	}
+	if like > 0 {
+		fmt.Print(" ")
+	}
+}
+
+func printLabel(s string) {
+	if s == "" {
+		return
+	}
+	fmt.Printf("[%s] ", s)
+}
+
+func printNotes(s string) {
+	if s == "" {
+		return
+	}
+	fmt.Printf("%s", s)
+}
+
+func printSlice(s []string, name string) {
+	if len(s) == 0 {
+		return
+	}
+	joined := strings.Join(s, ", ")
+	fmt.Printf("%s: %s\n", name, joined)
+}
+
 func PaddingRight(s, char string, length int) string {
 	for {
 		if len(s) >= length {

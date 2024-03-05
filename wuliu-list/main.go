@@ -15,6 +15,7 @@ type File = util.File
 
 var (
 	nFlag       = flag.Int("n", 15, "default: 15")
+	moreFlag    = flag.Bool("more", false, "show more information")
 	ascFlag     = flag.Bool("asc", false, "sort in ascending order")
 	orderbyFlag = flag.String("orderby", "ctime", "size/like/utime")
 	labelFlag   = flag.Bool("labels", false, "print all labels")
@@ -52,6 +53,10 @@ func main() {
 	}
 
 	files := lo.Must(sortBy(*orderbyFlag, *nFlag, !*ascFlag, db))
+	if *moreFlag {
+		util.PrintFilesMore(files)
+		return
+	}
 	util.PrintFilesSimple(files)
 }
 
@@ -222,10 +227,12 @@ func printAlbums(db *bolt.DB) {
 func printKeysAndLength(bucketName []byte, db *bolt.DB) {
 	keywords, err := util.GetKeysAndIdsLength(bucketName, db)
 	util.PrintErrorExit(err)
+	fmt.Println()
 	if len(keywords) == 0 {
 		fmt.Println("(none)")
 	}
 	for k, n := range keywords {
 		fmt.Printf("%s (%d)\n", k, n)
 	}
+	fmt.Println()
 }

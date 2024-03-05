@@ -10,7 +10,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 type (
@@ -65,7 +64,7 @@ func newJsonFile() error {
 	return err
 }
 
-func overwriteMetadata(files []File, db *bolt.DB) error {
+func overwriteMetadata(files []*File, db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(util.FilesBucket)
 		for _, f := range files {
@@ -86,59 +85,13 @@ func overwriteMetadata(files []File, db *bolt.DB) error {
 	})
 }
 
-func printMetadata(files []File) {
+func printMetadata(files []*File) {
 	fmt.Printf("\n檔案屬性修改預覽:\n")
 	fmt.Printf("(尚未實際執行，使用參數 '-danger' 纔會實際執行)\n\n")
-	for _, f := range files {
-		size := util.FileSizeToString(float64(f.Size), 0)
-		size = fmt.Sprintf("(%s)", size)
-		size = util.PaddingRight(size, " ", 9)
-		fmt.Printf("%s\t%s %s\n", f.ID, size, f.Filename)
-		printLike(f.Like)
-		printLabel(f.Label)
-		printNotes(f.Notes)
-		if f.Like != 0 || f.Label+f.Notes != "" {
-			fmt.Println()
-		}
-		printSlice(f.Keywords, "Keywords")
-		printSlice(f.Collections, "Collections")
-		printSlice(f.Albums, "Albums")
-		fmt.Println()
-	}
+	util.PrintFilesMore(files)
 }
 
-func printLike(like int) {
-	for i := 0; i < like; i++ {
-		fmt.Print("♥")
-	}
-	if like > 0 {
-		fmt.Print(" ")
-	}
-}
-
-func printLabel(s string) {
-	if s == "" {
-		return
-	}
-	fmt.Printf("[%s] ", s)
-}
-
-func printNotes(s string) {
-	if s == "" {
-		return
-	}
-	fmt.Printf("%s", s)
-}
-
-func printSlice(s []string, name string) {
-	if len(s) == 0 {
-		return
-	}
-	joined := strings.Join(s, ", ")
-	fmt.Printf("%s: %s\n", name, joined)
-}
-
-func readConfig(db *bolt.DB) (cfg EditFiles, files []File) {
+func readConfig(db *bolt.DB) (cfg EditFiles, files []*File) {
 	data := lo.Must(os.ReadFile(*cfgPath))
 	err := json.Unmarshal(data, &cfg)
 	util.PrintErrorExit(err)
@@ -153,12 +106,13 @@ func readConfig(db *bolt.DB) (cfg EditFiles, files []File) {
 		if util.PathNotExists(metaPath) {
 			log.Fatalln("Warning! 找不到", metaPath)
 		}
-		files = append(files, util.ReadFile(metaPath))
+		f := util.ReadFile(metaPath)
+		files = append(files, &f)
 	}
 	return
 }
 
-func updateFiles(cfg EditFiles, files []File) []File {
+func updateFiles(cfg EditFiles, files []*File) []*File {
 	if *omitempty {
 		return updateFilesOmitEmpty(cfg, files)
 	}
@@ -175,7 +129,7 @@ func updateFiles(cfg EditFiles, files []File) []File {
 	return files
 }
 
-func updateFilesOmitEmpty(cfg EditFiles, files []File) []File {
+func updateFilesOmitEmpty(cfg EditFiles, files []*File) []*File {
 	now := util.Now()
 	for i := range files {
 		if cfg.Like != 0 {

@@ -2,19 +2,19 @@
 
 Wuliu File Manager (五柳檔案管理腳本)
 
-## 主要功能
-
-- 給檔案增加更多屬性，例如: 備注、標籤、關鍵詞。
-- 檢查檔案完整性
-- 方便地備份
-- 方便地修復受損檔案
-
 ## 名词
 
 - 档案(檔案) = 文件 = file
 - 资料夹(資料夾) = 文件夹 = folder = directory
 - 专案(專案) = 项目 = project
 - 列印 = 打印/显示 = print
+
+## 主要功能
+
+- 給檔案增加更多屬性，例如: 備注、標籤、關鍵詞。
+- 檢查檔案完整性
+- 方便地備份
+- 方便地修復受損檔案
 
 ## 编程简单第一
 
@@ -190,10 +190,11 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 - 默認按 CTime 排序，使用參數 `-orderby [INDEX]` 可按其他維度排序
   (例如 size, like, utime 等)
   (注意，有時需要先執行 `wuliu-db -update=cache` 更新數據庫緩存。)
-- 例: `wuliu-list -orderby utime` 列印最近修改過的 15 个档案
+  - 例: `wuliu-list -orderby utime` 列印最近修改過的 15 个档案
 - 默認從大到小排序 (descending), 使用參數 `-asc` 改為從小到大排序 (ascending)。
-- 例: `wuliu-list -orderby size` 列印體積最大的 15 个档案
-- 例: `wuliu-list -orderby=size -asc` 列印體積最小的 15 个档案
+  - 例: `wuliu-list -orderby size` 列印體積最大的 15 个档案
+  - 例: `wuliu-list -orderby=size -asc` 列印體積最小的 15 个档案
+- 默認列印簡單信息 (ID, 体积, 档案名称), 使用參數 `-more` 列印詳細信息。
 - `wuliu-list > list.txt` 可把結果保存到一個檔案中。
 
 上面是 wuliu-list 列印檔案的功能，另外, wuliu-list 還有其他功能，如下所示:
@@ -278,9 +279,9 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 - 本软件采用单向备份方式，备份时以“源专案”为准，
   使目标专案里的档案变成与源专案一样。
 - `wuliu-backup -n [N]` 通过序号选择目标专案
-- `wuliu-backup -backup` 正式执行备份
+- `wuliu-backup  -n [N] -danger` 正式执行备份
 - 例如执行命令 `wuliu-backup -n 1` 会列印第 1 个备份专案的信息，但不会执行备份。
-  而执行命令  `wuliu-backup -n=1 -backup` 则会正式执行备份。
+  而执行命令  `wuliu-backup -n=1 -danger` 则会正式执行备份。
 - 建议在执行 `wuliu-backup -n [N]` 查看信息前，先执行 `wuliu-db -update=cache`
 - 有时还可能需要去目标专案的根目录里执行  `wuliu-db -update=cache`
 - 当档案数量较少时，建议先在源专案与目标专案两边都执行
@@ -290,6 +291,7 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
   备份过程中发生错误时，请对目标专案执行 `wuliu-orphan --check` 和
   `wuliu-db -update=rebuild`, 因为备份程序只会自动备份 files, metadata,
   project.json, 但不会更新目标专案的 project.db
+  TODO: 考慮自動備份 project.db
 
 ### 修復受損檔案
 
@@ -361,7 +363,7 @@ type EditFiles struct {
 請勿填寫 filenames. 然後執行 `wuliu-metadata -json metadata.json`
 可預覽批量修改後的檔案屬性，尚未實際執行。
 
-使用參數 '-danger' 纔會實際執行，
+使用參數 `-danger` 纔會實際執行，
 例如 `wuliu-metadata -json metadata.json -danger`
 
 默認只有填寫了內容的項目會被修改，空值項目保持不變 (不會被改為空值)。

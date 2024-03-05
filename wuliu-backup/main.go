@@ -20,7 +20,7 @@ var (
 var (
 	projectsFlag = flag.Bool("projects", false, "list all projects")
 	nFlag        = flag.Int("n", 0, "select a project by a number")
-	backupFlag   = flag.Bool("backup", false, "do backup files")
+	dangerFlag   = flag.Bool("danger", false, "do backup files")
 	fixFlag      = flag.Bool("fix", false, "try to fix files automatically")
 )
 
@@ -60,15 +60,15 @@ func main() {
 		}
 	}
 
-	if *backupFlag || *fixFlag {
+	if *dangerFlag || *fixFlag {
 		if *nFlag < 1 {
 			fmt.Println("請使用參數 '-n' 指定目標專案")
 			return
 		}
 	}
 
-	if *backupFlag {
-		fmt.Println("備份開始")
+	if *dangerFlag {
+		fmt.Printf("\n備份開始\n")
 
 		lo.Must0(syncProjInfo(bkRoot, *nFlag))
 		lo.Must0(syncFilesToBK(".", bkRoot, mainDB, bkDB))
