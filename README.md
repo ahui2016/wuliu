@@ -1,6 +1,6 @@
-# wuliu
+# Wuliu (Golang)
 
-Wuliu File Manager (五柳檔案管理腳本)
+Wuliu File Manager (五柳檔案管理腳本) Golang Scripts
 
 ## 名词
 
@@ -33,6 +33,12 @@ Wuliu File Manager (五柳檔案管理腳本)
 **【注意】**: 
 這些腳本為了編程方便，犧牲了易用性，因此在使用過程中必須
 一邊閱讀本文 (README.md) 一邊使用。
+
+## 安裝
+
+- 安裝 Golang
+- 下載 Wuliu 原始碼
+- 添加環境變數
 
 ## Scripts
 
@@ -266,6 +272,10 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 自动判断档案是否需要检查，根据 CheckSizeLimit (检查体积上限) 自动终止检查，防止
 单次检查时间太长。
 
+### wuliu-checksum -same (找出重複檔案)
+
+`wuliu-checksum -same` 該命令不可與參數 `-n` 同時使用，只能檢查當前專案。
+
 ## wuliu-backup
 
 创建新备份专案的方法：
@@ -379,7 +389,24 @@ type EditFiles struct {
 如果想讓空值也生效，請使用參數 `-omitempty=false`,
 例如 `wuliu-metadata -json metadata.json -omitempty=false`
 
+## 未为视频文件优化
+
+- 视频文件通常较大
+- 大文件比较麻烦
+- 尤其是比较大的视频文件，不建议使用本软件来管理
+- 体积不大的视频文件，可以使用本软件，但没有优化，只当作普通文件处理
+  （没有预览和播放视频等功能）
+- 可以考虑单独建立一个专案，专门用来管理视频文件，这样在 files 文件夹里
+  就只有视频文件，比较方便预览和播放
+
+## 相册功能
+
+- 相册功能，就是针对图片文件的功能，方便预览和管理图片
+- 相册功能采用 Python 语言实现，详情请看 <README-Python.md>
+- 同时，相册功能也是一个演示，证明可以使用任何编程语言来扩展本软件的功能
+
 ## TODO
 
-- wuliu-overwrite 批量修改檔案屬性
+- wuliu-checksum -same
+- wuliu-db -dump 导出整个数据库到 json, 方便其他编程语言使用
 - wuliu-list -ctime="2024-02-01" 通過日期前綴後列印檔案
