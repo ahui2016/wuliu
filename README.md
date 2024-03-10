@@ -252,6 +252,7 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 
 - `wuliu-db --info=count` 查看数据库条目数量
 - `wuliu-db --info=size` 查看全部档案的总体积
+- `wuliu-db -dump database.msgp` 導出整個數據庫到一個 msgpack 格式的檔案
 
 ### 更新数据库
 
@@ -416,5 +417,5 @@ type EditFiles struct {
 ## TODO
 
 - wuliu-checksum -same
-- wuliu-db -dump 导出整个数据库到 json, 方便其他编程语言使用
+- wuliu-db -dump 导出整个数据库到 msgpack, 方便其他编程语言使用
 - wuliu-list -ctime="2024-02-01" 通過日期前綴後列印檔案

@@ -13,6 +13,7 @@ import (
 var (
 	infoFlag   = flag.String("info", "", "count/size")
 	updateFlag = flag.String("update", "", "cache/rebuild")
+	dumpFlag   = flag.String("dump", "", "dump the whole database to a file")
 )
 
 func main() {
@@ -20,9 +21,15 @@ func main() {
 	util.MustInWuliu()
 
 	var db *bolt.DB
-	if *infoFlag != "" || *updateFlag == "cache" {
+	if *dumpFlag+*infoFlag != "" || *updateFlag == "cache" {
 		db = lo.Must(util.OpenDB("."))
 		defer db.Close()
+	}
+
+	if *dumpFlag != "" {
+		err := dump(*dumpFlag, db)
+		util.PrintErrorExit(err)
+		return
 	}
 
 	if *infoFlag != "" && !slices.Contains([]string{"count", "size"}, *infoFlag) {
@@ -52,6 +59,14 @@ func main() {
 		util.RebuildDatabase(".")
 		return
 	}
+}
+
+func dump(filename string, db *bolt.DB) error {
+	files, err := util.GetAllFiles(db)
+	if err != nil {
+		return err
+	}
+	return util.WriteMSP(files, filename)
 }
 
 func printDatabaseCount(db *bolt.DB) error {

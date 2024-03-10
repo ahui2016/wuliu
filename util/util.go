@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/samber/lo"
+	"github.com/vmihailenco/msgpack/v5"
 	"golang.org/x/crypto/blake2b"
 	"io"
 	"os"
@@ -92,6 +93,18 @@ func WriteJSON(data any, filename string) ([]byte, error) {
 		return nil, err
 	}
 	return dataJSON, nil
+}
+
+// WriteMSP 把 data 转换为漂亮格式的 MessagePack 并写入檔案 filename 中。
+func WriteMSP(data any, filename string) error {
+	blob, err := msgpack.Marshal(data)
+	if err != nil {
+		return err
+	}
+	if err = WriteFile(filename, blob); err != nil {
+		return err
+	}
+	return nil
 }
 
 func isRegularFile(name string) (ok bool, err error) {
