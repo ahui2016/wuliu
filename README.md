@@ -188,6 +188,8 @@ type ProjectInfo struct {
 如需修改檔案本身 或 檔案屬性，請使用 wuliu-export 與 wuliu-overwrite
 (詳見後文的相關章節)
 
+如需更改檔案名稱，請使用 wuliu-rename 命令。
+
 ## wuliu-delete
 
 - 该命令删除添加档案，包括删除对应的 json 档案和数据库中的条目
