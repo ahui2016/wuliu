@@ -178,6 +178,16 @@ type ProjectInfo struct {
 - ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
   如需更改檔案名稱，請使用 wuliu-rename 命令。
 
+### 添加後修改檔案及其屬性
+
+一旦成功添加檔案，在 metadata 資料夾中會自動生成同名 json, 在該 json 中
+含有檔案屬性，但請勿直接修改 json 內容。
+
+也不可直接修改檔案本身。
+
+如需修改檔案本身 或 檔案屬性，請使用 wuliu-export 與 wuliu-overwrite
+(詳見後文的相關章節)
+
 ## wuliu-delete
 
 - 该命令删除添加档案，包括删除对应的 json 档案和数据库中的条目
@@ -306,11 +316,7 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 - 当档案数量较少时，建议先在源专案与目标专案两边都执行
   `wuliu-orphan --check` 和 `wuliu-db -update=rebuild`
   因为备份时需要使用数据库，而重建数据库有助于确保数据库与实际档案信息保持一致。
-- **【注意！】** 备份后，必须进入目标专案执行 `wuliu-db -update=rebuild`,
-  备份过程中发生错误时，请对目标专案执行 `wuliu-orphan --check` 和
-  `wuliu-db -update=rebuild`, 因为备份程序只会自动备份 files, metadata,
-  project.json, 但不会更新目标专案的 project.db
-  TODO: 考慮自動備份 project.db
+- 備份成功後，會自動更新數據庫。
 
 ### 修復受損檔案
 

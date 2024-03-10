@@ -27,11 +27,14 @@ Wuliu File Manager (五柳檔案管理腳本) Python Scripts
 1. 複製原始碼中的 `py` 資料夾到專案根目錄
 2. 用命令 `python3 py/wuliu-thumb.py` 的形式執行 Python 腳本
 
+採用該方法，可使用虛擬環境，參考 https://docs.python.org/3/tutorial/venv.html
+
 ### 方法二
 
 1. 參考 <README.md> 中的說明，下載原始碼，把原始碼中的 `py` 資料夾添加到系統的環境變數中。
 2. 直接執行命令 `wuliu-thumb.py` 或 `wuliu-thumb`
-  - Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tutorial/appendix.html#executable-python-scripts)
+
+Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tutorial/appendix.html#executable-python-scripts)
 
 
 python -m pip freeze will produce a similar list of the installed packages, but the output uses the format that python -m pip install expects. 

@@ -184,13 +184,14 @@ func DatabaseFilesSize(db *bolt.DB) (fileN int, totalSize int64, err error) {
 }
 
 // RebuildDatabase 删除数据库，然后重建数据库并且重新填充数据。
-func RebuildDatabase() {
-	if PathExists(DatabasePath) {
-		fmt.Println("Delete", DatabasePath)
-		lo.Must0(os.Remove(DatabasePath))
+func RebuildDatabase(root string) {
+	dbPath := filepath.Join(root, DatabasePath)
+	if PathExists(dbPath) {
+		fmt.Println("Delete", dbPath)
+		lo.Must0(os.Remove(dbPath))
 	}
 	fmt.Println("Rebuilding database...")
-	db := lo.Must(OpenDB("."))
+	db := lo.Must(OpenDB(root))
 	defer db.Close()
 	lo.Must0(createBuckets(db))
 	lo.Must0(rebuildAllBuckets(db))

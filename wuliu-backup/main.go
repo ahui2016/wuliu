@@ -68,11 +68,14 @@ func main() {
 	}
 
 	if *dangerFlag {
-		fmt.Printf("\n備份開始\n")
-
+		fmt.Printf("備份開始\n")
 		lo.Must0(syncProjInfo(bkRoot, *nFlag))
-		lo.Must0(syncFilesToBK(".", bkRoot, mainDB, bkDB))
-		fmt.Printf("\n備份結束\n")
+		n, err := syncFilesToBK(".", bkRoot, mainDB, bkDB)
+		util.PrintErrorExit(err)
+		if n > 0 {
+			rebuildDatabase(bkRoot, mainDB, bkDB)
+		}
+		fmt.Printf("備份結束\n\n")
 		return
 	}
 
@@ -81,6 +84,13 @@ func main() {
 		lo.Must0(autoFix(".", bkRoot, mainDB, bkDB))
 		return
 	}
+}
+
+func rebuildDatabase(bkRoot string, mainDB, bkDB *bolt.DB) {
+	fmt.Println("Rebuild database...")
+	lo.Must0(util.RebuildSomeBuckets(mainDB))
+	bkDB.Close()
+	util.RebuildDatabase(bkRoot)
 }
 
 func getBkRoot() string {
@@ -178,6 +188,7 @@ func checkBackupDiskUsage(volumePath string, addUpSize int64) error {
 func printStatus(mainStatus, bkStatus ProjectStatus, n int) {
 	totalSize := util.FileSizeToString(float64(mainStatus.TotalSize), 2)
 	mainBackupAt := mainStatus.LastBackupAt[0]
+	fmt.Println()
 	fmt.Printf("源專案\t\t%s\n", mainStatus.Root)
 	fmt.Printf("檔案數量\t%d\n", mainStatus.FilesCount)
 	fmt.Printf("體積合計\t%s\n", totalSize)
@@ -198,14 +209,17 @@ func printStatus(mainStatus, bkStatus ProjectStatus, n int) {
 	fmt.Printf("源專案檔案數量 - 目標專案檔案數量 = %d\n", mainStatus.FilesCount-bkStatus.FilesCount)
 	fmt.Printf("源專案檔案體積 - 目標專案檔案體積 = %s\n", diff)
 	fmt.Printf("上次備份時間: %s\n", backupAtDiff)
+	fmt.Println()
 }
 
-func syncFilesToBK(mainRoot, bkRoot string, mainDB, bkDB *bolt.DB) error {
+func syncFilesToBK(mainRoot, bkRoot string, mainDB, bkDB *bolt.DB) (int, error) {
 	files, err := getChangedFiles(mainRoot, bkRoot, mainDB, bkDB)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return files.Sync()
+	n := files.Count()
+	err = files.Sync()
+	return n, err
 }
 
 type ChangedFiles struct {
@@ -215,6 +229,10 @@ type ChangedFiles struct {
 	Updated    []string
 	Overwrited []string
 	Added      []string
+}
+
+func (files ChangedFiles) Count() int {
+	return len(files.Deleted) + len(files.Updated) + len(files.Overwrited) + len(files.Added)
 }
 
 func (files ChangedFiles) Sync() (err error) {

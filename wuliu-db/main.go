@@ -49,7 +49,7 @@ func main() {
 		return
 	}
 	if *updateFlag == "rebuild" {
-		util.RebuildDatabase()
+		util.RebuildDatabase(".")
 		return
 	}
 }

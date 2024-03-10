@@ -207,6 +207,7 @@ func PrintFilesSimple(files []*File) {
 		size = PaddingRight(size, " ", 9)
 		fmt.Printf("%s\t%s %s\n", f.ID, size, f.Filename)
 	}
+	fmt.Println()
 }
 
 func PrintFilesMore(files []*File) {
