@@ -15,6 +15,14 @@ def get_pics_metadata(msgp_path:Path):
         return msgpack.load(f)
 
 
+def create_thumbs(pics):
+    for pic in pics:
+        pic_path = Path(Files).joinpath(pic[Filename])
+        print(pic_path)
+        thumb_path = Path(Thumbs).joinpath(f'{pic[ID]}.jpg')
+        print(thumb_path)
+
+
 # ↓↓↓ main ↓↓↓ 
 
 parser = argparse.ArgumentParser()
@@ -31,4 +39,4 @@ if args.msgp == '':
 
 
 pics = get_pics_metadata(Path(args.msgp))
-print(pics)
+create_thumbs(pics)

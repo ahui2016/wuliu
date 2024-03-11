@@ -13,3 +13,7 @@ Albums      = 'Albums'
 CTime       = 'CTime'
 UTime       = 'UTime'
 
+
+Files       = 'files'
+Thumbs      = 'webpages/thumbs'
+Thumbs_msgp = 'thumbs.msgp'
