@@ -13,7 +13,7 @@ import (
 var (
 	infoFlag   = flag.String("info", "", "count/size")
 	updateFlag = flag.String("update", "", "cache/rebuild")
-	dumpFlag   = flag.String("dump", "", "dump the whole database to a file")
+	dumpFlag   = flag.String("dump", "", "all/pics")
 )
 
 func main() {
@@ -61,11 +61,33 @@ func main() {
 	}
 }
 
-func dump(filename string, db *bolt.DB) error {
+func dump(what string, db *bolt.DB) error {
+	if what == "pics" {
+		return dumpPics(db)
+	}
+	if what == "all" {
+		return dumpAll(db)
+	}
+	return fmt.Errorf("Unknown value: %s", what)
+}
+
+func dumpAll(db *bolt.DB) error {
 	files, err := util.GetAllFiles(db)
+	filename := "all.msgp"
+	return dumpSelectedFiles(filename, files, err)
+}
+
+func dumpPics(db *bolt.DB) error {
+	pics, err := util.GetAllPics(db)
+	filename := "pics.msgp"
+	return dumpSelectedFiles(filename, pics, err)
+}
+
+func dumpSelectedFiles(filename string, files []*util.File, err error) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("Write ->", filename)
 	return util.WriteMSP(files, filename)
 }
 

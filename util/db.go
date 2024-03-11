@@ -352,6 +352,14 @@ func GetAllFiles(db *bolt.DB) (files []*File, err error) {
 	return
 }
 
+func GetAllPics(db *bolt.DB) (pics []*File, err error) {
+	err = db.View(func(tx *bolt.Tx) error {
+		pics, err = getAllPics(tx)
+		return err
+	})
+	return
+}
+
 func getAllFiles(tx *bolt.Tx) (files []*File, err error) {
 	b := tx.Bucket(FilesBucket)
 	err = b.ForEach(func(_, v []byte) error {
@@ -360,6 +368,21 @@ func getAllFiles(tx *bolt.Tx) (files []*File, err error) {
 			return err
 		}
 		files = append(files, &f)
+		return nil
+	})
+	return
+}
+
+func getAllPics(tx *bolt.Tx) (pics []*File, err error) {
+	b := tx.Bucket(FilesBucket)
+	err = b.ForEach(func(_, v []byte) error {
+		var f File
+		if err := json.Unmarshal(v, &f); err != nil {
+			return err
+		}
+		if strings.HasPrefix(f.Type, "image") {
+			pics = append(pics, &f)
+		}
 		return nil
 	})
 	return
