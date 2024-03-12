@@ -1,3 +1,5 @@
+Project_JSON = "project.json"
+Thumb_Size    = "ThumbSize"
 
 ID          = 'ID'
 Filename    = 'Filename'
@@ -17,3 +19,4 @@ UTime       = 'UTime'
 Files       = 'files'
 Thumbs      = 'webpages/thumbs'
 Thumbs_msgp = 'thumbs.msgp'
+

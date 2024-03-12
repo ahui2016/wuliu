@@ -66,6 +66,7 @@ type ProjectInfo struct {
 	CheckInterval   int      // 检查完整性, 单位: day
 	CheckSizeLimit  int      // 检查完整性, 单位: MB
 	ExportSizeLimit int64    // 導出檔案體積上限，單位: MB
+	ThumbSize       [2]int   // 縮略圖尺寸
 }
 
 func NewProjectInfo(name string) (info ProjectInfo) {
@@ -76,6 +77,7 @@ func NewProjectInfo(name string) (info ProjectInfo) {
 	info.CheckInterval = 30
 	info.CheckSizeLimit = 1024
 	info.ExportSizeLimit = 300
+	info.ThumbSize = [2]int{150, 150}
 	return
 }
 
