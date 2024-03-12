@@ -3,7 +3,7 @@ import sys
 import argparse
 import msgpack
 from wuliu.const import *
-from wuliu.common import print_err, read_project_info, create_thumb
+from wuliu.common import print_err, read_project_info, read_thumbs_msgp, create_thumb
 
 
 def get_pics_metadata(msgp_path:Path):
@@ -16,13 +16,31 @@ def get_pics_metadata(msgp_path:Path):
         return msgpack.load(f)
 
 
+def pic_in_thumbs(pic, thumbs) -> bool:
+    pic_id = pic[ID]
+    old_checksum = thumbs.get(pic_id)
+    return old_checksum == pic[Checksum]
+
+
 def create_thumbs(pics, thumb_size):
+    changed = False
+    thumbs = read_thumbs_msgp()
     for pic in pics:
+        if pic_in_thumbs(pic, thumbs):
+            continue
         pic_path = Path(Files).joinpath(pic[Filename])
         thumb_path = Path(Thumbs).joinpath(f'{pic[ID]}.jpg')
         print(f'Create -> {thumb_path}')
         err = create_thumb(pic_path, thumb_path, thumb_size)
         print_err(err)
+        if err is None:
+            changed = True
+            thumbs[pic[ID]] = pic[Checksum]
+
+    if changed:
+        print(f'Update -> {Thumbs_msgp}')
+        blob = msgpack.packb(thumbs)
+        Path(Thumbs_msgp).write_bytes(blob)
 
 
 # ↓↓↓ main ↓↓↓ 
@@ -33,7 +51,6 @@ parser.add_argument('-msgp', type=str, default='',
         help='the msgp file created by "wuliu-db -dump"')
 
 args = parser.parse_args()
-print(args)
 
 if args.msgp == '':
     print('wuliu-pics.py: error: required argument -msgp')
