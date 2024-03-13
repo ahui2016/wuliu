@@ -22,25 +22,36 @@ def pic_in_thumbs(pic, thumbs) -> bool:
     return old_checksum == pic[Checksum]
 
 
-def create_thumbs(pics, thumb_size):
-    changed = False
-    thumbs = read_thumbs_msgp()
+def updated_pics(pics, thumbs):
+    """
+    :return: pics need to create or re-create thumbnails
+    """
+    newpics = dict()
     for pic in pics:
-        if pic_in_thumbs(pic, thumbs):
-            continue
+        if not pic_in_thumbs(pic, thumbs):
+            newpics[pic[ID]] = pic
+    return newpics
+
+
+def create_thumbs(pics, thumb_size):
+    thumbs = read_thumbs_msgp()
+    newpics = updated_pics(pics, thumbs)
+    if len(newpics) == 0:
+        return
+
+    for pic in newpics:
+        pic_id = pic[ID]
         pic_path = Path(Files).joinpath(pic[Filename])
-        thumb_path = Path(Thumbs).joinpath(f'{pic[ID]}.jpg')
+        thumb_path = Path(Thumbs).joinpath(f'{pic_id}.jpg')
         print(f'Create -> {thumb_path}')
         err = create_thumb(pic_path, thumb_path, thumb_size)
         print_err(err)
         if err is None:
-            changed = True
-            thumbs[pic[ID]] = pic[Checksum]
+            thumbs[pic_id] = pic[Checksum]
 
-    if changed:
-        print(f'Update -> {Thumbs_msgp}')
-        blob = msgpack.packb(thumbs)
-        Path(Thumbs_msgp).write_bytes(blob)
+    print(f'Update -> {Thumbs_msgp}')
+    blob = msgpack.packb(thumbs)
+    Path(Thumbs_msgp).write_bytes(blob)
 
 
 # ↓↓↓ main ↓↓↓ 
