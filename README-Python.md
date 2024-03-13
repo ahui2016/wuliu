@@ -38,6 +38,17 @@ Wuliu File Manager (五柳檔案管理腳本) Python Scripts
 
 Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tutorial/appendix.html#executable-python-scripts)
 
+## wuliu-thumbs (更新縮略圖)
+
+- 執行命令 `wuliu-db -dump pics` 導出全部圖片的屬性 (pics.msgp)
+- 執行命令 `wuliu-thumbs -msgp pics.msgp` 即可生成縮略圖。
+  同時，該命令還會生成檔案 thumbs.msgp, 其中記錄了縮略圖的資訊。
+- 該命令會自動對比 pics.msgp 與 thumbs.msgp, 發現新增圖片及修改過的圖片，
+  沒變化的圖片會被忽略，發現已刪除的圖片也會自動刪除縮略圖。
+- 如果想重新生成全部縮略圖，可以刪除 thumbs.msgp
+- `wuliu-thumbs --delete-orphans` 尋找並刪除漏網之魚 (應刪除但未刪除的縮略圖)
+- 注意，在執行 `wuliu-thumbs --delete-orphans` 時，必須確保 thumbs.msgp 是正確的。
+- 多數情況下不需要執行 `wuliu-thumbs --delete-orphans`.
 
 python -m pip freeze will produce a similar list of the installed packages, but the output uses the format that python -m pip install expects. 
 https://docs.python.org/3/tutorial/venv.html

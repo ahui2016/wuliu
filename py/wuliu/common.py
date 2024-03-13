@@ -49,13 +49,13 @@ def files_to_pics(files):
     return {file[ID]: file for file in files if file[Type].startswith('image')}
 
 
-def print_err(err:str):
+def print_err(err:str|None):
     """如果有错误就打印, 没错误就忽略."""
     if err:
         print(f"Error! {err}", file=sys.stderr)
 
 
-def print_err_exist(err:str):
+def print_err_exist(err:str|None):
     """若有错误则打印并结束程序, 无错误则忽略."""
     if err:
         sys.exit(f"Error! {err}")
