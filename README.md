@@ -105,6 +105,7 @@ type ProjectInfo struct {
     CheckInterval   int      // 检查完整性, 单位: day
     CheckSizeLimit  int      // 检查完整性, 单位: MB
     ExportSizeLimit int      // 導出檔案體積上限，單位: MB
+	ThumbSize       [2]int   // 縮略圖尺寸
 }
 ```
 

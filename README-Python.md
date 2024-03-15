@@ -45,13 +45,27 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
   同時，該命令還會生成檔案 thumbs.msgp, 其中記錄了縮略圖的資訊。
 - 該命令會自動對比 pics.msgp 與 thumbs.msgp, 發現新增圖片及修改過的圖片，
   沒變化的圖片會被忽略，發現已刪除的圖片也會自動刪除縮略圖。
+- 縮略圖尺寸可在 project.json 中修改。
 - 如果想重新生成全部縮略圖，可以刪除 thumbs.msgp
 - `wuliu-thumbs --delete-orphans` 尋找並刪除漏網之魚 (應刪除但未刪除的縮略圖)
 - 注意，在執行 `wuliu-thumbs --delete-orphans` 時，必須確保 thumbs.msgp 是正確的。
-- 多數情況下不需要執行 `wuliu-thumbs --delete-orphans`.
+- 多數情況下不需要執行 `wuliu-thumbs --delete-orphans`
+
+## wuliu-photo-album (創建相簿網頁)
+
+
+New_Album_Info = {  # 用於創建新相簿
+    ids: [],        # 通過 ID 指定圖片 (一旦指定ID, 其他條件無效)
+    label: '',      # label, notes, keyword, collections, albums
+    notes: '',      # 這五項可取交集(默認), 也可取併集, 通過下面的 union 控制。
+    keywords: [],
+    collections: [],
+    albums: [],
+    union: False,  # False: 交集, True: 併集(聯集)
+    orderby: 'utime',  # 排序依據: utime/ctime/filename/like
+    ascending: False,  # False: 降序, True: 昇序, 如果指定 ids, 則以 ids 為準
+}
+
 
 python -m pip freeze will produce a similar list of the installed packages, but the output uses the format that python -m pip install expects. 
 https://docs.python.org/3/tutorial/venv.html
-
-- 建議使用命令 `wuliu-db -dump` (詳見 <README.md>)
-  導出整個數據庫到一個 msgpack 格式的檔案。
