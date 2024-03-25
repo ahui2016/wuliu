@@ -59,7 +59,7 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
 
 ```python
 New_Album_Info = {  # 用於創建新相簿
-    name: ''        # 相簿名稱，必填，只允許使用 -, _, 0-9, a-z, A-Z
+    name: '',       # 相簿名稱，必填，只允許使用 0-9, a-z, A-Z, _, -, .(点)
     ids: [],        # 通過 ID 指定圖片 (一旦指定ID, 其他條件無效)
     label: '',      # label, notes, keyword, collections, albums
     notes: '',      # 這五項可取併集(默認), 也可取交集, 通過下面的 union 控制。
@@ -71,6 +71,8 @@ New_Album_Info = {  # 用於創建新相簿
     ascending: False,  # False: 降序, True: 昇序, 如果指定 ids, 則以 ids 為準
 }
 ```
+
+https://github.com/wintermute-cell/magick.css
 
 
 python -m pip freeze will produce a similar list of the installed packages, but the output uses the format that python -m pip install expects. 
