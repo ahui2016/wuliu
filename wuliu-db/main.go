@@ -88,7 +88,7 @@ func dumpSelectedFiles(filename string, files []*util.File, err error) error {
 		return err
 	}
 	fmt.Println("Write ->", filename)
-	return util.WriteMSP(files, filename)
+	return util.WriteMSGP(files, filename)
 }
 
 func printDatabaseCount(db *bolt.DB) error {

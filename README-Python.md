@@ -72,6 +72,16 @@ New_Album_Info = {  # 用於創建新相簿
 }
 ```
 
+- 請編輯 photo-album.json, 其中 **name** 必須填寫，用來作為相簿資料夾名稱。
+- **ids** 通常不填寫，一旦填寫, label, notes, keywords, collections, albums 和
+  union, orderby, ascending 都無效。
+- **label, notes, keywords, collections, albums** 這五項默認取併集(聯集),
+  如果這五項及 ids 都留空，則生成一個包含全部圖片的相簿。
+- 命令 `wuliu-db -dump pics` 導出全部圖片的屬性 (pics.msgp)
+- 命令 `wuliu-photo-album -json photo-album.json` 生成相簿。
+  該命令會自動讀取 pics.msgp, 生成的相簿在 webpages 資料夾中。
+
+
 https://github.com/wintermute-cell/magick.css
 
 

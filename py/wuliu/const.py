@@ -22,6 +22,7 @@ UTime       = 'UTime'
 Files       = 'files'
 Thumbs      = 'webpages/thumbs'
 Thumbs_msgp = 'thumbs.msgp'
+Pics_msgp   = 'pics.msgp'
 
 
 Filename_Forbid_Pattern = re.compile(r"[^._0-9a-zA-Z\-]")

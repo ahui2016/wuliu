@@ -34,19 +34,21 @@ def read_album_info(filename: str):
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('-json', type=str, default='',
-        help='read album info')
+parser.add_argument('-msgp', type=str,
+        help='the msgp file created by "wuliu-db -dump pics"')
 
-parser.add_argument('--new-json', type=str, default='',
+parser.add_argument('-json', type=str, help='read album info')
+
+parser.add_argument('--new-json', type=str,
         help='a filename of the json file of album info')
 
 args = parser.parse_args()
 
-if args.new_json != '':
+if args.new_json:
     create_new_album_info(args.new_json)
     sys.exit()
 
-if args.json != '':
+if args.json:
     info, err = read_album_info(args.json)
     print_err_exit(err, front_msg=f'{args.json}, name: {info['name']}')
     print(f'name: {info['name']}')

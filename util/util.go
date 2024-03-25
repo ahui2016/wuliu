@@ -95,8 +95,8 @@ func WriteJSON(data any, filename string) ([]byte, error) {
 	return dataJSON, nil
 }
 
-// WriteMSP 把 data 转换为漂亮格式的 MessagePack 并写入檔案 filename 中。
-func WriteMSP(data any, filename string) error {
+// WriteMSGP 把 data 转换为漂亮格式的 MessagePack 并写入檔案 filename 中。
+func WriteMSGP(data any, filename string) error {
 	blob, err := msgpack.Marshal(data)
 	if err != nil {
 		return err
