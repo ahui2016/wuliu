@@ -1,8 +1,11 @@
 import sys
 import json
+import shutil
+import msgpack
 import argparse
 from pathlib import Path
 from typing import Tuple
+from operator import itemgetter
 from wuliu.const import *
 from wuliu.common import check_filename, print_err_exit
 
@@ -30,12 +33,65 @@ def read_album_info(filename: str):
     return info, err
 
 
+def get_pics_metadata() -> list:
+    """獲取全部圖片的屬性
+    
+    msgp_path 是由 "wuliu-db -dump" 導出的數據，檔名固定為 pics.msgp
+    :return: 返回 File 列表 (參考 util/model.go 裏的 File)
+    """
+    with Path(Pics_msgp).open(mode='rb') as f:
+        return msgpack.load(f)
+
+
+def get_orderby(x: str) -> str:
+    """
+    :return: 默認返回 utime
+    """
+    match x:
+        case 'ctime':
+            return 'CTime'
+        case 'filename':
+            return 'Filename'
+        case 'like':
+            return 'Like'
+        case _:
+            return 'UTime'
+
+
+def get_pics(info: dict) -> list:
+    pics = get_pics_metadata()
+    orderby = get_orderby(info['orderby'])
+    reverse = not info['ascending']
+    pics.sort(key=itemgetter(orderby), reverse=reverse)
+    return pics
+
+
+def create_album(pics: list, album_path: Path):
+    pics_path = album_path.joinpath("pics")  # 原圖資料夾
+    print(f'Create => {pics_path}')
+    pics_path.mkdir(parents=True)
+    print(f'Copy pictures from files to {pics_path}')
+    for file in pics:
+        src = Path("files").joinpath(file['Filename'])
+        dst = pics_path.joinpath(file['ID']+src.suffix)
+        print('.', end='')
+        shutil.copyfile(src, dst)
+    print('\nOK')
+
+
+def make_album(pics: list, info: dict):
+    """新建或更新相簿。
+    """
+    album_path = Path(Webpages).joinpath(info['name'])
+    if album_path.exists():
+        print("update album")
+    else:
+        create_album(pics, album_path)
+
+
 # ↓↓↓ main ↓↓↓ 
 
 parser = argparse.ArgumentParser()
-
-parser.add_argument('-msgp', type=str,
-        help='the msgp file created by "wuliu-db -dump pics"')
 
 parser.add_argument('-json', type=str, help='read album info')
 
@@ -51,4 +107,5 @@ if args.new_json:
 if args.json:
     info, err = read_album_info(args.json)
     print_err_exit(err, front_msg=f'{args.json}, name: {info['name']}')
-    print(f'name: {info['name']}')
+    pics = get_pics(info)
+    make_album(pics, info)
