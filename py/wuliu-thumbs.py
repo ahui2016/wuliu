@@ -17,7 +17,7 @@ def get_pics_metadata(msgp_path:Path) -> List:
         return msgpack.load(f)
 
 
-def pic_in_thumbs(pic, thumbs) -> bool:
+def pic_in_thumbs(pic:dict, thumbs:dict) -> bool:
     pic_id = pic[ID]
     old_checksum = thumbs.get(pic_id)
     return old_checksum == pic[Checksum]
