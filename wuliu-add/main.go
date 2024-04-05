@@ -116,6 +116,10 @@ func printNewFiles(files []*File) {
 }
 
 func addNewFiles(files []*File, db *bolt.DB) {
+	if len(files) == 0 {
+		fmt.Println("warning: No file to add.")
+		return
+	}
 	var metadatas []FileAndMeta
 	for _, f := range files {
 		metaPath := filepath.Join(util.METADATA, f.Filename+".json")
