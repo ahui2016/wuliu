@@ -17,7 +17,7 @@ def create_new_album_info(filename: str):
         return
 
     print(f'Create => {filename}')
-    blob = json.dumps(New_Album_Info, indent=4)
+    blob = json.dumps(New_Album_Info, ensure_ascii=False, indent=4)
     target_path.write_text(blob, encoding='utf8')
 
 
@@ -77,6 +77,11 @@ def write_pics_msgp(pics: dict, album_path: Path):
     blob = msgpack.packb(pics)
     print(f'Write => {pics_msgp_path}')
     pics_msgp_path.write_bytes(blob)
+
+    blob = json.dumps(pics, ensure_ascii=False, indent=4)
+    blob = 'const pics = ' + blob;
+    pics_js_path = album_path.joinpath('pics.js')
+    pics_js_path.write_text(blob, encoding='utf8')
 
 
 def create_album(pics: list, album_path: Path, thumb_size):
