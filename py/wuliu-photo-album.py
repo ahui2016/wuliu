@@ -181,8 +181,17 @@ def update_album_pics(newpics:list, album_pics:dict, album_path: Path, thumb_siz
         if err is None:
             album_pics[pic_id] = pic
 
-    # TODO: 注意更新图片属性
     return album_pics
+
+
+def update_album_pics_msgp(pics:list, album_pics:dict, album_path:Path):
+    for pic in pics:
+        pic_id = pic[ID]
+        if pic_id in album_pics:
+            album_pics[pic_id] = pic
+
+    # TODO: 排序在前端 js 做。
+    write_pics_msgp(album_pics, album_path)
 
 
 def update_album(pics:list, album_path:Path, thumb_size):
@@ -197,7 +206,7 @@ def update_album(pics:list, album_path:Path, thumb_size):
         print('圖片無變化 (圖片無新增、更改或刪除)')
         return
 
-    write_pics_msgp(album_pics, album_path)
+    update_album_pics_msgp(pics, album_pics, album_path)
 
 
 def make_album(pics: list, album_info: dict, proj_info: dict):
