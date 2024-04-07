@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <script src="pics.js"></script>
+
+    <title>Wuliu Pictures</title>
+
+<style>
+.PicItem {
+  display: flex;
+}
+</style>
+
+  </head>
+  <body>
+  
+  <div id="page-alert"></div>
+
+  <div id="pics-list"></div>
+  
+  </body>
+
+<template id="pic-item">
+  <div class="PicItem">
+    <div><img class="thumb" /></div>
+    <div>
+      <div class="id"></div>
+      <div class="filename"></div>
+    </div>
+  </div>
+</template>
+
+<script>
+function query(selectors) {
+  return document.querySelector(selectors);
+}
+
+function newElem(tagName) {
+  return document.createElement(tagName);
+}
+
+function p(text) {
+  const elem = newElem("p");
+  elem.innerText = text;
+  return elem;
+}
+
+const pageAlert = query('#page-alert');
+const picsList = query('#pics-list');
+const picItemTmpl = query('#pic-item');
+
+function newPicItem(pic) {
+  const item = picItemTmpl.content.cloneNode(true);
+  const itemID = `f-${pic.ID}`;
+  item.children[0].setAttribute("id", itemID);
+  const imgElem = item.querySelector(".thumb");
+  imgElem.src = `thumbs/${pic.ID}.jpg`;
+  const idElem = item.querySelector(".id");
+  idElem.innerText = pic.ID;
+  const filenameElem = item.querySelector(".filename");
+  filenameElem.innerText = pic.Filename;
+  return item;
+}
+
+function appendItems(allItems, listElem, newItemFn) {
+  allItems.forEach(item => {
+    listElem.appendChild(newItemFn(item));
+  });
+}
+
+/* script src="pics.js" */
+function initPicsList() {
+  allPics = pics.pics;
+  if (!allPics || allPics.length == 0) {
+    pageAlert.appendChild(p("Warning: 未找到圖片。"));
+    return;
+  }
+  allPics.sort((a,b) => {
+    return a.UTime.localeCompare(b.UTime);
+  });
+  appendItems(allPics, picsList, newPicItem);
+}
+
+initPicsList();
+
+</script>
+</html>

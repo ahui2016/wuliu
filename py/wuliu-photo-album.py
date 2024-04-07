@@ -72,19 +72,21 @@ def read_pics_msgp(album_path: Path):
     return msgpack.unpackb(data)
 
 
-def write_pics_msgp(pics: dict, album_path: Path):
+def write_pics_msgp(pics: dict, album_info: dict, album_path: Path):
     pics_msgp_path = album_path.joinpath('pics.msgp')
     blob = msgpack.packb(pics)
     print(f'Write => {pics_msgp_path}')
     pics_msgp_path.write_bytes(blob)
 
-    blob = json.dumps(pics, ensure_ascii=False, indent=4)
+    album_info['pics'] = list(pics.values())
+    blob = json.dumps(album_info, ensure_ascii=False, indent=4)
     blob = 'const pics = ' + blob;
     pics_js_path = album_path.joinpath('pics.js')
+    print(f'Write => {pics_js_path}')
     pics_js_path.write_text(blob, encoding='utf8')
 
 
-def create_album(pics: list, album_path: Path, thumb_size):
+def create_album(pics: list, album_info: dict, album_path: Path, thumb_size):
     pics_path = album_path.joinpath('pics')  # 原圖資料夾
     print(f'mkdir => {pics_path}')
     pics_path.mkdir(parents=True)
@@ -106,7 +108,7 @@ def create_album(pics: list, album_path: Path, thumb_size):
         album_pics[file_id] = file
 
     print()
-    write_pics_msgp(album_pics, album_path)
+    write_pics_msgp(album_pics, album_info, album_path)
     print('OK')
 
 
@@ -189,17 +191,17 @@ def update_album_pics(newpics:list, album_pics:dict, album_path: Path, thumb_siz
     return album_pics
 
 
-def update_album_pics_msgp(pics:list, album_pics:dict, album_path:Path):
+def update_album_pics_msgp(pics:list, album_pics:dict, album_info: dict, album_path:Path):
     for pic in pics:
         pic_id = pic[ID]
         if pic_id in album_pics:
             album_pics[pic_id] = pic
 
     # TODO: 排序在前端 js 做。
-    write_pics_msgp(album_pics, album_path)
+    write_pics_msgp(album_pics, album_info, album_path)
 
 
-def update_album(pics:list, album_path:Path, thumb_size):
+def update_album(pics:list, album_info: dict, album_path:Path, thumb_size):
     old_pics = read_pics_msgp(album_path)
     deleted_pics = get_deleted_pics(pics, old_pics)
     album_pics = delete_album_pics(deleted_pics, old_pics, album_path)
@@ -211,7 +213,7 @@ def update_album(pics:list, album_path:Path, thumb_size):
         print('圖片無變化 (圖片無新增、更改或刪除)')
         return
 
-    update_album_pics_msgp(pics, album_pics, album_path)
+    update_album_pics_msgp(pics, album_pics, album_info, album_path)
 
 
 def make_album(pics: list, album_info: dict, proj_info: dict):
@@ -221,9 +223,9 @@ def make_album(pics: list, album_info: dict, proj_info: dict):
     thumb_size = proj_info[Thumb_Size]
 
     if album_path.exists():
-        update_album(pics, album_path, thumb_size)
+        update_album(pics, album_info, album_path, thumb_size)
     else:
-        create_album(pics, album_path, thumb_size)
+        create_album(pics, album_info, album_path, thumb_size)
 
 
 # ↓↓↓ main ↓↓↓ 
