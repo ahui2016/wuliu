@@ -15,7 +15,7 @@ func PrintVersionExit(ok bool) {
 	if ok {
 		fmt.Println(RepoName)
 		fmt.Println(RepoURL)
-		fmt.Println("Version: 2024-03-14")
+		fmt.Println("Version: 2024-04-07")
 		os.Exit(0)
 	}
 }
@@ -43,6 +43,10 @@ func MakeFolders(verbose bool) {
 		}
 		lo.Must0(MkdirIfNotExists(folder))
 	}
+}
+
+func ExecutableDir() string {
+	return filepath.Dir(GetExePath())
 }
 
 func InitFileChecked() {

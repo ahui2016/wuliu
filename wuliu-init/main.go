@@ -6,6 +6,7 @@ import (
 	"github.com/ahui2016/wuliu/util"
 	"github.com/samber/lo"
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -26,6 +27,7 @@ func main() {
 	}
 	util.FolderMustEmpty(".")
 	util.MakeFolders(true)
+	lo.Must0(copyTemplates())
 	writeProjectInfo(*nameFlag)
 	util.InitFileChecked()
 	util.CreateDatabase()
@@ -45,4 +47,12 @@ func writeProjectInfo(name string) {
 	fmt.Println("Create", util.ProjectInfoPath)
 	info := util.NewProjectInfo(name)
 	lo.Must0(util.WriteProjectInfo(info))
+}
+
+func copyTemplates() error {
+	exeDir := util.ExecutableDir()
+	src := filepath.Join(exeDir, "templates", "index.html")
+	dst := filepath.Join(util.WEBPAGES, "index.html")
+	fmt.Println("Create", dst)
+	return util.CopyFile(dst, src)
 }

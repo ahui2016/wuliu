@@ -84,6 +84,11 @@ def write_pics_msgp(pics: dict, album_info: dict, album_path: Path):
     pics_js_path = album_path.joinpath('pics.js')
     print(f'Write => {pics_js_path}')
     pics_js_path.write_text(blob, encoding='utf8')
+    
+    src = Path(Webpages).joinpath('index.html')
+    dst = album_path.joinpath('index.html')
+    print(f'Write => {dst}')
+    shutil.copyfile(src, dst)
 
 
 def create_album(pics: list, album_info: dict, album_path: Path, thumb_size):
