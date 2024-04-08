@@ -28,7 +28,7 @@
 
 <template id="pic-item">
   <div class="PicItem">
-    <div><img class="thumb" /></div>
+    <div><a class="thumb-link"><img class="thumb" /></a></div>
     <div>
       <div class="id"></div>
       <div class="filename"></div>
@@ -61,6 +61,8 @@ function newPicItem(pic) {
   item.children[0].setAttribute("id", itemID);
   const imgElem = item.querySelector(".thumb");
   imgElem.src = `thumbs/${pic.ID}.jpg`;
+  const thumbLinkElem = item.querySelector(".thumb-link");
+  thumbLinkElem.href = `pics/${pic.pic_file_name}`;
   const idElem = item.querySelector(".id");
   idElem.innerText = pic.ID;
   const filenameElem = item.querySelector(".filename");

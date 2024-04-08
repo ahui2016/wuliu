@@ -76,4 +76,4 @@ def print_err_exit(err:str|None, front_msg:str=''):
             print(f'Error! {front_msg}', file=sys.stderr)
             sys.exit(err)
         else:
-            sys.exit('Error! {err}')
+            sys.exit(f'Error! {err}')

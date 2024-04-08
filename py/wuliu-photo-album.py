@@ -27,53 +27,71 @@ def read_album_info(filename: str):
     """
     data = Path(filename).read_text(encoding='utf8')
     info = json.loads(data)
+
     if info['name'] == '':
         return None, f'請在 {filename} 中填寫 name, 不可留空。'
     err = check_filename(info['name'])
+
+    if not info['union']:
+        return None, 'union 請設為 true, 取交集的功能暫未實現。'
+
     return info, err
 
 
 def get_pics_metadata() -> list:
     """獲取全部圖片的屬性
     
-    msgp_path 是由 "wuliu-db -dump" 導出的數據，檔名固定為 pics.msgp
+    Pics_msgp 是由 "wuliu-db -dump pics" 導出的數據，檔名固定為 pics.msgp
     :return: 返回 File 列表 (參考 util/model.go 裏的 File)
     """
+    if not Path(Pics_msgp).exists():
+        print(f'ERROR: 找不到 {Pics_msgp}')
+        print('請執行 "wuliu-db -dump pics" 導出 pics.msgp')
+        sys.exit(1)
     with Path(Pics_msgp).open(mode='rb') as f:
         return msgpack.load(f)
 
 
-def get_orderby(x: str) -> str:
-    """
-    :return: 默認返回 utime
-    """
-    match x:
-        case 'ctime':
-            return 'CTime'
-        case 'filename':
-            return 'Filename'
-        case 'like':
-            return 'Like'
-        case _:
-            return 'UTime'
+def keywords_union(pics: list, album_info: dict) -> set:
+    result: Set[str] = set()
+    for kw in album_info['keywords']:
+        good = {pic[ID] for pic in pics if kw in pic[Keywords]}
+        result = result.union(good)
+    return result
+
+
+def filter_pics(pics: list, album_info: dict) -> list:
+    ids: Set[str] = set()
+    by_keywords = keywords_union(pics, album_info)
+    ids = ids.union(by_keywords)
+    
+    result = []
+    for pic in pics:
+        if pic[ID] in ids:
+            result.append(pic)
+
+    return result
 
 
 def get_pics(info: dict) -> list:
     pics = get_pics_metadata()
-    orderby = get_orderby(info['orderby'])
-    reverse = not info['ascending']
-    pics.sort(key=itemgetter(orderby), reverse=reverse)
+    pics = filter_pics(pics, info)
+    # orderby = get_orderby(info['orderby'])
+    # reverse = not info['ascending']
+    # pics.sort(key=itemgetter(orderby), reverse=reverse)
     return pics
 
 
-def read_pics_msgp(album_path: Path):
-    pics_msgp_path = album_path.joinpath('pics.msgp')
+def read_pics_msgp(album_path: Path) -> dict:
+    pics_msgp_path = album_path.joinpath(Pics_msgp)
+    if not pics_msgp_path.exists():
+        print_err_exit(f'ERROR: No such file: {pics_msgp_path}')
     data = pics_msgp_path.read_bytes()
     return msgpack.unpackb(data)
 
 
 def write_pics_msgp(pics: dict, album_info: dict, album_path: Path):
-    pics_msgp_path = album_path.joinpath('pics.msgp')
+    pics_msgp_path = album_path.joinpath(Pics_msgp)
     blob = msgpack.packb(pics)
     print(f'Write => {pics_msgp_path}')
     pics_msgp_path.write_bytes(blob)
@@ -104,7 +122,9 @@ def create_album(pics: list, album_info: dict, album_path: Path, thumb_size):
     for file in pics:
         file_id = file[ID]
         src = Path(Files).joinpath(file[Filename])
-        dst = pics_path.joinpath(file_id+src.suffix)
+        pic_file_name = file_id+src.suffix
+        dst = pics_path.joinpath(pic_file_name)
+        file['pic_file_name'] = pic_file_name
         print('.', end='')
         shutil.copyfile(src, dst)
         thumb = thumbs_path.joinpath(file_id+'.jpg')
@@ -184,8 +204,10 @@ def update_album_pics(newpics:list, album_pics:dict, album_path: Path, thumb_siz
     for pic in newpics:
         pic_id = pic[ID]
         src = Path(Files).joinpath(pic[Filename])
-        dst = pics_dir.joinpath(pic_id+src.suffix)
+        pic_file_name = pic_id + src.suffix
+        dst = pics_dir.joinpath(pic_file_name)
         thumb = thumbs_dir.joinpath(pic_id+'.jpg')
+        pic['pic_file_name'] = pic_file_name
         print(f'Add or update: [{pic_id}] {pic[Filename]}')
         shutil.copyfile(src, dst)
         err = create_thumb(src, thumb, thumb_size)
@@ -251,6 +273,6 @@ if args.new_json:
 if args.json:
     proj_info = read_project_info()
     album_info, err = read_album_info(args.json)
-    print_err_exit(err, front_msg=f'{args.json}, name: {album_info['name']}')
+    print_err_exit(err, front_msg=f'{args.json} "name"')
     pics = get_pics(album_info)
     make_album(pics, album_info, proj_info)
