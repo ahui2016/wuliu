@@ -54,16 +54,47 @@ def get_pics_metadata() -> list:
 
 def keywords_union(pics: list, album_info: dict) -> set:
     result: Set[str] = set()
-    for kw in album_info['keywords']:
-        good = {pic[ID] for pic in pics if kw in pic[Keywords]}
+    for x in album_info['keywords']:
+        good = {pic[ID] for pic in pics if x in pic[Keywords]}
+        result = result.union(good)
+    return result
+
+
+def collections_union(pics: list, album_info: dict) -> set:
+    result: Set[str] = set()
+    for x in album_info['collections']:
+        good = {pic[ID] for pic in pics if x in pic[Collections]}
+        result = result.union(good)
+    return result
+
+
+def albums_union(pics: list, album_info: dict) -> set:
+    result: Set[str] = set()
+    for x in album_info['albums']:
+        good = {pic[ID] for pic in pics if x in pic[Albums]}
         result = result.union(good)
     return result
 
 
 def filter_pics(pics: list, album_info: dict) -> list:
     ids: Set[str] = set()
+    
+    if album_info['label'] != '':
+        by_label = {pic[ID] for pic in pics if album_info['label'] == pic[Label]}
+        ids = ids.union(by_label)
+
+    if album_info['notes'] != '':
+        by_notes = {pic[ID] for pic in pics if album_info['notes'] == pic[Notes]}
+        ids = ids.union(by_notes)
+    
     by_keywords = keywords_union(pics, album_info)
     ids = ids.union(by_keywords)
+
+    by_collections = collections_union(pics, album_info)
+    ids = ids.union(by_collections)
+
+    by_albums = albums_union(pics, album_info)
+    ids = ids.union(by_albums)
     
     result = []
     for pic in pics:
@@ -97,6 +128,8 @@ def write_pics_msgp(pics: dict, album_info: dict, album_path: Path):
     pics_msgp_path.write_bytes(blob)
 
     album_info['pics'] = list(pics.values())
+    for pic in album_info['pics']:
+        pic[Checksum] = ''  # 前端 pic.js 裏不需要 checksum
     blob = json.dumps(album_info, ensure_ascii=False, indent=4)
     blob = 'const pics = ' + blob;
     pics_js_path = album_path.joinpath('pics.js')
@@ -215,6 +248,7 @@ def update_album_pics(newpics:list, album_pics:dict, album_path: Path, thumb_siz
         if err is None:
             album_pics[pic_id] = pic
 
+    print()
     return album_pics
 
 
