@@ -79,6 +79,10 @@ def albums_union(pics: list, album_info: dict) -> set:
 def filter_pics(pics: list, album_info: dict) -> list:
     ids: Set[str] = set()
     
+    if album_info['label'] == '' and album_info['notes'] == '' \
+            and len(album_info['keywords'])+len(album_info['collections'])+len(album_info['albums']) == 0:
+        return pics
+    
     if album_info['label'] != '':
         by_label = {pic[ID] for pic in pics if album_info['label'] == pic[Label]}
         ids = ids.union(by_label)
@@ -272,7 +276,6 @@ def update_album(pics:list, album_info: dict, album_path:Path, thumb_size):
 
     if len(deleted_pics)+len(updated_pics) == 0:
         print('圖片無變化 (圖片無新增、更改或刪除)')
-        return
 
     update_album_pics_msgp(pics, album_pics, album_info, album_path)
 
