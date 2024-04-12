@@ -9,7 +9,7 @@
 
     <script src="pics.js"></script>
 
-    <title>Wuliu Pictures</title>
+    <title>Wuliu Photo Album</title>
 
 <style>
 .PicItem {
@@ -24,7 +24,11 @@
 
   </head>
   <body>
+    
+  <h1>Wuliu Photo Album</h1>
   
+  <h3>Sort by <span id="sort-by"></span>, <span id="ascending"></span></h3>
+
   <div id="page-alert"></div>
 
   <div id="pics-list"></div>
@@ -45,6 +49,7 @@
       <div class="keywords"></div>
       <div class="collections"></div>
       <div class="albums"></div>
+      <br />
       <div class="ctime"></div>
       <div class="utime"></div>
     </div>
@@ -67,8 +72,13 @@ function p(text) {
 }
 
 const pageAlert = query('#page-alert');
+const sortByElem = query('#sort-by');
+const ascendingElem = query('#ascending');
 const picsList = query('#pics-list');
 const picItemTmpl = query('#pic-item');
+
+sortByElem.innerText = pics.orderby;
+ascendingElem.innerText = pics.ascending ? "ascending" : "descending";
 
 function newPicItem(pic) {
   const item = picItemTmpl.content.cloneNode(true);
@@ -121,6 +131,66 @@ function appendItems(allItems, listElem, newItemFn) {
   });
 }
 
+function orderByUTimeAsc(a, b) {
+  return a.UTime.localeCompare(b.UTime);
+}
+function orderByUTimeDesc(a, b) {
+  return b.UTime.localeCompare(a.UTime);
+}
+function orderByUTime(asc) {
+  if (asc) return orderByUTimeAsc;
+  return orderByUTimeDesc;
+}
+
+function orderByCTimeAsc(a, b) {
+  return a.CTime.localeCompare(b.CTime);
+}
+function orderByCTimeDesc(a, b) {
+  return b.CTime.localeCompare(a.CTime);
+}
+function orderByCTime(asc) {
+  if (asc) return orderByCTimeAsc;
+  return orderByCTimeDesc;
+}
+
+function orderByFilenameAsc(a, b) {
+  return a.Filename.localeCompare(b.Filename);
+}
+function orderByFilenameDesc(a, b) {
+  return b.Filename.localeCompare(a.Filename);
+}
+function orderByFilename(asc) {
+  if (asc) return orderByFilenameAsc;
+  return orderByFilenameDesc;
+}
+
+function orderByLikeAsc(a, b) {
+  return a.Like - b.Like;
+}
+function orderByLikeDesc(a, b) {
+  return b.Like - a.Like;
+}
+function orderByLike(asc) {
+  if (asc) return orderByLikeAsc;
+  return orderByLikeDesc;
+}
+
+function sortPics(allPics, asc, alert) {
+  let fn = orderByUTime(false);
+  if (pics.orderby == "utime") {
+    fn = orderByUTime(asc);
+  } else if (pics.orderby == "ctime") {
+    fn = orderByCTime(asc);
+  } else if (pics.orderby == "filename") {
+    fn = orderByFilename(asc);
+  } else if (pics.orderby == "like") {
+    fn = orderByLike(asc);
+  } else {
+    alert.appendChild(p(`Error: 排序不支持 "${pics.orderby}"`));
+  }
+  allPics.sort(fn);
+}
+
 /* script src="pics.js" */
 function initPicsList() {
   allPics = pics.pics;
@@ -128,9 +198,10 @@ function initPicsList() {
     pageAlert.appendChild(p("Warning: 未找到圖片。"));
     return;
   }
-  allPics.sort((a,b) => {
-    return a.UTime.localeCompare(b.UTime);
-  });
+  sortPics(allPics, pics.ascending, pageAlert);
+  //allPics.sort((a,b) => {
+  //  return a.UTime.localeCompare(b.UTime);
+  //});
   appendItems(allPics, picsList, newPicItem);
 }
 
