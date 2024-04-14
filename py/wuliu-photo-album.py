@@ -79,8 +79,8 @@ def albums_union(pics: list, album_info: dict) -> set:
 def filter_pics(pics: list, album_info: dict) -> list:
     ids: Set[str] = set()
     
-    if album_info['label'] == '' and album_info['notes'] == '' \
-            and len(album_info['keywords'])+len(album_info['collections'])+len(album_info['albums']) == 0:
+    if album_info['label'] + album_info['notes'] == '' and \
+            len(album_info['keywords'])+len(album_info['collections'])+len(album_info['albums']) == 0:
         return pics
     
     if album_info['label'] != '':
@@ -111,9 +111,6 @@ def filter_pics(pics: list, album_info: dict) -> list:
 def get_pics(info: dict) -> list:
     pics = get_pics_metadata()
     pics = filter_pics(pics, info)
-    # orderby = get_orderby(info['orderby'])
-    # reverse = not info['ascending']
-    # pics.sort(key=itemgetter(orderby), reverse=reverse)
     return pics
 
 
@@ -262,7 +259,6 @@ def update_album_pics_msgp(pics:list, album_pics:dict, album_info: dict, album_p
         if pic_id in album_pics:
             album_pics[pic_id] = pic
 
-    # TODO: 排序在前端 js 做。
     write_pics_msgp(album_pics, album_info, album_path)
 
 
