@@ -9,6 +9,7 @@ use (
 	./wuliu-delete
 	./wuliu-export
 	./wuliu-init
+	./wuliu-like
 	./wuliu-list
 	./wuliu-metadata
 	./wuliu-orphan

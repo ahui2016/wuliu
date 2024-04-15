@@ -399,6 +399,13 @@ type EditFiles struct {
 如果想讓空值也生效，請使用參數 `-omitempty=false`,
 例如 `wuliu-metadata -json metadata.json -omitempty=false`
 
+## wuliu-like (點讚，方便尋找精品或常用檔案)
+
+- `wuliu-like -id ID -n=3` 把一个文件的 like (小心心/点赞) 设为 3,
+  其中 ID 是文件的 ID, n 是一个整数，数字越大表示越喜欢/越重要。
+- `wuliu-like -id ID -n=0` 想这样，把 n 设为零取消点赞。
+- 点赞或取消点赞后，需要执行 `wuliu-db -update=cache` 更新索引缓冲。
+
 ## 未为视频文件优化
 
 - 视频文件通常较大
