@@ -129,11 +129,6 @@ def write_pics_msgp(pics: dict, album_info: dict, album_path: Path):
     pics_msgp_path.write_bytes(blob)
 
     album_info['pics'] = list(pics.values())
-    for pic in album_info['pics']:
-        pic[Checksum] = ''  # 前端 pic.js 裏不需要 checksum
-        pic_file_name = pic[ID] + Path(pic[Filename]).suffix
-        pic['pic_file_name'] = pic_file_name  # 前端的原圖檔名
-
     blob = json.dumps(album_info, ensure_ascii=False, indent=4)
     blob = 'const pics = ' + blob;
     pics_js_path = album_path.joinpath('pics.js')
@@ -280,6 +275,11 @@ def make_album(pics: list, album_info: dict, proj_info: dict):
     """
     album_path = Path(Webpages).joinpath(album_info['name'])
     thumb_size = proj_info[Thumb_Size]
+
+    for pic in pics:
+        pic[Checksum] = ''  # 前端 pic.js 裏不需要 checksum
+        pic_file_name = pic[ID] + Path(pic[Filename]).suffix
+        pic['pic_file_name'] = pic_file_name  # 前端的原圖檔名
 
     if album_path.exists():
         update_album(pics, album_info, album_path, thumb_size)

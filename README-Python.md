@@ -40,19 +40,6 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
 
 我自己使用方法二。
 
-## wuliu-thumbs (更新縮略圖)
-
-- 執行命令 `wuliu-db -dump pics` 導出全部圖片的屬性 (pics.msgp)
-- 執行命令 `wuliu-thumbs -msgp pics.msgp` 即可生成縮略圖。
-  同時，該命令還會生成檔案 thumbs.msgp, 其中記錄了縮略圖的資訊。
-- 該命令會自動對比 pics.msgp 與 thumbs.msgp, 發現新增圖片及修改過的圖片，
-  沒變化的圖片會被忽略，發現已刪除的圖片也會自動刪除縮略圖。
-- 縮略圖尺寸可在 project.json 中修改。
-- 如果想重新生成全部縮略圖，可以刪除 thumbs.msgp
-- `wuliu-thumbs --delete-orphans` 尋找並刪除漏網之魚 (應刪除但未刪除的縮略圖)
-- 注意，在執行 `wuliu-thumbs --delete-orphans` 時，必須確保 thumbs.msgp 是正確的。
-- 多數情況下不需要執行 `wuliu-thumbs --delete-orphans`
-
 ## wuliu-photo-album (創建相簿網頁)
 
 - 執行命令 `wuliu-db -dump pics` 導出全部圖片的屬性 (pics.msgp)
@@ -85,6 +72,7 @@ New_Album_Info = {  # 用於創建新相簿
   該命令會自動讀取 pics.msgp, 生成的相簿在 webpages 資料夾中。
 - 其中排序功能是在前端實現的，因此生成相簿後如果想改變排序，可進入相簿資料夾修改
   pics.js 中的 orderby 和 ascending, 保存後刷新頁面即可生效。
+- 縮略圖尺寸可在 project.json 中修改。
 
 
 https://github.com/wintermute-cell/magick.css
