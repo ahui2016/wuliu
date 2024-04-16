@@ -15,7 +15,7 @@ func PrintVersionExit(ok bool) {
 	if ok {
 		fmt.Println(RepoName)
 		fmt.Println(RepoURL)
-		fmt.Println("Version: 2024-04-07")
+		fmt.Println("Version: 2024-04-16")
 		os.Exit(0)
 	}
 }

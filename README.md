@@ -365,6 +365,9 @@ wuliu-export 與 wuliu-overwrite 的使用方法詳見本文的其他章節。
 - 如果不使用 `-danger` 參數，則只是查看待覆蓋檔案列表，不會真正發生覆蓋。
 - 請勿直接修改 metadata 裏的檔案。
   如需修改，請導出後修改，然後再使用 wuliu-overwrite 覆蓋舊檔案。
+  另外，可以使用 wuliu-metadata 命令批量修改属性。
+  如果 wuliu-metadata 也无法满足要求，可以直接修改 metadata 资料夹里的 json 档案，
+  然后执行 `wuliu-db -update=rebuild` 重建数据库。
 - 【注意】手動修改檔案屬性時，請勿直接修改 ID, Filename, Checksum, Size, Type, UTime.
 - ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
   如需更改檔案名稱，請使用 wuliu-rename 命令。
