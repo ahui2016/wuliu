@@ -131,6 +131,9 @@ def write_pics_msgp(pics: dict, album_info: dict, album_path: Path):
     album_info['pics'] = list(pics.values())
     for pic in album_info['pics']:
         pic[Checksum] = ''  # 前端 pic.js 裏不需要 checksum
+        pic_file_name = pic[ID] + Path(pic[Filename]).suffix
+        pic['pic_file_name'] = pic_file_name  # 前端的原圖檔名
+
     blob = json.dumps(album_info, ensure_ascii=False, indent=4)
     blob = 'const pics = ' + blob;
     pics_js_path = album_path.joinpath('pics.js')
@@ -156,9 +159,7 @@ def create_album(pics: list, album_info: dict, album_path: Path, thumb_size):
     for file in pics:
         file_id = file[ID]
         src = Path(Files).joinpath(file[Filename])
-        pic_file_name = file_id+src.suffix
-        dst = pics_path.joinpath(pic_file_name)
-        file['pic_file_name'] = pic_file_name
+        dst = pics_path.joinpath(file['pic_file_name'])
         print('.', end='')
         shutil.copyfile(src, dst)
         thumb = thumbs_path.joinpath(file_id+'.jpg')
@@ -238,10 +239,8 @@ def update_album_pics(newpics:list, album_pics:dict, album_path: Path, thumb_siz
     for pic in newpics:
         pic_id = pic[ID]
         src = Path(Files).joinpath(pic[Filename])
-        pic_file_name = pic_id + src.suffix
-        dst = pics_dir.joinpath(pic_file_name)
+        dst = pics_dir.joinpath(pic['pic_file_name'])
         thumb = thumbs_dir.joinpath(pic_id+'.jpg')
-        pic['pic_file_name'] = pic_file_name
         print(f'Add or update: [{pic_id}] {pic[Filename]}')
         shutil.copyfile(src, dst)
         err = create_thumb(src, thumb, thumb_size)
