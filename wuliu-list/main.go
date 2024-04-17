@@ -64,15 +64,8 @@ func main() {
 func sortBy(orderby string, limitN int, descending bool, db *bolt.DB) (files []*File, err error) {
 	bucketName := bucketNameFrom(orderby)
 	sortName := strings.TrimSuffix(string(bucketName), "Bucket")
-	fmt.Printf("\n檔案排序依據: %s, %s\n\n", sortName, ascOrDesc(descending))
+	fmt.Printf("\n檔案排序依據: %s, %s\n\n", sortName, util.AscOrDesc(descending))
 	return sortedFiles(bucketName, limitN, descending, db)
-}
-
-func ascOrDesc(descending bool) string {
-	if descending {
-		return "descending"
-	}
-	return "ascending"
 }
 
 func bucketNameFrom(orderby string) []byte {
@@ -121,7 +114,7 @@ func getIdsDescending(limitN int, b *bolt.Bucket) (fileIDs []string, err error) 
 		if err := json.Unmarshal(v, &ids); err != nil {
 			return nil, err
 		}
-		// 假設每個 fileID 只能對應一個 key, 因此 fileIDs 裏沒有重複項，不需要去重處理。
+		// 假設每個 fileID 只能對應一個 key, 因此 fileIDs 裏沒有重複項，不需要除重處理。
 		fileIDs = append(fileIDs, ids...)
 		n += len(ids)
 		if n >= limitN {
@@ -144,7 +137,7 @@ func getIdsAscending(limitN int, b *bolt.Bucket) (fileIDs []string, err error) {
 		if err := json.Unmarshal(v, &ids); err != nil {
 			return nil, err
 		}
-		// 假設每個 fileID 只能對應一個 key, 因此 fileIDs 裏沒有重複項，不需要去重處理。
+		// 假設每個 fileID 只能對應一個 key, 因此 fileIDs 裏沒有重複項，不需要除重處理。
 		fileIDs = append(fileIDs, ids...)
 		n += len(ids)
 		if n >= limitN {

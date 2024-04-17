@@ -404,6 +404,29 @@ func GetFilesByIDs(ids []string, tx *bolt.Tx) (files []*File, err error) {
 	return files, nil
 }
 
+func GetFilesInBucket(key string, bucketName []byte, db *bolt.DB) (files []*File, err error) {
+	err = db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(bucketName)
+		ids, err := getIdsInBucket(key, b)
+		if err != nil {
+			return err
+		}
+		files, err = GetFilesByIDs(ids, tx)
+		return err
+	})
+	return
+}
+
+func getIdsInBucket(key string, b *bolt.Bucket) (ids []string, err error) {
+	data := b.Get([]byte(key))
+	if data == nil {
+		err = fmt.Errorf("Not Found: %s", key)
+		return
+	}
+	err = json.Unmarshal(data, &ids)
+	return
+}
+
 func GetFileInBucket(id string, b *bolt.Bucket) (f File, err error) {
 	data := b.Get([]byte(id))
 	if data == nil {

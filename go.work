@@ -15,4 +15,5 @@ use (
 	./wuliu-orphan
 	./wuliu-overwrite
 	./wuliu-rename
+	./wuliu-search
 )

@@ -14,7 +14,7 @@ Wuliu File Manager (五柳檔案管理腳本) Golang Scripts
 - 給檔案增加更多屬性，例如: 備注、標籤、關鍵詞、点赞。
   有了这些属性，就能做到：
   - 快速找出大文件
-  - 快速找出制定日期的文件
+  - 快速找出指定日期的文件
   - 快速找出常用或精品文件（利用点赞功能）
   - 根据标签或关键词搜索文件
   - 随手给文件写一句备注或说明（利用备注属性）
@@ -55,7 +55,6 @@ Wuliu File Manager (五柳檔案管理腳本) Golang Scripts
 - wuliu-export (導出檔案或檔案屬性)
 - wuliu-overwrite (更新單個檔案或檔案屬性)
 - wuliu-metadata (批量修改多個檔案的屬性)
-- wuliu-import
 - wuliu-like (點讚，方便尋找精品或常用檔案)
 
 ## wuliu-init
@@ -301,7 +300,7 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
   其他资料夹和档案可复制可不复制。
 - 编辑 backupRoot 里的 project.json, 把 IsBackup 的值改为 true
 - 编辑主专案中的 project.json, 把 backupRoot 的路径添加到 Projects 列表中。
-  注意，路径里的反斜杠改要为 "\\" 或 "/"
+  注意，路径里的反斜杠改要为 "`\\`" 或 "`/`"
 - 编辑主专案中的 project.json, 在 LastBackupAt 中添加一个时间
   （可以是空字符串 ""）
 
@@ -344,6 +343,7 @@ wuliu-export 與 wuliu-overwrite 的使用方法詳見本文的其他章節。
 - `wuliu-export -id [ID]` 通過檔案 ID 導出的一個檔案及其屬性
 - `wuliu-export -batch [FILENAME]` 通過一個 json 檔案進行批量導出。
   (批量導出功能暫時不做，因為預估該功能需求不大)
+  【小技巧】手动把 metadata 里的 json 复制到 buffer 里，相当于批量导出。
 - **注意** 默認只能導出 300MB 以下的檔案。
   - 修改 project.json 中的 ExportSizeLimit 可更改該限制 (單位:MB)
 - 如需導出大體積檔案，建議手動複製。
@@ -363,12 +363,15 @@ wuliu-export 與 wuliu-overwrite 的使用方法詳見本文的其他章節。
 - 執行 `wuliu-overwrite -json overwrite.json -danger` 或
   `wuliu-overwrite -danger` 正式覆蓋。
 - 如果不使用 `-danger` 參數，則只是查看待覆蓋檔案列表，不會真正發生覆蓋。
+- 【注意】手動修改檔案屬性時，請勿直接修改 ID, Filename, Checksum, Size, Type, UTime.
 - 請勿直接修改 metadata 裏的檔案。
   如需修改，請導出後修改，然後再使用 wuliu-overwrite 覆蓋舊檔案。
   另外，可以使用 wuliu-metadata 命令批量修改属性。
   如果 wuliu-metadata 也无法满足要求，可以直接修改 metadata 资料夹里的 json 档案，
   然后执行 `wuliu-db -update=rebuild` 重建数据库。
-- 【注意】手動修改檔案屬性時，請勿直接修改 ID, Filename, Checksum, Size, Type, UTime.
+- 【注意】如果进入 metadata 资料夹直接修改 json, 不会自动更新 UTime (可手动修改)。
+- 【注意】进入 metadata 资料夹修改 json 后请立即重建数据库。
+- 【小技巧】也可以把 metadata 里的 json 复制到 buffer 里，修改后执行 wuliu-overwrite
 - ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
   如需更改檔案名稱，請使用 wuliu-rename 命令。
 

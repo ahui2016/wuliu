@@ -306,3 +306,10 @@ func DamagedOfFileChecked(fcMap map[string]*FileChecked) (ids []string) {
 	}
 	return
 }
+
+func AscOrDesc(descending bool) string {
+	if descending {
+		return "descending"
+	}
+	return "ascending"
+}
