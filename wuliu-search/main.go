@@ -36,6 +36,10 @@ func main() {
 		mode = "Keyword"
 		pattern = *kwFlag
 		files = lo.Must(searchByKeyword(*kwFlag, *matchFlag, db))
+	} else if *collFlag != "" {
+		mode = "Collection"
+		pattern = *collFlag
+		files = lo.Must(searchByCollection(*collFlag, *matchFlag, db))
 	}
 
 	files, orderBy := sortFilesLimit(*orderbyFlag, *nFlag, !*ascFlag, files)
@@ -53,17 +57,26 @@ func main() {
 	util.PrintFilesSimple(files)
 }
 
-func searchByKeyword(kw, match string, db *bolt.DB) (files []*File, err error) {
-	if match == "prefix" {
+func searchByKeyword(pattern, matchMode string, db *bolt.DB) (files []*File, err error) {
+	return searchKwCollAlbum(pattern, matchMode, util.KeywordsBucket, db)
+}
+
+func searchByCollection(pattern, matchMode string, db *bolt.DB) (files []*File, err error) {
+	return searchKwCollAlbum(pattern, matchMode, util.CollectionsBucket, db)
+}
+
+// searchKwCollAlbum search by keyword, collection name or album name.
+func searchKwCollAlbum(pattern, matchMode string, bucket []byte, db *bolt.DB) (files []*File, err error) {
+	if matchMode == "prefix" {
 		return
 	}
-	if match == "contains" {
+	if matchMode == "contains" {
 		return
 	}
-	if match == "suffix" {
+	if matchMode == "suffix" {
 		return
 	}
-	return util.GetFilesInBucket(kw, util.KeywordsBucket, db)
+	return util.GetFilesInBucket(pattern, bucket, db)
 }
 
 func sortFilesLimit(orderBy string, n int, desc bool, files []*File) ([]*File, string) {
