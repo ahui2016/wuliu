@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"cmp"
 	"flag"
+	"fmt"
 	"github.com/ahui2016/wuliu/util"
 	"github.com/samber/lo"
 	bolt "go.etcd.io/bbolt"
@@ -18,6 +18,7 @@ var (
 	ascFlag     = flag.Bool("asc", false, "sort in ascending order")
 	orderbyFlag = flag.String("orderby", "ctime", "ctime/utime/filename")
 	matchFlag   = flag.String("match", "", "exactly/prefix/contains/suffix")
+	labelFlag   = flag.String("label", "", "search by label")
 	kwFlag      = flag.String("keyword", "", "search by a keyword")
 	collFlag    = flag.String("collection", "", "search by a collection name")
 	albumFlag   = flag.String("album", "", "search by a album name")
@@ -31,19 +32,29 @@ func main() {
 
 	files := []*File{}
 	mode := ""
+	matchMode := ""
 	pattern := ""
-	if *kwFlag != "" {
+
+	if *labelFlag != "" {
+		mode = "Label"
+		pattern = *labelFlag
+		files, matchMode = lo.Must2(searchByLabel(*labelFlag, *matchFlag, db))
+	} else if *kwFlag != "" {
 		mode = "Keyword"
 		pattern = *kwFlag
-		files = lo.Must(searchByKeyword(*kwFlag, *matchFlag, db))
+		files, matchMode = lo.Must2(searchByKeyword(*kwFlag, *matchFlag, db))
 	} else if *collFlag != "" {
 		mode = "Collection"
 		pattern = *collFlag
-		files = lo.Must(searchByCollection(*collFlag, *matchFlag, db))
+		files, matchMode = lo.Must2(searchByCollection(*collFlag, *matchFlag, db))
+	} else if *albumFlag != "" {
+		mode = "Album"
+		pattern = *albumFlag
+		files, matchMode = lo.Must2(searchByAlbum(*albumFlag, *matchFlag, db))
 	}
 
 	files, orderBy := sortFilesLimit(*orderbyFlag, *nFlag, !*ascFlag, files)
-	fmt.Printf("\nSearching %s:%s, order by %s, %s\n\n", mode, pattern, orderBy, util.AscOrDesc(!*ascFlag))
+	fmt.Printf("\nSearch %s(%s):%s, order by %s, %s\n\n", mode, matchMode, pattern, orderBy, util.AscOrDesc(!*ascFlag))
 
 	if len(files) == 0 {
 		fmt.Println("找不到符合條件的檔案。")
@@ -57,26 +68,36 @@ func main() {
 	util.PrintFilesSimple(files)
 }
 
-func searchByKeyword(pattern, matchMode string, db *bolt.DB) (files []*File, err error) {
+func searchByLabel(pattern, matchMode string, db *bolt.DB) ([]*File, string, error) {
+	modes := []string{"exactly", "contains", "suffix"}
+	if !slices.Contains(modes, matchMode) {
+		matchMode = "prefix"
+	}
+	files, err := util.GetFilesInBucket(pattern, matchMode, util.LabelBucket, db)
+	return files, matchMode, err
+
+}
+
+func searchByKeyword(pattern, matchMode string, db *bolt.DB) ([]*File, string, error) {
 	return searchKwCollAlbum(pattern, matchMode, util.KeywordsBucket, db)
 }
 
-func searchByCollection(pattern, matchMode string, db *bolt.DB) (files []*File, err error) {
+func searchByCollection(pattern, matchMode string, db *bolt.DB) ([]*File, string, error) {
 	return searchKwCollAlbum(pattern, matchMode, util.CollectionsBucket, db)
 }
 
+func searchByAlbum(pattern, matchMode string, db *bolt.DB) ([]*File, string, error) {
+	return searchKwCollAlbum(pattern, matchMode, util.AlbumsBucket, db)
+}
+
 // searchKwCollAlbum search by keyword, collection name or album name.
-func searchKwCollAlbum(pattern, matchMode string, bucket []byte, db *bolt.DB) (files []*File, err error) {
-	if matchMode == "prefix" {
-		return
+func searchKwCollAlbum(pattern, matchMode string, bucket []byte, db *bolt.DB) ([]*File, string, error) {
+	modes := []string{"prefix", "contains", "suffix"}
+	if !slices.Contains(modes, matchMode) {
+		matchMode = "exactly"
 	}
-	if matchMode == "contains" {
-		return
-	}
-	if matchMode == "suffix" {
-		return
-	}
-	return util.GetFilesInBucket(pattern, bucket, db)
+	files, err := util.GetFilesInBucket(pattern, matchMode, bucket, db)
+	return files, matchMode, err
 }
 
 func sortFilesLimit(orderBy string, n int, desc bool, files []*File) ([]*File, string) {

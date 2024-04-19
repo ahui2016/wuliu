@@ -404,10 +404,16 @@ func GetFilesByIDs(ids []string, tx *bolt.Tx) (files []*File, err error) {
 	return files, nil
 }
 
-func GetFilesInBucket(key string, bucketName []byte, db *bolt.DB) (files []*File, err error) {
+func GetFilesInBucket(pattern, mode string, bucketName []byte, db *bolt.DB) (files []*File, err error) {
 	err = db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(bucketName)
-		ids, err := getIdsInBucket(key, b)
+		var ids []string
+		if mode == "prefix" {
+			ids, err = getIdsByPrefix(pattern, b)
+		} else {
+			// mode == "exactly"
+			ids, err = getIdsInBucket(pattern, b)
+		}
 		if err != nil {
 			return err
 		}
@@ -425,6 +431,20 @@ func getIdsInBucket(key string, b *bolt.Bucket) (ids []string, err error) {
 	}
 	err = json.Unmarshal(data, &ids)
 	return
+}
+
+func getIdsByPrefix(prefix string, b *bolt.Bucket) (allIds []string, err error) {
+	err = b.ForEach(func(k, v []byte) error {
+		if strings.HasPrefix(string(k), prefix) {
+			var ids []string
+			if err := json.Unmarshal(v, &ids); err != nil {
+				return err
+			}
+			allIds = append(allIds, ids...)
+		}
+		return nil
+	})
+	return lo.Uniq(allIds), err
 }
 
 func GetFileInBucket(id string, b *bolt.Bucket) (f File, err error) {
