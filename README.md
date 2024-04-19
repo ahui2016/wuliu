@@ -430,6 +430,7 @@ type EditFiles struct {
 
 ## TODO
 
+- wuliu-search 的出錯提示
 - wuliu-checksum -same
 - wuliu-db -dump 导出整个数据库到 msgpack, 方便其他编程语言使用
 - wuliu-list -ctime="2024-02-01" 通過日期前綴後列印檔案

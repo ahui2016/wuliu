@@ -7,6 +7,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -404,12 +405,13 @@ func GetFilesByIDs(ids []string, tx *bolt.Tx) (files []*File, err error) {
 	return files, nil
 }
 
+// GetFilesInBucket, 其中 mode 是 exactly/contains/prefix/suffix 其中之一。
 func GetFilesInBucket(pattern, mode string, bucketName []byte, db *bolt.DB) (files []*File, err error) {
 	err = db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(bucketName)
 		var ids []string
-		if mode == "prefix" {
-			ids, err = getIdsByPrefix(pattern, b)
+		if slices.Contains([]string{"contains", "prefix", "suffix"}, mode) {
+			ids, err = filterIds(pattern, mode, b)
 		} else {
 			// mode == "exactly"
 			ids, err = getIdsInBucket(pattern, b)
@@ -433,9 +435,9 @@ func getIdsInBucket(key string, b *bolt.Bucket) (ids []string, err error) {
 	return
 }
 
-func getIdsByPrefix(prefix string, b *bolt.Bucket) (allIds []string, err error) {
+func filterIds(pattern, mode string, b *bolt.Bucket) (allIds []string, err error) {
 	err = b.ForEach(func(k, v []byte) error {
-		if strings.HasPrefix(string(k), prefix) {
+		if filterFn(mode)(string(k), pattern) {
 			var ids []string
 			if err := json.Unmarshal(v, &ids); err != nil {
 				return err
@@ -445,6 +447,17 @@ func getIdsByPrefix(prefix string, b *bolt.Bucket) (allIds []string, err error) 
 		return nil
 	})
 	return lo.Uniq(allIds), err
+}
+
+func filterFn(mode string) func(string, string) bool {
+	switch mode {
+	case "contains":
+		return strings.Contains
+	case "suffix":
+		return strings.HasSuffix
+	default:
+		return strings.HasPrefix
+	}
 }
 
 func GetFileInBucket(id string, b *bolt.Bucket) (f File, err error) {
