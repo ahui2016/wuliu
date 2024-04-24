@@ -87,7 +87,7 @@ func main() {
 }
 
 func rebuildDatabase(bkRoot string, mainDB, bkDB *bolt.DB) {
-	fmt.Printf("\nRebuild database...\n")
+	// fmt.Printf("\nRebuild database...\n")
 	lo.Must0(util.RebuildSomeBuckets(mainDB))
 	bkDB.Close()
 	util.RebuildDatabase(bkRoot)

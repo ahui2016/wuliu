@@ -104,7 +104,7 @@ type ProjectInfo struct {
     CheckInterval   int      // 检查完整性, 单位: day
     CheckSizeLimit  int      // 检查完整性, 单位: MB
     ExportSizeLimit int      // 導出檔案體積上限，單位: MB
-	ThumbSize       [2]int   // 縮略圖尺寸
+    ThumbSize       [2]int   // 縮略圖尺寸
 }
 ```
 
@@ -344,7 +344,7 @@ wuliu-export 與 wuliu-overwrite 的使用方法詳見本文的其他章節。
 - `wuliu-export -batch [FILENAME]` 通過一個 json 檔案進行批量導出。
   (批量導出功能暫時不做，因為預估該功能需求不大)
   【小技巧】手动把 metadata 里的 json 复制到 buffer 里，相当于批量导出。
-- **注意** 默認只能導出 300MB 以下的檔案。
+- **注意** 默認只能導出 300MB 以下的檔案 (單檔案體積上限)。
   - 修改 project.json 中的 ExportSizeLimit 可更改該限制 (單位:MB)
 - 如需導出大體積檔案，建議手動複製。
 
@@ -409,7 +409,7 @@ type EditFiles struct {
 
 - `wuliu-like -id ID -n=3` 把一个文件的 like (小心心/点赞) 设为 3,
   其中 ID 是文件的 ID, n 是一个整数，数字越大表示越喜欢/越重要。
-- `wuliu-like -id ID -n=0` 想这样，把 n 设为零取消点赞。
+- `wuliu-like -id ID -n=0` 把 n 设为零，取消点赞。
 - 点赞或取消点赞后，需要执行 `wuliu-db -update=cache` 更新索引缓冲。
 
 ## 未为视频文件优化
