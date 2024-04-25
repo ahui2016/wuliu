@@ -67,12 +67,12 @@ New_Album_Info = {  # 用於創建新相簿
 - **label, notes, keywords, collections, albums** 這五項默認取併集(聯集),
   (取交集的功能暫時不做),
   如果這五項及 ids 都留空，則生成一個包含全部圖片的相簿。
-- 命令 `wuliu-db -dump pics` 導出全部圖片的屬性 (pics.msgp)
 - 命令 `wuliu-photo-album -json photo-album.json` 生成相簿。
   該命令會自動讀取 pics.msgp, 生成的相簿在 webpages 資料夾中。
 - 其中排序功能是在前端實現的，因此生成相簿後如果想改變排序，可進入相簿資料夾修改
   pics.js 中的 orderby 和 ascending, 保存後刷新頁面即可生效。
 - 縮略圖尺寸可在 project.json 中修改。
+- 相簿的大標題和副標題在相簿資料夾的 index.html 中修改。
 
 
 https://github.com/wintermute-cell/magick.css
