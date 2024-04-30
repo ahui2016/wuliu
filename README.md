@@ -8,6 +8,7 @@ Wuliu File Manager (五柳檔案管理腳本) Golang Scripts
 - 资料夹(資料夾) = 文件夹 = folder = directory
 - 专案(專案) = 项目 = project
 - 列印 = 打印/显示 = print
+- 後綴名(副檔名) = 后缀名/扩展名
 
 ## 主要功能
 
@@ -208,6 +209,7 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 如需更改檔案名稱，請使用 wuliu-rename 命令，不要手動更改。
 
 - `wuliu-rename -id=[ID] -name [NAME]` 其中 ID 是舊ID, NAME 是新檔名。
+- 注意檔名包括後綴名。
 - 更改檔名不會修改 UTime(檔案更新時間)
 
 ## wuliu-list
@@ -410,6 +412,7 @@ type EditFiles struct {
 - `wuliu-like -id ID -n=3` 把一个文件的 like (小心心/点赞) 设为 3,
   其中 ID 是文件的 ID, n 是一个整数，数字越大表示越喜欢/越重要。
 - `wuliu-like -id ID -n=0` 把 n 设为零，取消点赞。
+- 也可以不輸入 n, 默認 `-n=1`
 - 点赞或取消点赞后，需要执行 `wuliu-db -update=cache` 更新索引缓冲。
 
 ## 未为视频文件优化

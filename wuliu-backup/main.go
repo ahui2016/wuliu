@@ -73,6 +73,7 @@ func main() {
 		n, err := syncFilesToBK(".", bkRoot, mainDB, bkDB)
 		util.PrintErrorExit(err)
 		if n > 0 {
+			fmt.Println()
 			rebuildDatabase(bkRoot, mainDB, bkDB)
 		}
 		fmt.Printf("備份結束\n\n")
