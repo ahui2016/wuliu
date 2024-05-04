@@ -13,15 +13,17 @@ import (
 type File = util.File
 
 var (
-	nFlag       = flag.Int("n", 15, "default: 15")
-	moreFlag    = flag.Bool("more", false, "show more information")
-	ascFlag     = flag.Bool("asc", false, "sort in ascending order")
-	orderbyFlag = flag.String("orderby", "ctime", "ctime/utime/filename")
-	matchFlag   = flag.String("match", "", "exactly/prefix/contains/suffix")
-	labelFlag   = flag.String("label", "", "search by label")
-	kwFlag      = flag.String("keyword", "", "search by a keyword")
-	collFlag    = flag.String("collection", "", "search by a collection name")
-	albumFlag   = flag.String("album", "", "search by a album name")
+	nFlag        = flag.Int("n", 15, "default: 15")
+	moreFlag     = flag.Bool("more", false, "show more information")
+	ascFlag      = flag.Bool("asc", false, "sort in ascending order")
+	orderbyFlag  = flag.String("orderby", "ctime", "ctime/utime/filename")
+	matchFlag    = flag.String("match", "", "exactly/prefix/contains/suffix")
+	filenameFlag = flag.String("filename", "", "search by filename")
+	notesFlag    = flag.String("notes", "", "search by notes")
+	labelFlag    = flag.String("label", "", "search by label")
+	kwFlag       = flag.String("keyword", "", "search by a keyword")
+	collFlag     = flag.String("collection", "", "search by a collection name")
+	albumFlag    = flag.String("album", "", "search by a album name")
 )
 
 func main() {
@@ -35,7 +37,15 @@ func main() {
 	matchMode := ""
 	pattern := ""
 
-	if *labelFlag != "" {
+	if *filenameFlag != "" {
+		mode = "Filename"
+		pattern = *filenameFlag
+		files, matchMode = lo.Must2(searchByFilename(*filenameFlag, *matchFlag, db))
+	} else if *notesFlag != "" {
+		mode = "Notes"
+		pattern = *notesFlag
+		files, matchMode = lo.Must2(searchByNotes(*notesFlag, *matchFlag, db))
+	} else if *labelFlag != "" {
 		mode = "Label"
 		pattern = *labelFlag
 		files, matchMode = lo.Must2(searchByLabel(*labelFlag, *matchFlag, db))
@@ -54,7 +64,14 @@ func main() {
 	}
 
 	files, orderBy := sortFilesLimit(*orderbyFlag, *nFlag, !*ascFlag, files)
-	fmt.Printf("\nSearch %s(%s):%s, order by %s, %s\n\n", mode, matchMode, pattern, orderBy, util.AscOrDesc(!*ascFlag))
+	fmt.Printf(
+		"\nSearch %s(%s):%s, order by %s, %s\n\n",
+		mode,
+		matchMode,
+		pattern,
+		orderBy,
+		util.AscOrDesc(!*ascFlag),
+	)
 
 	if len(files) == 0 {
 		fmt.Println("找不到符合條件的檔案。")
@@ -68,26 +85,34 @@ func main() {
 	util.PrintFilesSimple(files)
 }
 
+func searchByFilename(pattern, matchMode string, db *bolt.DB) ([]*File, string, error) {
+	return searchByNameNotesLabel(pattern, matchMode, util.FilenameBucket, db)
+}
+func searchByNotes(pattern, matchMode string, db *bolt.DB) ([]*File, string, error) {
+	return searchByNameNotesLabel(pattern, matchMode, util.NotesBucket, db)
+}
 func searchByLabel(pattern, matchMode string, db *bolt.DB) ([]*File, string, error) {
-	modes := []string{"exactly", "contains", "suffix"}
-	if !slices.Contains(modes, matchMode) {
-		matchMode = "prefix"
-	}
-	files, err := util.GetFilesInBucket(pattern, matchMode, util.LabelBucket, db)
-	return files, matchMode, err
-
+	return searchByNameNotesLabel(pattern, matchMode, util.LabelBucket, db)
 }
 
 func searchByKeyword(pattern, matchMode string, db *bolt.DB) ([]*File, string, error) {
 	return searchKwCollAlbum(pattern, matchMode, util.KeywordsBucket, db)
 }
-
 func searchByCollection(pattern, matchMode string, db *bolt.DB) ([]*File, string, error) {
 	return searchKwCollAlbum(pattern, matchMode, util.CollectionsBucket, db)
 }
-
 func searchByAlbum(pattern, matchMode string, db *bolt.DB) ([]*File, string, error) {
 	return searchKwCollAlbum(pattern, matchMode, util.AlbumsBucket, db)
+}
+
+// searchByNameNotesLabel search by filename, notes or label.
+func searchByNameNotesLabel(pattern, matchMode string, bucket []byte, db *bolt.DB) ([]*File, string, error) {
+	modes := []string{"exactly", "contains", "suffix"}
+	if !slices.Contains(modes, matchMode) {
+		matchMode = "prefix"
+	}
+	files, err := util.GetFilesInBucket(pattern, matchMode, bucket, db)
+	return files, matchMode, err
 }
 
 // searchKwCollAlbum search by keyword, collection name or album name.

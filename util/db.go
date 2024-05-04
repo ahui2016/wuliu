@@ -15,6 +15,7 @@ import (
 
 var (
 	FilesBucket       = []byte("FilesBucket")
+	FilenameBucket    = []byte("FilenameBucket")
 	ChecksumBucket    = []byte("ChecksumBucket")
 	SizeBucket        = []byte("SizeBucket")
 	TypeBucket        = []byte("TypeBucket")
@@ -30,6 +31,7 @@ var (
 
 var Buckets = [][]byte{
 	FilesBucket,
+	FilenameBucket,
 	ChecksumBucket,
 	SizeBucket,
 	TypeBucket,
@@ -320,13 +322,13 @@ func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
 	albumBuc, e9 := reCreateBucket(AlbumsBucket, tx)
 	ctimeBuc, e10 := reCreateBucket(CTimeBucket, tx)
 	utimeBuc, e11 := reCreateBucket(UTimeBucket, tx)
-	if err := WrapErrors(e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11); err != nil {
+	filenameBuc, e12 := reCreateBucket(FilenameBucket, tx)
+	if err := WrapErrors(e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12); err != nil {
 		return err
 	}
 
 	for _, f := range files {
-		// e1 := putStrAndIDs(f.Checksum, f.ID, csumBuc)
-		e1 := PutToBucket([]byte(f.ID), []byte(f.Checksum), csumBuc)
+		e1 := putStrAndIDs(f.Checksum, f.ID, csumBuc)
 		e2 := putIntAndIDs(f.Size, f.ID, sizeBuc)
 		e3 := putStrAndIDs(f.Type, f.ID, typeBuc)
 		e4 = putIntAndIDs(int64(f.Like), f.ID, likeBuc)
@@ -337,8 +339,10 @@ func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
 		e9 := putSliceAndIDs(f.Albums, f.ID, albumBuc)
 		e10 := putStrAndIDs(f.CTime, f.ID, ctimeBuc)
 		e11 := putStrAndIDs(f.UTime, f.ID, utimeBuc)
+		// 雖然 filename 與 id 是「一對一」, 但為了後續能用同一個函數處理，因此也當作「一對多」。
+		e12 := putStrAndIDs(f.Filename, f.ID, filenameBuc)
 
-		if err := WrapErrors(e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11); err != nil {
+		if err := WrapErrors(e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12); err != nil {
 			return err
 		}
 	}
