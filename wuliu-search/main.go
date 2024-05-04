@@ -102,13 +102,14 @@ func searchKwCollAlbum(pattern, matchMode string, bucket []byte, db *bolt.DB) ([
 
 func sortFilesLimit(orderBy string, n int, desc bool, files []*File) ([]*File, string) {
 	if orderBy == "filename" {
-		return files, orderBy
+		files = orderByFilenameLimit(n, desc, files)
+	} else if orderBy == "utime" {
+		files = orderByUTimeLimit(n, desc, files)
+	} else {
+		files = orderByCTimeLimit(n, desc, files)
+		orderBy = "ctime"
 	}
-	if orderBy == "utime" {
-		return files, orderBy
-	}
-	files = orderByCTimeLimit(n, desc, files)
-	return files, "ctime"
+	return files, orderBy
 }
 
 func orderByCTimeLimit(n int, desc bool, files []*File) []*File {
@@ -119,6 +120,38 @@ func orderByCTimeLimit(n int, desc bool, files []*File) []*File {
 	} else {
 		slices.SortFunc(files, func(a, b *File) int {
 			return cmp.Compare(a.CTime, b.CTime)
+		})
+	}
+	if len(files) > n {
+		files = files[:n]
+	}
+	return files
+}
+
+func orderByUTimeLimit(n int, desc bool, files []*File) []*File {
+	if desc {
+		slices.SortFunc(files, func(a, b *File) int {
+			return cmp.Compare(b.UTime, a.UTime)
+		})
+	} else {
+		slices.SortFunc(files, func(a, b *File) int {
+			return cmp.Compare(a.UTime, b.UTime)
+		})
+	}
+	if len(files) > n {
+		files = files[:n]
+	}
+	return files
+}
+
+func orderByFilenameLimit(n int, desc bool, files []*File) []*File {
+	if desc {
+		slices.SortFunc(files, func(a, b *File) int {
+			return cmp.Compare(b.Filename, a.Filename)
+		})
+	} else {
+		slices.SortFunc(files, func(a, b *File) int {
+			return cmp.Compare(a.Filename, b.Filename)
 		})
 	}
 	if len(files) > n {
