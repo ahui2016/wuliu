@@ -1,6 +1,11 @@
+import sys
 import json
+import shutil
 import msgpack
 from pathlib import Path
+from typing import Tuple, Set
+from wuliu.const import *
+from wuliu.common import check_filename, print_err, print_err_exit, create_thumb, read_project_info
 
 
 """
@@ -73,9 +78,9 @@ def write_album_msgp(
     print(f'Write => {js_path}')
     js_path.write_text(blob, encoding='utf8')
     
+    src = Path(Webpages).joinpath('templates', tmpl_name)
+    dst = album_path.joinpath('index.html')
     if not dst.exists():
-        src = Path(Webpages).joinpath(tmpl_name)
-        dst = album_path.joinpath('index.html')
         print(f'Write => {dst}')
         shutil.copyfile(src, dst)
 

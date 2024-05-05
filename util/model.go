@@ -33,6 +33,7 @@ const (
 	INPUT      = "input"
 	BUFFER     = "buffer"
 	WEBPAGES   = "webpages"
+	TEMPLATES  = "webpages/templates"
 	RECYCLEBIN = "recyclebin"
 )
 
@@ -42,6 +43,7 @@ var Folders = []string{
 	INPUT,
 	BUFFER,
 	WEBPAGES,
+	TEMPLATES,
 	RECYCLEBIN,
 }
 

@@ -1,5 +1,7 @@
-from wuliu.const import *
+from pathlib import Path
 
+from wuliu.albums import *
+from wuliu.const import *
 
 def get_docs_metadata() -> list:
     """獲取全部可預覽檔案的屬性

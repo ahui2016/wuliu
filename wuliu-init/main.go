@@ -51,8 +51,17 @@ func writeProjectInfo(name string) {
 
 func copyTemplates() error {
 	exeDir := util.ExecutableDir()
-	src := filepath.Join(exeDir, "templates", "index.html")
-	dst := filepath.Join(util.WEBPAGES, "index.html")
-	fmt.Println("Create", dst)
-	return util.CopyFile(dst, src)
+	tmpl_files := []string{
+		"pics_index.html",
+		"docs_index.html",
+	}
+	for _, filename := range tmpl_files {
+		src := filepath.Join(exeDir, "templates", filename)
+		dst := filepath.Join(util.TEMPLATES, filename)
+		fmt.Println("Create", dst)
+		if err := util.CopyFile(dst, src); err != nil {
+			return err
+		}
+	}
+	return nil
 }
