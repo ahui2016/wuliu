@@ -24,6 +24,7 @@ Webpages    = 'webpages'
 Thumbs      = 'webpages/thumbs'
 Thumbs_msgp = 'thumbs.msgp'
 Pics_msgp   = 'pics.msgp'
+Docs_msgp   = 'docs.msgp'
 
 
 Filename_Forbid_Pattern = re.compile(r"[^._0-9a-zA-Z\-]")

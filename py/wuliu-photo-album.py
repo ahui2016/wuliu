@@ -1,42 +1,11 @@
 import sys
-import json
 import shutil
-import msgpack
 import argparse
-from pathlib import Path
 from typing import Tuple, Set
 from operator import itemgetter
 from wuliu.const import *
+from wuliu.albums import *
 from wuliu.common import check_filename, print_err, print_err_exit, create_thumb, read_project_info
-
-
-def create_new_album_info(filename: str):
-    target_path = Path(filename)
-    if target_path.exists():
-        print(f'Error! File Exists: {filename}')
-        return
-
-    print(f'Create => {filename}')
-    blob = json.dumps(New_Album_Info, ensure_ascii=False, indent=4)
-    target_path.write_text(blob, encoding='utf8')
-
-
-def read_album_info(filename: str):
-    """
-    :return: Tuple[dict|None, str]
-    """
-    data = Path(filename).read_text(encoding='utf8')
-    info = json.loads(data)
-
-    if info['name'] == '':
-        return None, f'請在 {filename} 中填寫 name, 不可留空。'
-    err = check_filename(info['name'])
-
-    if not info['union']:
-        return None, 'union 請設為 true, 取交集的功能暫未實現。'
-
-    return info, err
-
 
 def get_pics_metadata() -> list:
     """獲取全部圖片的屬性
@@ -44,102 +13,11 @@ def get_pics_metadata() -> list:
     Pics_msgp 是由 "wuliu-db -dump pics" 導出的數據，檔名固定為 pics.msgp
     :return: 返回 File 列表 (參考 util/model.go 裏的 File)
     """
-    if not Path(Pics_msgp).exists():
-        print(f'ERROR: 找不到 {Pics_msgp}')
-        print('請執行 "wuliu-db -dump pics" 導出 pics.msgp')
-        sys.exit(1)
-    with Path(Pics_msgp).open(mode='rb') as f:
-        return msgpack.load(f)
-
-
-def keywords_union(pics: list, album_info: dict) -> set:
-    result: Set[str] = set()
-    for x in album_info['keywords']:
-        good = {pic[ID] for pic in pics if x in pic[Keywords]}
-        result = result.union(good)
-    return result
-
-
-def collections_union(pics: list, album_info: dict) -> set:
-    result: Set[str] = set()
-    for x in album_info['collections']:
-        good = {pic[ID] for pic in pics if x in pic[Collections]}
-        result = result.union(good)
-    return result
-
-
-def albums_union(pics: list, album_info: dict) -> set:
-    result: Set[str] = set()
-    for x in album_info['albums']:
-        good = {pic[ID] for pic in pics if x in pic[Albums]}
-        result = result.union(good)
-    return result
-
-
-def filter_pics(pics: list, album_info: dict) -> list:
-    ids: Set[str] = set()
-    
-    if album_info['label'] + album_info['notes'] == '' and \
-            len(album_info['keywords'])+len(album_info['collections'])+len(album_info['albums']) == 0:
-        return pics
-    
-    if album_info['label'] != '':
-        by_label = {pic[ID] for pic in pics if album_info['label'] == pic[Label]}
-        ids = ids.union(by_label)
-
-    if album_info['notes'] != '':
-        by_notes = {pic[ID] for pic in pics if album_info['notes'] == pic[Notes]}
-        ids = ids.union(by_notes)
-    
-    by_keywords = keywords_union(pics, album_info)
-    ids = ids.union(by_keywords)
-
-    by_collections = collections_union(pics, album_info)
-    ids = ids.union(by_collections)
-
-    by_albums = albums_union(pics, album_info)
-    ids = ids.union(by_albums)
-    
-    result = []
-    for pic in pics:
-        if pic[ID] in ids:
-            result.append(pic)
-
-    return result
-
-
-def get_pics(info: dict) -> list:
-    pics = get_pics_metadata()
-    pics = filter_pics(pics, info)
-    return pics
+    return get_files_metadata(Pics_msgp)
 
 
 def read_pics_msgp(album_path: Path) -> dict:
-    pics_msgp_path = album_path.joinpath(Pics_msgp)
-    if not pics_msgp_path.exists():
-        print_err_exit(f'ERROR: No such file: {pics_msgp_path}')
-    data = pics_msgp_path.read_bytes()
-    return msgpack.unpackb(data)
-
-
-def write_pics_msgp(pics: dict, album_info: dict, album_path: Path):
-    pics_msgp_path = album_path.joinpath(Pics_msgp)
-    blob = msgpack.packb(pics)
-    print(f'Write => {pics_msgp_path}')
-    pics_msgp_path.write_bytes(blob)
-
-    album_info['pics'] = list(pics.values())
-    blob = json.dumps(album_info, ensure_ascii=False, indent=4)
-    blob = 'const pics = ' + blob;
-    pics_js_path = album_path.joinpath('pics.js')
-    print(f'Write => {pics_js_path}')
-    pics_js_path.write_text(blob, encoding='utf8')
-    
-    src = Path(Webpages).joinpath('index.html')
-    dst = album_path.joinpath('index.html')
-    if not dst.exists():
-        print(f'Write => {dst}')
-        shutil.copyfile(src, dst)
+    return read_album_msgp(album_path, Pics_msgp)
 
 
 def create_album(pics: list, album_info: dict, album_path: Path, thumb_size):
@@ -164,7 +42,7 @@ def create_album(pics: list, album_info: dict, album_path: Path, thumb_size):
         album_pics[file_id] = file
 
     print()
-    write_pics_msgp(album_pics, album_info, album_path)
+    write_album_msgp(album_pics, album_info, album_path, Pics_msgp, 'pics_index.html')
     print('OK')
 
 
@@ -209,6 +87,8 @@ def pic_exists(pic:dict, old_pics:dict) -> bool:
         return False
 
     old_pic = old_pics[pic_id]
+    # old_utime = old_pic[UTime]
+    # return old_utime == pic[UTime]
     old_checksum = old_pic[Checksum]
     return old_checksum == pic[Checksum]
 
@@ -254,7 +134,7 @@ def update_album_pics_msgp(pics:list, album_pics:dict, album_info: dict, album_p
         if pic_id in album_pics:
             album_pics[pic_id] = pic
 
-    write_pics_msgp(album_pics, album_info, album_path)
+    write_album_msgp(album_pics, album_info, album_path, Pics_msgp, 'pics_index.html')
 
 
 def update_album(pics:list, album_info: dict, album_path:Path, thumb_size):
@@ -307,5 +187,6 @@ if args.json:
     proj_info = read_project_info()
     album_info, err = read_album_info(args.json)
     print_err_exit(err, front_msg=f'{args.json} "name"')
-    pics = get_pics(album_info)
+    pics = get_pics_metadata()
+    pics = filter_files(pics, album_info)
     make_album(pics, album_info, proj_info)

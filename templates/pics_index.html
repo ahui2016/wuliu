@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
 
-    <script src="pics.js"></script>
+    <script src="files.js"></script>
 
     <title>Wuliu Photo Album</title>
 
@@ -81,8 +81,8 @@ const ascendingElem = query('#ascending');
 const picsList = query('#pics-list');
 const picItemTmpl = query('#pic-item');
 
-sortByElem.innerText = pics.orderby;
-ascendingElem.innerText = pics.ascending ? "ascending" : "descending";
+sortByElem.innerText = albumData.orderby;
+ascendingElem.innerText = albumData.ascending ? "ascending" : "descending";
 
 function newPicItem(pic) {
   const item = picItemTmpl.content.cloneNode(true);
@@ -179,33 +179,30 @@ function orderByLike(asc) {
   return orderByLikeDesc;
 }
 
-function sortPics(allPics, asc, alert) {
+function sortFiles(files, orderby, asc, alert) {
   let fn = orderByUTime(false);
-  if (pics.orderby == "utime") {
+  if (orderby == "utime") {
     fn = orderByUTime(asc);
-  } else if (pics.orderby == "ctime") {
+  } else if (orderby == "ctime") {
     fn = orderByCTime(asc);
-  } else if (pics.orderby == "filename") {
+  } else if (orderby == "filename") {
     fn = orderByFilename(asc);
-  } else if (pics.orderby == "like") {
+  } else if (orderby == "like") {
     fn = orderByLike(asc);
   } else {
-    alert.appendChild(p(`Error: 排序不支持 "${pics.orderby}"`));
+    alert.appendChild(p(`Error: 排序不支持 "${orderby}"`));
   }
-  allPics.sort(fn);
+  files.sort(fn);
 }
 
-/* script src="pics.js" */
+/* script src="files.js" */
 function initPicsList() {
-  allPics = pics.pics;
+  allPics = albumData.files;
   if (!allPics || allPics.length == 0) {
     pageAlert.appendChild(p("Warning: 未找到圖片。"));
     return;
   }
-  sortPics(allPics, pics.ascending, pageAlert);
-  //allPics.sort((a,b) => {
-  //  return a.UTime.localeCompare(b.UTime);
-  //});
+  sortFiles(allPics, albumData.orderby, albumData.ascending, pageAlert);
   appendItems(allPics, picsList, newPicItem);
 }
 

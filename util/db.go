@@ -45,6 +45,20 @@ var Buckets = [][]byte{
 	UTimeBucket,
 }
 
+// DocsSuffixList 瀏覽器可預覽的文檔類型。
+var DocsSuffixList = []string{
+	"html",
+	"htm",
+	"css",
+	"xml",
+	"atom",
+	"rss",
+	"txt",
+	"js",
+	"json",
+	"pdf",
+}
+
 func OpenDB(root string) (*bolt.DB, error) {
 	dbPath := filepath.Join(root, DatabasePath)
 	return bolt.Open(
@@ -365,6 +379,14 @@ func GetAllPics(db *bolt.DB) (pics []*File, err error) {
 	return
 }
 
+func GetAllDocs(db *bolt.DB) (docs []*File, err error) {
+	err = db.View(func(tx *bolt.Tx) error {
+		docs, err = getAllDocs(tx)
+		return err
+	})
+	return
+}
+
 func getAllFiles(tx *bolt.Tx) (files []*File, err error) {
 	b := tx.Bucket(FilesBucket)
 	err = b.ForEach(func(_, v []byte) error {
@@ -391,6 +413,28 @@ func getAllPics(tx *bolt.Tx) (pics []*File, err error) {
 		return nil
 	})
 	return
+}
+
+func getAllDocs(tx *bolt.Tx) (docs []*File, err error) {
+	b := tx.Bucket(FilesBucket)
+	err = b.ForEach(func(_, v []byte) error {
+		var f File
+		if err := json.Unmarshal(v, &f); err != nil {
+			return err
+		}
+		if isPreviewable(f.Filename) {
+			f.Checksum = "" // 暫時不需要 checksum, 以後需要再刪除此行。
+			docs = append(docs, &f)
+		}
+		return nil
+	})
+	return
+}
+
+func isPreviewable(filename string) bool {
+	parts := strings.Split(filename, ".")
+	suffix := parts[len(parts)-1]
+	return slices.Contains(DocsSuffixList, suffix)
 }
 
 func GetFilesByIDs(ids []string, tx *bolt.Tx) (files []*File, err error) {

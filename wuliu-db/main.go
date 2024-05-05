@@ -13,7 +13,7 @@ import (
 var (
 	infoFlag   = flag.String("info", "", "count/size")
 	updateFlag = flag.String("update", "", "cache/rebuild")
-	dumpFlag   = flag.String("dump", "", "all/pics")
+	dumpFlag   = flag.String("dump", "", "all/pics/docs")
 )
 
 func main() {
@@ -62,6 +62,9 @@ func main() {
 }
 
 func dump(what string, db *bolt.DB) error {
+	if what == "docs" {
+		return dumpDocs(db)
+	}
 	if what == "pics" {
 		return dumpPics(db)
 	}
@@ -81,6 +84,12 @@ func dumpPics(db *bolt.DB) error {
 	pics, err := util.GetAllPics(db)
 	filename := "pics.msgp"
 	return dumpSelectedFiles(filename, pics, err)
+}
+
+func dumpDocs(db *bolt.DB) error {
+	docs, err := util.GetAllDocs(db)
+	filename := "docs.msgp"
+	return dumpSelectedFiles(filename, docs, err)
 }
 
 func dumpSelectedFiles(filename string, files []*util.File, err error) error {
