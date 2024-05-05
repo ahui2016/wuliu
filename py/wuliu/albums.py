@@ -5,7 +5,7 @@ import msgpack
 from pathlib import Path
 from typing import Tuple, Set
 from wuliu.const import *
-from wuliu.common import check_filename, print_err, print_err_exit, create_thumb, read_project_info
+from wuliu.common import check_filename, print_err_exit
 
 
 """

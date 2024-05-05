@@ -1,7 +1,9 @@
+import sys
+import argparse
 from pathlib import Path
-
 from wuliu.albums import *
 from wuliu.const import *
+from wuliu.common import print_err_exit
 
 def get_docs_metadata() -> list:
     """獲取全部可預覽檔案的屬性
@@ -15,3 +17,34 @@ def get_docs_metadata() -> list:
 def read_docs_msgp(album_path: Path) -> dict:
     return read_album_msgp(album_path, Docs_msgp)
 
+
+def make_album(album_info: dict):
+    files = get_docs_metadata()
+    files = filter_files(files, album_info)
+    docs = {f[ID]:f for f in files}
+    album_path = Path(Webpages).joinpath(album_info['name'])
+    album_path.mkdir(exist_ok=True)
+    write_album_msgp(docs, album_info, album_path, Docs_msgp, 'docs_index.html')
+
+# ↓↓↓ main ↓↓↓ 
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('-json', type=str, help='use a json file as album info')
+
+parser.add_argument('--new-json', type=str,
+        help='create a new json file to input album info')
+
+args = parser.parse_args()
+
+if args.new_json:
+    create_new_album_info(args.new_json)
+    sys.exit()
+
+if args.json:
+    album_info, err = read_album_info(args.json)
+    print_err_exit(err, front_msg=f'{args.json} "name"')
+    make_album(album_info)
+    sys.exit()
+
+parser.print_help()

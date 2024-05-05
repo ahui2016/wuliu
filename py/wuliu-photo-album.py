@@ -1,11 +1,10 @@
 import sys
 import shutil
 import argparse
-from typing import Tuple, Set
 from operator import itemgetter
 from wuliu.const import *
 from wuliu.albums import *
-from wuliu.common import check_filename, print_err, print_err_exit, create_thumb, read_project_info
+from wuliu.common import print_err, print_err_exit, create_thumb, read_project_info
 
 def get_pics_metadata() -> list:
     """獲取全部圖片的屬性
@@ -172,10 +171,10 @@ def make_album(pics: list, album_info: dict, proj_info: dict):
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('-json', type=str, help='read album info')
+parser.add_argument('-json', type=str, help='use a json file as album info')
 
 parser.add_argument('--new-json', type=str,
-        help='a filename of the json file of album info')
+        help='create a new json file to input album info')
 
 args = parser.parse_args()
 
@@ -190,3 +189,6 @@ if args.json:
     pics = get_pics_metadata()
     pics = filter_files(pics, album_info)
     make_album(pics, album_info, proj_info)
+    sys.exit()
+
+parser.print_help()
