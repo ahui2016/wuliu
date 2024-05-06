@@ -16,7 +16,22 @@
   display: flex;
   column-gap: 5px;
   margin-bottom: 1em;
+  font-size: small;
 }
+
+.form-label {
+  color: #CCC;
+}
+
+.filename {
+  font-weight: bold;
+}
+
+.ctime,
+.utime {
+  color: #999;
+}
+
 .hidden {
   display: none;
 }
@@ -49,13 +64,28 @@
         <span class="like hidden">❤️</span>
         <span class="label"></span>
       </div>
-      <div class="notes"></div>
-      <div class="keywords"></div>
-      <div class="collections"></div>
-      <div class="albums"></div>
-      <br />
-      <div class="ctime"></div>
-      <div class="utime"></div>
+      <div class="notes">
+        <span class="form-label">Notes: </span>
+        <span class="notes-text"></span>
+      </div>
+      <div class="keywords">
+        <span class="form-label">Keywords: </span>
+        <span class="keywords-text"></span>
+      </div>
+      <div class="collections">
+        <span class="form-label">Collections: </span>
+        <span class="collections-text"></span>
+      </div>
+      <div class="albums">
+        <span class="form-label">Albums: </span>
+        <span class="albums-text"></span>
+      </div>
+      <div class="ctime">
+        <span>created at</span> <span class="ctime-text"></span>
+      </div>
+      <div class="utime">
+        <span>updated at</span> <span class="utime-text"></span>
+      </div>
     </div>
   </div>
 </template>
@@ -84,47 +114,62 @@ const picItemTmpl = query('#pic-item');
 sortByElem.innerText = albumData.orderby;
 ascendingElem.innerText = albumData.ascending ? "ascending" : "descending";
 
-function newPicItem(pic) {
+function newPicItem(file) {
   const item = picItemTmpl.content.cloneNode(true);
-  const itemID = `f-${pic.ID}`;
+  const itemID = `f-${file.ID}`;
   item.children[0].setAttribute("id", itemID);
 
   const imgElem = item.querySelector(".thumb");
-  imgElem.src = `thumbs/${pic.ID}.jpg`;
+  imgElem.src = `thumbs/${file.ID}.jpg`;
 
   const thumbLinkElem = item.querySelector(".thumb-link");
-  thumbLinkElem.href = `pics/${pic.pic_file_name}`;
+  thumbLinkElem.href = `pics/${file.pic_file_name}`;
 
   const idElem = item.querySelector(".id");
-  idElem.innerText = pic.ID;
+  idElem.innerText = file.ID;
 
   const filenameElem = item.querySelector(".filename");
-  filenameElem.innerText = pic.Filename;
+  filenameElem.innerText = file.Filename;
 
   const likeElem = item.querySelector(".like");
-  if (pic.Like > 0) likeElem.classList.remove("hidden");
-  if (pic.Like > 1) likeElem.innerText = "❤️" + pic.Like;
+  if (file.Like > 0) likeElem.classList.remove("hidden");
+  if (file.Like > 1) likeElem.innerText = "❤️" + file.Like;
 
   const labelElem = item.querySelector(".label");
-  if (pic.Label) labelElem.innerText = `[${pic.Label}]`;
+  if (file.Label) labelElem.innerText = `[${file.Label}]`;
 
-  const notesElem = item.querySelector(".notes");
-  notesElem.innerText = pic.Notes;
+  if (file.Notes.length == 0) {
+    item.querySelector(".notes").style.display = "none";
+  } else {
+    item.querySelector(".notes-text").innerText = file.Notes;
+  }
 
-  const kwElem = item.querySelector(".keywords");
-  if (pic.Keywords.length > 0) kwElem.innerText = pic.Keywords.join(", ");
+  if (file.Keywords.length == 0) {
+    item.querySelector(".keywords").style.display = "none";
+  } else {
+    const keywords = file.Keywords.join(", ");
+    item.querySelector(".keywords-text").innerText = keywords;
+  }
 
-  const collElem = item.querySelector(".collections");
-  if (pic.Collections.length > 0) collElem.innerText = pic.Collections.join(", ");
+  if (file.Collections.length == 0) {
+    item.querySelector(".collections").style.display = "none";
+  } else {
+      const coll = file.Collections.join(", ");
+      item.querySelector(".collections-text").innerText = coll;
+  }
 
-  const albumsElem = item.querySelector(".albums");
-  if (pic.Albums.length > 0) albumsElem.innerText = pic.Albums.join(", ");
+  if (file.Albums.length == 0) {
+    item.querySelector(".albums").style.display = "none";
+  } else {
+    const albums = file.Albums.join(", ");
+    item.querySelector(".albums-text").innerText = albums;
+  }
 
-  const ctimeElem = item.querySelector(".ctime");
-  ctimeElem.innerText = "created at " + pic.CTime.substring(0, 10);
+  const ctime = file.CTime.substring(0, 10);
+  item.querySelector(".ctime-text").innerText = ctime;
 
-  const utimeElem = item.querySelector(".utime");
-  utimeElem.innerText = "updated at " + pic.UTime.substring(0, 10);
+  const utime = file.UTime.substring(0, 10);
+  item.querySelector(".utime-text").innerText = utime;
 
   return item;
 }

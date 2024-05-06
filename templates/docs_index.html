@@ -9,14 +9,23 @@
 
     <script src="files.js"></script>
 
-    <title>Wuliu Photo Album</title>
+    <title>Wuliu Docs Preview</title>
 
 <style>
-.PicItem {
-  display: flex;
-  column-gap: 5px;
+.FileItem {
   margin-bottom: 1em;
 }
+
+.form-label {
+  color: #CCC;
+}
+
+.ctime,
+.utime {
+  color: #999;
+  text-align: right;
+}
+
 .hidden {
   display: none;
 }
@@ -26,38 +35,50 @@
   <body>
   
   <!-- 大標題 -->
-  <h1>Wuliu Photo Album</h1>
+  <h1>Wuliu Docs Preview</h1>
 
   <!-- 副標題 -->
-  <p></p>
+  <p>能被瀏覽器預覽的文檔</p>
   
   <h3>Sort by <span id="sort-by"></span>, <span id="ascending"></span></h3>
 
   <div id="page-alert"></div>
 
-  <div id="pics-list"></div>
+  <div id="files-list"></div>
   
   </body>
 
-<template id="pic-item">
-  <div class="PicItem">
-    <div><a class="thumb-link"><img class="thumb" /></a></div>
+<template id="file-item">
+  <fieldset class="FileItem">
+    <legend class="id"></legend>
+    <div class="filename"><a class="file-link"></a></div>
     <div>
-      <div class="id"></div>
-      <div class="filename"></div>
-      <div>
-        <span class="like hidden">❤️</span>
-        <span class="label"></span>
-      </div>
-      <div class="notes"></div>
-      <div class="keywords"></div>
-      <div class="collections"></div>
-      <div class="albums"></div>
-      <br />
-      <div class="ctime"></div>
-      <div class="utime"></div>
+      <span class="like hidden">❤️</span>
+      <span class="label"></span>
     </div>
-  </div>
+    <div class="notes">
+      <span class="form-label">Notes: </span>
+      <span class="notes-text"></span>
+    </div>
+    <div class="keywords">
+      <span class="form-label">Keywords: </span>
+      <span class="keywords-text"></span>
+    </div>
+    <div class="collections">
+      <span class="form-label">Collections: </span>
+      <span class="collections-text"></span>
+    </div>
+    <div class="albums">
+      <span class="form-label">Albums: </span>
+      <span class="albums-text"></span>
+    </div>
+    <div class="ctime">
+      <span>created at</span> <span class="ctime-text"></span>
+    </div>
+    <div class="utime">
+      <span>updated at</span> <span class="utime-text"></span>
+    </div>
+  </fieldset>
 </template>
 
 <script>
@@ -78,53 +99,63 @@ function p(text) {
 const pageAlert = query('#page-alert');
 const sortByElem = query('#sort-by');
 const ascendingElem = query('#ascending');
-const picsList = query('#pics-list');
-const picItemTmpl = query('#pic-item');
+const filesList = query('#files-list');
+const fileItemTmpl = query('#file-item');
 
 sortByElem.innerText = albumData.orderby;
 ascendingElem.innerText = albumData.ascending ? "ascending" : "descending";
 
-function newPicItem(pic) {
-  const item = picItemTmpl.content.cloneNode(true);
-  const itemID = `f-${pic.ID}`;
+function newFileItem(file) {
+  const item = fileItemTmpl.content.cloneNode(true);
+  const itemID = `f-${file.ID}`;
   item.children[0].setAttribute("id", itemID);
 
-  const imgElem = item.querySelector(".thumb");
-  imgElem.src = `thumbs/${pic.ID}.jpg`;
-
-  const thumbLinkElem = item.querySelector(".thumb-link");
-  thumbLinkElem.href = `pics/${pic.pic_file_name}`;
-
   const idElem = item.querySelector(".id");
-  idElem.innerText = pic.ID;
+  idElem.innerText = file.ID;
 
-  const filenameElem = item.querySelector(".filename");
-  filenameElem.innerText = pic.Filename;
+  const fileLinkElem = item.querySelector(".file-link");
+  fileLinkElem.innerText = file.Filename;
+  fileLinkElem.href = `../../files/${file.Filename}`;
 
   const likeElem = item.querySelector(".like");
-  if (pic.Like > 0) likeElem.classList.remove("hidden");
-  if (pic.Like > 1) likeElem.innerText = "❤️" + pic.Like;
+  if (file.Like > 0) likeElem.classList.remove("hidden");
+  if (file.Like > 1) likeElem.innerText = "❤️" + file.Like;
 
   const labelElem = item.querySelector(".label");
-  if (pic.Label) labelElem.innerText = `[${pic.Label}]`;
+  if (file.Label) labelElem.innerText = `[${file.Label}]`;
 
-  const notesElem = item.querySelector(".notes");
-  notesElem.innerText = pic.Notes;
+  if (file.Notes.length == 0) {
+    item.querySelector(".notes").style.display = "none";
+  } else {
+    item.querySelector(".notes-text").innerText = file.Notes;
+  }
 
-  const kwElem = item.querySelector(".keywords");
-  if (pic.Keywords.length > 0) kwElem.innerText = pic.Keywords.join(", ");
+  if (file.Keywords.length == 0) {
+    item.querySelector(".keywords").style.display = "none";
+  } else {
+    const keywords = file.Keywords.join(", ");
+    item.querySelector(".keywords-text").innerText = keywords;
+  }
 
-  const collElem = item.querySelector(".collections");
-  if (pic.Collections.length > 0) collElem.innerText = pic.Collections.join(", ");
+  if (file.Collections.length == 0) {
+    item.querySelector(".collections").style.display = "none";
+  } else {
+      const coll = file.Collections.join(", ");
+      item.querySelector(".collections-text").innerText = coll;
+  }
 
-  const albumsElem = item.querySelector(".albums");
-  if (pic.Albums.length > 0) albumsElem.innerText = pic.Albums.join(", ");
+  if (file.Albums.length == 0) {
+    item.querySelector(".albums").style.display = "none";
+  } else {
+    const albums = file.Albums.join(", ");
+    item.querySelector(".albums-text").innerText = albums;
+  }
 
-  const ctimeElem = item.querySelector(".ctime");
-  ctimeElem.innerText = "created at " + pic.CTime.substring(0, 10);
+  const ctime = file.CTime.substring(0, 10);
+  item.querySelector(".ctime-text").innerText = ctime;
 
-  const utimeElem = item.querySelector(".utime");
-  utimeElem.innerText = "updated at " + pic.UTime.substring(0, 10);
+  const utime = file.UTime.substring(0, 10);
+  item.querySelector(".utime-text").innerText = utime;
 
   return item;
 }
@@ -196,17 +227,17 @@ function sortFiles(files, orderby, asc, alert) {
 }
 
 /* script src="files.js" */
-function initPicsList() {
-  allPics = albumData.files;
-  if (!allPics || allPics.length == 0) {
+function initFilesList() {
+  allFiles = albumData.files;
+  if (!allFiles || allFiles.length == 0) {
     pageAlert.appendChild(p("Warning: 未找到圖片。"));
     return;
   }
-  sortFiles(allPics, albumData.orderby, albumData.ascending, pageAlert);
-  appendItems(allPics, picsList, newPicItem);
+  sortFiles(allFiles, albumData.orderby, albumData.ascending, pageAlert);
+  appendItems(allFiles, filesList, newFileItem);
 }
 
-initPicsList();
+initFilesList();
 
 </script>
 </html>
