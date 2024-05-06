@@ -65,6 +65,9 @@ func renameMeta(oldname, newname string) (fm util.FileAndMeta, err error) {
 	file.Type = util.TypeByFilename(newname)
 	file.ID = util.NameToID(newname)
 	meta, err := util.WriteJSON(file, dst)
+	if err != nil {
+		return
+	}
 	fm.File = &file
 	fm.Metadata = meta
 

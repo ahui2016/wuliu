@@ -240,6 +240,45 @@ func RebuildSomeBuckets(db *bolt.DB) error {
 	})
 }
 
+func RebuildKeywordsBucket(files []*File, tx *bolt.Tx) error {
+	b, err := reCreateBucket(KeywordsBucket, tx)
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		if err := putSliceAndIDs(f.Keywords, f.ID, b); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func RebuildCollBucket(files []*File, tx *bolt.Tx) error {
+	b, err := reCreateBucket(CollectionsBucket, tx)
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		if err := putSliceAndIDs(f.Collections, f.ID, b); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func RebuildAlbumsBucket(files []*File, tx *bolt.Tx) error {
+	b, err := reCreateBucket(AlbumsBucket, tx)
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		if err := putSliceAndIDs(f.Albums, f.ID, b); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func RebuildCTimeBucket(db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		files, err := getAllFiles(tx)
