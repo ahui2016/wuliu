@@ -74,6 +74,17 @@ New_Album_Info = {  # 用於創建新相簿
 - 縮略圖尺寸可在 project.json 中修改。
 - 相簿的大標題和副標題在相簿資料夾的 index.html 中修改。
 
+## wuliu-docs-preview (文檔預覽網頁)
+
+該腳本可創建一個網頁，便於預覽文檔 (pdf/html/txt 等瀏覽器可直接預覽的格式)。
+
+- 執行命令 `wuliu-db -dump docs` 導出全部可預覽檔案的屬性 (docs.msgp)
+- 執行命令 `wuliu-docs-preview --new-json docs-album.json` 生成 docs-album.json
+- docs-album.json 的內容與前述 wuliu-photo-album (創建相簿網頁) 的
+  photo-album.json 相同，填寫方法也相同。
+- 命令 `wuliu-docs-preview -json photo-album.json` 生成網頁。
+  該命令會自動讀取 docs.msgp, 生成的網頁在 webpages 資料夾中。
+
 
 https://github.com/wintermute-cell/magick.css
 

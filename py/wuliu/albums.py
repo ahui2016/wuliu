@@ -4,8 +4,8 @@ import shutil
 import msgpack
 from pathlib import Path
 from typing import Tuple, Set
-from wuliu.const import *
-from wuliu.common import check_filename, print_err_exit
+from .const import *
+from .common import check_filename, print_err_exit
 
 
 """
@@ -66,10 +66,11 @@ def read_album_msgp(album_path: Path, msgp_name: str) -> dict:
 
 def write_album_msgp(
         files: dict, album_info: dict, album_path: Path, msgp_name: str, tmpl_name: str):
-    msgp_path = album_path.joinpath(msgp_name)
-    blob = msgpack.packb(files)
-    print(f'Write => {msgp_path}')
-    msgp_path.write_bytes(blob)
+    if msgp_name == Pics_msgp:
+        msgp_path = album_path.joinpath(msgp_name)
+        blob = msgpack.packb(files)
+        print(f'Write => {msgp_path}')
+        msgp_path.write_bytes(blob)
 
     album_info['files'] = list(files.values())
     blob = json.dumps(album_info, ensure_ascii=False, indent=4)

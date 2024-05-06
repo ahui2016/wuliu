@@ -54,6 +54,7 @@ var DocsSuffixList = []string{
 	"atom",
 	"rss",
 	"txt",
+	"md",
 	"js",
 	"json",
 	"pdf",
