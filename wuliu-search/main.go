@@ -14,6 +14,7 @@ type File = util.File
 
 var (
 	nFlag        = flag.Int("n", 15, "default: 15")
+	idListFlag   = flag.Bool("idlist", false, "show id list only")
 	moreFlag     = flag.Bool("more", false, "show more information")
 	ascFlag      = flag.Bool("asc", false, "sort in ascending order")
 	orderbyFlag  = flag.String("orderby", "ctime", "ctime/utime/filename")
@@ -32,36 +33,40 @@ func main() {
 	db := lo.Must(util.OpenDB("."))
 	defer db.Close()
 
-	files := []*File{}
-	mode := ""
-	matchMode := ""
-	pattern := ""
+	var (
+		files     []*File
+		mode      string
+		matchMode string
+		pattern   string
+		err       error
+	)
 
 	if *filenameFlag != "" {
 		mode = "Filename"
 		pattern = *filenameFlag
-		files, matchMode = lo.Must2(searchByFilename(*filenameFlag, *matchFlag, db))
+		files, matchMode, err = searchByFilename(*filenameFlag, *matchFlag, db)
 	} else if *notesFlag != "" {
 		mode = "Notes"
 		pattern = *notesFlag
-		files, matchMode = lo.Must2(searchByNotes(*notesFlag, *matchFlag, db))
+		files, matchMode, err = searchByNotes(*notesFlag, *matchFlag, db)
 	} else if *labelFlag != "" {
 		mode = "Label"
 		pattern = *labelFlag
-		files, matchMode = lo.Must2(searchByLabel(*labelFlag, *matchFlag, db))
+		files, matchMode, err = searchByLabel(*labelFlag, *matchFlag, db)
 	} else if *kwFlag != "" {
 		mode = "Keyword"
 		pattern = *kwFlag
-		files, matchMode = lo.Must2(searchByKeyword(*kwFlag, *matchFlag, db))
+		files, matchMode, err = searchByKeyword(*kwFlag, *matchFlag, db)
 	} else if *collFlag != "" {
 		mode = "Collection"
 		pattern = *collFlag
-		files, matchMode = lo.Must2(searchByCollection(*collFlag, *matchFlag, db))
+		files, matchMode, err = searchByCollection(*collFlag, *matchFlag, db)
 	} else if *albumFlag != "" {
 		mode = "Album"
 		pattern = *albumFlag
-		files, matchMode = lo.Must2(searchByAlbum(*albumFlag, *matchFlag, db))
+		files, matchMode, err = searchByAlbum(*albumFlag, *matchFlag, db)
 	}
+	util.PrintErrorExit(err)
 
 	files, orderBy := sortFilesLimit(*orderbyFlag, *nFlag, !*ascFlag, files)
 	fmt.Printf(
@@ -78,6 +83,10 @@ func main() {
 		return
 	}
 
+	if *idListFlag {
+		util.PrintFilesIdList(files)
+		return
+	}
 	if *moreFlag {
 		util.PrintFilesMore(files)
 		return

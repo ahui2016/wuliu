@@ -15,7 +15,7 @@ func PrintVersionExit(ok bool) {
 	if ok {
 		fmt.Println(RepoName)
 		fmt.Println(RepoURL)
-		fmt.Println("Version: 2024-04-16")
+		fmt.Println("Version: 2024-05-07")
 		os.Exit(0)
 	}
 }
@@ -212,6 +212,14 @@ func PrintFilesSimple(files []*File) {
 		fmt.Printf("%s\t%s %s\n", f.ID, size, f.Filename)
 	}
 	fmt.Println()
+}
+
+func PrintFilesIdList(files []*File) {
+	var ids []string
+	for _, f := range files {
+		ids = append(ids, fmt.Sprintf("\"%s\"", f.ID))
+	}
+	fmt.Println(strings.Join(ids, ", "))
 }
 
 func PrintFilesMore(files []*File) {

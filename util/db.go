@@ -222,7 +222,7 @@ func rebuildAllBuckets(db *bolt.DB) error {
 		if err := rebuildFilesBucket(tx); err != nil {
 			return err
 		}
-		files, e1 := getAllFiles(tx)
+		files, e1 := GetAllFilesTx(tx)
 		e2 := rebuildSomeBuckets(files, tx)
 		return WrapErrors(e1, e2)
 	})
@@ -232,7 +232,7 @@ func rebuildAllBuckets(db *bolt.DB) error {
 // 由于不需要读取硬盘，因此不能反映最新的变化。
 func RebuildSomeBuckets(db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		files, err := getAllFiles(tx)
+		files, err := GetAllFilesTx(tx)
 		if err != nil {
 			return err
 		}
@@ -281,7 +281,7 @@ func RebuildAlbumsBucket(files []*File, tx *bolt.Tx) error {
 
 func RebuildCTimeBucket(db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		files, err := getAllFiles(tx)
+		files, err := GetAllFilesTx(tx)
 		if err != nil {
 			return err
 		}
@@ -318,7 +318,7 @@ func rebuildFilesBucket(tx *bolt.Tx) error {
 	if err != nil {
 		return err
 	}
-	files, err := getAllFilesMetadata()
+	files, err := GetAllFilesTxMetadata()
 	if err != nil {
 		return err
 	}
@@ -330,7 +330,7 @@ func rebuildFilesBucket(tx *bolt.Tx) error {
 	return nil
 }
 
-func getAllFilesMetadata() ([]*File, error) {
+func GetAllFilesTxMetadata() ([]*File, error) {
 	metaPaths, err := getAllMetadataPaths()
 	if err != nil {
 		return nil, err
@@ -405,7 +405,7 @@ func rebuildSomeBuckets(files []*File, tx *bolt.Tx) error {
 
 func GetAllFiles(db *bolt.DB) (files []*File, err error) {
 	err = db.View(func(tx *bolt.Tx) error {
-		files, err = getAllFiles(tx)
+		files, err = GetAllFilesTx(tx)
 		return err
 	})
 	return
@@ -427,7 +427,7 @@ func GetAllDocs(db *bolt.DB) (docs []*File, err error) {
 	return
 }
 
-func getAllFiles(tx *bolt.Tx) (files []*File, err error) {
+func GetAllFilesTx(tx *bolt.Tx) (files []*File, err error) {
 	b := tx.Bucket(FilesBucket)
 	err = b.ForEach(func(_, v []byte) error {
 		var f File

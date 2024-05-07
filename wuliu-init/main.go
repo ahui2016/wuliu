@@ -11,7 +11,7 @@ import (
 
 var (
 	nameFlag = flag.String("name", "", "set a unique name for the project")
-	vFlag    = flag.Bool("v", false, "print the version of the command")
+	vFlag    = flag.Bool("v", false, "print the version of Wuliu")
 	wFlag    = flag.Bool("where", false, "print where is the command")
 )
 
