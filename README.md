@@ -237,6 +237,19 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 
 建議使用 `wuliu-list -labels > labels.txt` 的方式把結果保存到一個檔案中。
 
+## wuliu-search
+
+- `wuliu-search -keyword 小米` 搜尋 keyword 為 "小米" 的檔案。
+- 可通過 filename/notes/label/keyword/collection/album 搜尋檔案。
+- 其中 keyword/collection/album 默認精確匹配 (-match=exactly)
+- 其中 filename/notes/label 默認前綴匹配 (-match=prefix)
+- 匹配方式可選擇 exactly/prefix/contains/suffix
+- 例如 `wuliu-search -match=contains -filename 偵探` 搜尋檔名包含 "偵探" 的檔案。
+- 搜尋結果 (檔案清單) 默認按檔案創建時間排序 (-orderby=ctime)
+- 排序方式可選擇 ctime/utime/filename
+- 默認從大到小排序 (descending), 使用參數 `-asc` 改為從小到大排序 (ascending)。
+- 例如
+
 ## 数据库 (bolt)
 
 - https://github.com/etcd-io/bbolt
@@ -254,7 +267,9 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 
 - `wuliu-db --info=count` 查看数据库条目数量
 - `wuliu-db --info=size` 查看全部档案的总体积
-- `wuliu-db -dump database.msgp` 導出整個數據庫到一個 msgpack 格式的檔案
+- `wuliu-db -dump all` 導出整個數據庫到一個 msgpack 格式的檔案
+- `wuliu-db -dump pics` 導出圖片到 msgpack
+- `wuliu-db -dump docs` 導出用瀏覽器能直接預覽的文檔到 msgpack
 
 ### 更新数据库
 
@@ -264,6 +279,14 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
   执行 `wuliu-db --update=cache` 根据缓存更新索引（不需要读取硬盘里的 json 档案）。
 - 由于数据库缓存（即 files 索引和 filename 索引）在添加文件、修改文件属性、删除文件时
   会自动更新，因此多数情况下只需要 `--update=cache`, 不需要重建数据库。
+
+### keyword/collection/album 改名
+
+例如 `wuliu-db -keyword 叮噹貓 --rename-to 多啦A梦` 把數據庫裡名為 "叮噹貓"
+的 keyword 批量改為 "多啦A梦"。
+
+collection 或 album 的更改也類似，例如 `wuliu-db -album 歌曲 --rename-to 音樂`
+把數據庫裡名為 "歌曲" 的 album 批量改為 "音樂"。
 
 ## wuliu-checksum
 
@@ -301,7 +324,7 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
   以及 project.db, project.json 这两个档案复制到 backupRoot 中。
   其他资料夹和档案可复制可不复制。
 - 编辑 backupRoot 里的 project.json, 把 IsBackup 的值改为 true
-- 编辑主专案中的 project.json, 把 backupRoot 的路径添加到 Projects 列表中。
+- 编辑主专案中的 project.json, 把 backupRoot 的路径添加到 Projects 清單中。
   注意，路径里的反斜杠改要为 "`\\`" 或 "`/`"
 - 编辑主专案中的 project.json, 在 LastBackupAt 中添加一个时间
   （可以是空字符串 ""）
@@ -354,17 +377,17 @@ wuliu-export 與 wuliu-overwrite 的使用方法詳見本文的其他章節。
 
 ## wuliu-overwrite
 
-- 執行 `wuliu-overwrite` 查看待覆蓋檔案列表。
+- 執行 `wuliu-overwrite` 查看待覆蓋檔案清單。
   (注意，待覆蓋檔案應存放在 buffer 資料夾中。)
-- 在該列表中可以看到，凡是 *非json* 檔案都將覆蓋 files,
+- 在該清單中可以看到，凡是 *非json* 檔案都將覆蓋 files,
   凡是 *json* 檔案都將覆蓋 metadata.
 - 如果其中有 json 檔案想覆蓋 files, 請執行 `wuliu-overwrite -newjson overwrite.json`
   然後編輯 overwrite.json, 根據需要把其中的 "metadata" 改為 "files".
-  (此時，還可以刪除 overwrite.json 裏的一部分檔案名稱，只有保留在列表中的檔案纔會被覆蓋。)
-- 經過上述操作後，執行 `wuliu-overwrite -json overwrite.json` 查看待覆蓋檔案列表
+  (此時，還可以刪除 overwrite.json 裏的一部分檔案名稱，只有保留在清單中的檔案纔會被覆蓋。)
+- 經過上述操作後，執行 `wuliu-overwrite -json overwrite.json` 查看待覆蓋檔案清單
 - 執行 `wuliu-overwrite -json overwrite.json -danger` 或
   `wuliu-overwrite -danger` 正式覆蓋。
-- 如果不使用 `-danger` 參數，則只是查看待覆蓋檔案列表，不會真正發生覆蓋。
+- 如果不使用 `-danger` 參數，則只是查看待覆蓋檔案清單，不會真正發生覆蓋。
 - 【注意】手動修改檔案屬性時，請勿直接修改 ID, Filename, Checksum, Size, Type, UTime.
 - 請勿直接修改 metadata 裏的檔案。
   如需修改，請導出後修改，然後再使用 wuliu-overwrite 覆蓋舊檔案。
@@ -433,7 +456,6 @@ type EditFiles struct {
 
 ## TODO
 
-- wuliu-search 的出錯提示
 - wuliu-checksum -same
 - wuliu-db -dump 导出整个数据库到 msgpack, 方便其他编程语言使用
 - wuliu-list -ctime="2024-02-01" 通過日期前綴後列印檔案
