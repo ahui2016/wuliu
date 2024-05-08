@@ -236,7 +236,10 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 - `wuliu-list -collections` 列印全部集合
 - `wuliu-list -albums` 列印全部相簿(專輯)
 
-建議使用 `wuliu-list -labels > labels.txt` 的方式把結果保存到一個檔案中。
+參數 labels/notes/keywords/collections/albums 可多個同時使用，例如
+`wuliu-list -labels -keywords -albums`
+
+另外，也可使用 `wuliu-list -labels > labels.txt` 的方式把結果保存到一個檔案中。
 
 ## wuliu-search
 
@@ -399,13 +402,9 @@ wuliu-export 與 wuliu-overwrite 的使用方法詳見本文的其他章節。
 - 請勿直接修改 metadata 裏的檔案。
   如需修改，請導出後修改，然後再使用 wuliu-overwrite 覆蓋舊檔案。
   另外，可以使用 wuliu-metadata 命令批量修改属性。
-  如果 wuliu-metadata 也无法满足要求，可以直接修改 metadata 资料夹里的 json 档案，
-  然后执行 `wuliu-db -update=rebuild` 重建数据库。
-- 【注意】如果进入 metadata 资料夹直接修改 json, 不会自动更新 UTime (可手动修改)。
-- 【注意】进入 metadata 资料夹修改 json 后请立即重建数据库。
-- 【小技巧】也可以把 metadata 里的 json 复制到 buffer 里，修改后执行 wuliu-overwrite
-- ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
-  如需更改檔案名稱，請使用 wuliu-rename 命令。
+- 【小技巧】可以把 metadata 里的 json 复制到 buffer 里，修改后执行 wuliu-overwrite
+- ID 與 Filename 是相關的，請勿直接修改檔案名稱，如需更改檔案名稱，
+  請使用 wuliu-rename 命令。
 
 ## wuliu-metadata
 
@@ -464,4 +463,4 @@ type EditFiles struct {
 ## TODO
 
 - wuliu-checksum -same
-- wuliu-list -ctime="2024-02-01" 通過日期前綴後列印檔案
+- wuliu-search -ctime="2024-02-01" 通過日期前綴後列印檔案

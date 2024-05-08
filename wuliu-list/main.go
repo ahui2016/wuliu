@@ -32,24 +32,22 @@ func main() {
 	db := lo.Must(util.OpenDB("."))
 	defer db.Close()
 
-	if *labelFlag {
-		printLabels(db)
-		return
-	}
 	if *notesFlag {
 		printNotes(db)
-		return
+	}
+	if *labelFlag {
+		printLabels(db)
 	}
 	if *kwFlag {
 		printKeywords(db)
-		return
 	}
 	if *collFlag {
 		printCollections(db)
-		return
 	}
 	if *albumFlag {
 		printAlbums(db)
+	}
+	if *notesFlag || *labelFlag || *kwFlag || *collFlag || *albumFlag {
 		return
 	}
 
@@ -200,22 +198,27 @@ func sizeOfFiles(sizeBuc *bolt.Bucket) (map[int64][]string, error) {
 }
 
 func printLabels(db *bolt.DB) {
+	fmt.Println("Labels:")
 	printKeysAndLength(util.LabelBucket, db)
 }
 
 func printNotes(db *bolt.DB) {
+	fmt.Println("Notes:")
 	printKeysAndLength(util.NotesBucket, db)
 }
 
 func printKeywords(db *bolt.DB) {
+	fmt.Println("Keywords:")
 	printKeysAndLength(util.KeywordsBucket, db)
 }
 
 func printCollections(db *bolt.DB) {
+	fmt.Println("Collections:")
 	printKeysAndLength(util.CollectionsBucket, db)
 }
 
 func printAlbums(db *bolt.DB) {
+	fmt.Println("Albums:")
 	printKeysAndLength(util.AlbumsBucket, db)
 }
 
