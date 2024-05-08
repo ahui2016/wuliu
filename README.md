@@ -50,6 +50,7 @@ Wuliu File Manager (五柳檔案管理腳本) Golang Scripts
 - wuliu-delete (删除档案)
 - wuliu-rename (更改檔案名稱)
 - wuliu-list (列印档案、标签、备注、关键词等)
+- wuliu-search (搜尋檔案)
 - wuliu-db (数据库信息，更新缓存)
 - wuliu-checksum (检查档案完整性)
 - wuliu-backup (备份专案)
@@ -233,7 +234,7 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 - `wuliu-list -notes` 列印全部備註
 - `wuliu-list -keywords` 列印全部關鍵詞
 - `wuliu-list -collections` 列印全部集合
-- `wuliu-list -albums` 列印全部相冊(專輯)
+- `wuliu-list -albums` 列印全部相簿(專輯)
 
 建議使用 `wuliu-list -labels > labels.txt` 的方式把結果保存到一個檔案中。
 
@@ -245,10 +246,16 @@ ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
 - 其中 filename/notes/label 默認前綴匹配 (-match=prefix)
 - 匹配方式可選擇 exactly/prefix/contains/suffix
 - 例如 `wuliu-search -match=contains -filename 偵探` 搜尋檔名包含 "偵探" 的檔案。
-- 搜尋結果 (檔案清單) 默認按檔案創建時間排序 (-orderby=ctime)
+- 搜尋結果 (檔案清單) 默認按檔案入庫時間排序 (-orderby=ctime)
 - 排序方式可選擇 ctime/utime/filename
 - 默認從大到小排序 (descending), 使用參數 `-asc` 改為從小到大排序 (ascending)。
-- 例如
+- 例如 `wuliu-search -filename 金庸小說 -orderby=utime -asc` 搜尋檔名以
+  "金庸" 開頭的檔案, 更新日期小的(舊的)檔案排在前面。
+- 搜尋結果默認最多列印 15 個檔案，用參數 n 更改列印上限，例如 `-n=50`
+- 搜尋結果默認以列印簡潔清單，用參數 `-more` 列印更多信息，例如
+  `wuliu-search -keyword 小米 -more`
+- 用參數 `-idlist` 只列印 ID 清單，方便用於 wuliu-delete 等命令，例如
+  `wuliu-search -keyword 小米 -idlist`
 
 ## 数据库 (bolt)
 
@@ -457,5 +464,4 @@ type EditFiles struct {
 ## TODO
 
 - wuliu-checksum -same
-- wuliu-db -dump 导出整个数据库到 msgpack, 方便其他编程语言使用
 - wuliu-list -ctime="2024-02-01" 通過日期前綴後列印檔案
