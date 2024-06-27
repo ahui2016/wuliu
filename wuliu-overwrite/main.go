@@ -138,6 +138,13 @@ func overwriteIntoFiles(name, src, dst string, b *bolt.Bucket) error {
 		return nil
 	}
 	f.Checksum = sum
+
+	info, err := os.Lstat(src)
+	if err != nil {
+		return err
+	}
+	f.Size = info.Size()
+
 	if err = os.Rename(src, dst); err != nil {
 		return err
 	}

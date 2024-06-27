@@ -462,5 +462,8 @@ type EditFiles struct {
 
 ## TODO
 
+- wuliu-any-preview 創建一個網頁，便於預覽或下载档案 (不限格式)。
+
+- wuliu-list -others 列印除圖片和可預覽文檔外的檔案
 - wuliu-checksum -same
 - wuliu-search -ctime="2024-02-01" 通過日期前綴後列印檔案
