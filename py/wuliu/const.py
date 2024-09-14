@@ -1,14 +1,17 @@
 import re
 
 
-Project_JSON = "project.json"
+Repo_Name = "Wuliu File Manager"
+
+Project_JSON  = "project.json"
+Project_PY_DB = "project.py.db"
 Thumb_Size    = "ThumbSize"
 
 ID          = 'ID'
 Filename    = 'Filename'
 Checksum    = 'Checksum'
 Size        = 'Size'
-Type        = 'Type'
+TYPE        = 'Type'
 Like        = 'Like'
 Label       = 'Label'
 Notes       = 'Notes'
@@ -43,4 +46,3 @@ New_Album_Info = dict(  # 用於創建新相簿
     orderby='utime',  # 排序依據: utime/ctime/filename/like
     ascending=False,  # False: 降序, True: 昇序, 如果指定 ids, 則以 ids 為準
 )
-

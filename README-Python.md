@@ -16,10 +16,7 @@ Wuliu File Manager (五柳檔案管理腳本) Python Scripts
 
 ## 安裝 Wuliu Python Scripts
 
-- 先進入原始碼中的 `py` 資料夾
-- 執行 `python3 -m pip install -r requirements.txt` 或 `pip install -r requirements.txt`
-
-然後選擇以下其中一種方法:
+選擇以下其中一種方法:
 
 ### 方法一
 
@@ -39,6 +36,10 @@ Wuliu File Manager (五柳檔案管理腳本) Python Scripts
 Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tutorial/appendix.html#executable-python-scripts)
 
 我自己使用方法二。
+
+## w-db.py (数据库)
+
+采用 TinyDB <https://github.com/msiemens/tinydb>
 
 ## wuliu-photo-album (創建相簿網頁)
 

@@ -467,3 +467,7 @@ type EditFiles struct {
 - wuliu-list -others 列印除圖片和可預覽文檔外的檔案
 - wuliu-checksum -same
 - wuliu-search -ctime="2024-02-01" 通過日期前綴後列印檔案
+
+- 数据库改用 https://github.com/ostafen/clover ?
+- https://tinydb.readthedocs.io/en/latest/usage.html
+

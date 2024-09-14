@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/ahui2016/wuliu/util"
-	"github.com/samber/lo"
-	bolt "go.etcd.io/bbolt"
 	"log"
 	"os"
 	"path/filepath"
 	"slices"
+	"time"
+
+	"github.com/ahui2016/wuliu/util"
+	"github.com/samber/lo"
+	bolt "go.etcd.io/bbolt"
 )
 
 type (
@@ -126,6 +128,10 @@ func addNewFiles(files []*File, db *bolt.DB) {
 		fmt.Println("Create =>", metaPath)
 		meta := lo.Must(util.WriteJSON(f, metaPath))
 		metadatas = append(metadatas, FileAndMeta{f, meta})
+
+		// 不知道为什么有时候这里会卡住（写 meta 后无法移动文件，程序停止但不崩溃）
+		// 因此加个时间间隔试试。
+		time.Sleep(100 * time.Millisecond)
 
 		src := filepath.Join(util.INPUT, f.Filename)
 		dst := filepath.Join(util.FILES, f.Filename)

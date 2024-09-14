@@ -8,9 +8,37 @@ from PIL import Image, ImageOps
 from .const import *
 
 
+def print_err(err:str|None):
+    """如果有错误就打印, 没错误就忽略."""
+    if err:
+        print(f"Error! {err}", file=sys.stderr)
+
+
+def print_err_exit(err:str|None, front_msg:str=''):
+    """若有错误则打印并结束程序, 无错误则忽略.
+    如果提供了 front_msg, 则在 err 之前显示。
+    """
+    if err:
+        if front_msg:
+            print(f'Error! {front_msg}', file=sys.stderr)
+            print(err, file=sys.stderr)
+            sys.exit()
+        else:
+            print(f'Error! {err}', file=sys.stderr)
+            sys.exit()
+
+
 def read_project_info():
     data = Path(Project_JSON).read_text()
-    return json.loads(data)
+    info = json.loads(data)
+    if info["RepoName"] != Repo_Name:
+        print_err_exit(f"RepoName ({info["RepoName"]}) != {Repo_Name}")
+    return info
+
+
+def check_not_in_backup(info: dict):
+    if info["IsBackup"]:
+        print_err_exit("這是備份專案, 不可使用該功能")
 
 
 def read_thumbs_msgp() -> dict:
@@ -59,21 +87,3 @@ def check_filename(name: str) -> str:
     else:
         return '只能使用 0-9, a-z, A-Z, _(下劃線), -(連字號), .(點)' \
                '\n注意：不能使用空格，請用下劃線或連字號替代空格。'
-
-
-def print_err(err:str|None):
-    """如果有错误就打印, 没错误就忽略."""
-    if err:
-        print(f"Error! {err}", file=sys.stderr)
-
-
-def print_err_exit(err:str|None, front_msg:str=''):
-    """若有错误则打印并结束程序, 无错误则忽略.
-    如果提供了 front_msg, 则在 err 之前显示。
-    """
-    if err:
-        if front_msg:
-            print(f'Error! {front_msg}', file=sys.stderr)
-            sys.exit(err)
-        else:
-            sys.exit(f'Error! {err}')
