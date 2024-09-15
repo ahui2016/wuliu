@@ -11,20 +11,20 @@ def get_docs_metadata() -> list:
     Docs_msgp 是由 "wuliu-db -dump docs" 導出的數據，檔名固定為 docs.msgp
     :return: 返回 File 列表 (參考 util/model.go 裏的 File)
     """
-    return get_files_metadata(Docs_msgp)
+    return get_files_metadata(DOCS_MSGP)
 
 
 def read_docs_msgp(album_path: Path) -> dict:
-    return read_album_msgp(album_path, Docs_msgp)
+    return read_album_msgp(album_path, DOCS_MSGP)
 
 
 def make_album(album_info: dict):
     files = get_docs_metadata()
     files = filter_files(files, album_info)
     docs = {f[ID]:f for f in files}
-    album_path = Path(Webpages).joinpath(album_info['name'])
+    album_path = Path(WEBPAGES).joinpath(album_info['name'])
     album_path.mkdir(exist_ok=True)
-    write_album_msgp(docs, album_info, album_path, Docs_msgp, 'docs_index.html')
+    write_album_msgp(docs, album_info, album_path, DOCS_MSGP, 'docs_index.html')
 
 # ↓↓↓ main ↓↓↓ 
 

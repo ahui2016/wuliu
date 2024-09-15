@@ -1,6 +1,10 @@
 import re
 import sys
+import zlib
 import json
+import arrow
+import hashlib
+import mimetypes
 import msgpack
 from typing import Union
 from pathlib import Path
@@ -28,8 +32,89 @@ def print_err_exit(err:str|None, front_msg:str=''):
             sys.exit()
 
 
+# https://github.com/numpy/numpy/blob/main/numpy/core/numeric.py
+def base_repr(number: int, base: int = 10, padding: int = 0) -> str:
+    """
+    Return a string representation of a number in the given base system.
+    """
+    digits = "0123456789abcdefghijklmnopqrstuvwxyz"
+    if base > len(digits):
+        raise ValueError("Bases greater than 36 not handled in base_repr.")
+    elif base < 2:
+        raise ValueError("Bases less than 2 not handled in base_repr.")
+
+    num = abs(number)
+    res = []
+    while num:
+        res.append(digits[num % base])
+        num //= base
+    if padding:
+        res.append("0" * padding)
+    if number < 0:
+        res.append("-")
+    return "".join(reversed(res or "0"))
+
+
+def base36(number: int) -> str:
+    return base_repr(number, 36)
+
+
+def time_now() -> str:
+    return arrow.now().format(arrow.FORMAT_RFC3339)
+
+
+def crc32_str36(s: str) -> str:
+    """把一个字符串转化为 crc32, 再转化为 36 进制。"""
+    sum = zlib.crc32(s.encode())
+    str36 = base36(sum)
+    return str36.upper()
+
+
+def name_to_id(name: str) -> str:
+    """根据文件名计算出文件 ID, 确保相同的文件名拥有相同的 ID"""
+    return crc32_str36(name)
+
+
+# BLAKE2b is faster than MD5, SHA-1, SHA-2, and SHA-3, on 64-bit x86-64 and ARM architectures.
+# https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2
+# https://blog.min.io/fast-hashing-in-golang-using-blake2/
+def file_sum512(name: str|Path) -> str:
+    with open(name, "rb") as f:
+        digest = hashlib.file_digest(f, hashlib.blake2b)
+        return digest.hexdigest()
+
+
+def my_type_by_filename(ext: str) -> str|None:
+    if not ext:
+        return None
+    if ext[0] == ".":
+        ext = ext[1:]
+    if ext in ["doc", "docx", "ppt", "pptx", "rtf", "xls", "xlsx"]:
+        return "office/" + ext
+    if ext in ["epub", "mobi", "azw", "azw3", "djvu"]:
+        return "ebook/" + ext
+    if ext in ["zip", "rar", "7z", "gz", "tar", "bz", "bz2", "xz"]:
+        return "compressed/" + ext
+    if ext in ["md", "json", "xml", "html", "xhtml", "htm", "atom", "rss", \
+            "yaml", "js", "ts", "go", "py", "cs", "dart", "rb", "c", "h", \
+            "cpp", "rs"]:
+        return "text/" + ext
+    return None
+
+
+def type_by_filename(filename: str) -> str:
+    ext = Path(filename).suffix.lower()
+    my_type = my_type_by_filename(ext)
+    if my_type is None:
+        # mimetypes.add_type("application/msword", ".docx")
+        # mimetypes.add_type("application/vnd.ms-excel", ".xlsx")
+        # mimetypes.add_type("application/vnd.ms-powerpoint", ".pptx")
+        return mimetypes.types_map[ext]
+    return my_type
+
+
 def read_project_info():
-    data = Path(Project_JSON).read_text()
+    data = Path(Project_JSON).read_text(encoding="utf-8")
     info = json.loads(data)
     if info["RepoName"] != Repo_Name:
         print_err_exit(f"RepoName ({info["RepoName"]}) != {Repo_Name}")
@@ -41,15 +126,23 @@ def check_not_in_backup(info: dict):
         print_err_exit("這是備份專案, 不可使用該功能")
 
 
+def get_filenames(folder: Path) -> list[str]:
+    """
+    假设 folder 里全是普通档案，没有资料夹。
+    """
+    files = folder.glob("*")
+    return [f.name for f in files]
+
+
 def read_thumbs_msgp() -> dict:
-    file = Path(Thumbs_msgp)
+    file = Path(THUMBS_MSGP)
     if not file.exists():
         return dict()
     data = file.read_bytes()
     return msgpack.unpackb(data)
 
 
-def open_image(file: str|Path) -> Union[Image, None]:
+def open_image(file: str|Path) -> Union[Image.Image, None]:
     try:
         img = Image.open(file)
     except OSError:
@@ -57,7 +150,7 @@ def open_image(file: str|Path) -> Union[Image, None]:
     return img
 
 
-def create_thumb_img(img:Image, thumb_path:Path, thumb_size):
+def create_thumb_img(img:Image.Image, thumb_path:Path, thumb_size):
     """請使用 create_thumb
     """
     img = ImageOps.exif_transpose(img)

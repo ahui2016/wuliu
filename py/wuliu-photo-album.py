@@ -12,11 +12,11 @@ def get_pics_metadata() -> list:
     Pics_msgp 是由 "wuliu-db -dump pics" 導出的數據，檔名固定為 pics.msgp
     :return: 返回 File 列表 (參考 util/model.go 裏的 File)
     """
-    return get_files_metadata(Pics_msgp)
+    return get_files_metadata(PICS_MSGP)
 
 
 def read_pics_msgp(album_path: Path) -> dict:
-    return read_album_msgp(album_path, Pics_msgp)
+    return read_album_msgp(album_path, PICS_MSGP)
 
 
 def create_album(pics: list, album_info: dict, album_path: Path, thumb_size):
@@ -31,7 +31,7 @@ def create_album(pics: list, album_info: dict, album_path: Path, thumb_size):
 
     for file in pics:
         file_id = file[ID]
-        src = Path(Files).joinpath(file[Filename])
+        src = Path(FILES).joinpath(file[FILENAME])
         dst = pics_path.joinpath(file['pic_file_name'])
         print('.', end='')
         shutil.copyfile(src, dst)
@@ -41,7 +41,7 @@ def create_album(pics: list, album_info: dict, album_path: Path, thumb_size):
         album_pics[file_id] = file
 
     print()
-    write_album_msgp(album_pics, album_info, album_path, Pics_msgp, 'pics_index.html')
+    write_album_msgp(album_pics, album_info, album_path, PICS_MSGP, 'pics_index.html')
     print('OK')
 
 
@@ -54,7 +54,7 @@ def get_deleted_pics(pics:list, old_pics:dict) -> dict:
     
     deleted_pics = dict()
     for pic_id in deleted_ids:
-        deleted_pics[pic_id] = old_pics[pic_id][Filename]
+        deleted_pics[pic_id] = old_pics[pic_id][FILENAME]
 
     return deleted_pics
 
@@ -88,8 +88,8 @@ def pic_exists(pic:dict, old_pics:dict) -> bool:
     old_pic = old_pics[pic_id]
     # old_utime = old_pic[UTime]
     # return old_utime == pic[UTime]
-    old_checksum = old_pic[Checksum]
-    return old_checksum == pic[Checksum]
+    old_checksum = old_pic[CHECKSUM]
+    return old_checksum == pic[CHECKSUM]
 
 
 def get_updated_pics(pics:list, album_pics:dict) -> list:
@@ -113,10 +113,10 @@ def update_album_pics(newpics:list, album_pics:dict, album_path: Path, thumb_siz
 
     for pic in newpics:
         pic_id = pic[ID]
-        src = Path(Files).joinpath(pic[Filename])
+        src = Path(FILES).joinpath(pic[FILENAME])
         dst = pics_dir.joinpath(pic['pic_file_name'])
         thumb = thumbs_dir.joinpath(pic_id+'.jpg')
-        print(f'Add or update: [{pic_id}] {pic[Filename]}')
+        print(f'Add or update: [{pic_id}] {pic[FILENAME]}')
         shutil.copyfile(src, dst)
         err = create_thumb(src, thumb, thumb_size)
         print_err(err)
@@ -133,7 +133,7 @@ def update_album_pics_msgp(pics:list, album_pics:dict, album_info: dict, album_p
         if pic_id in album_pics:
             album_pics[pic_id] = pic
 
-    write_album_msgp(album_pics, album_info, album_path, Pics_msgp, 'pics_index.html')
+    write_album_msgp(album_pics, album_info, album_path, PICS_MSGP, 'pics_index.html')
 
 
 def update_album(pics:list, album_info: dict, album_path:Path, thumb_size):
@@ -153,12 +153,12 @@ def update_album(pics:list, album_info: dict, album_path:Path, thumb_size):
 def make_album(pics: list, album_info: dict, proj_info: dict):
     """新建或更新相簿。
     """
-    album_path = Path(Webpages).joinpath(album_info['name'])
+    album_path = Path(WEBPAGES).joinpath(album_info['name'])
     thumb_size = proj_info[Thumb_Size]
 
     for pic in pics:
-        pic[Checksum] = ''  # 前端 pic.js 裏不需要 checksum
-        pic_file_name = pic[ID] + Path(pic[Filename]).suffix
+        pic[CHECKSUM] = ''  # 前端 pic.js 裏不需要 checksum
+        pic_file_name = pic[ID] + Path(pic[FILENAME]).suffix
         pic['pic_file_name'] = pic_file_name  # 前端的原圖檔名
 
     if album_path.exists():

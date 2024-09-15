@@ -3,12 +3,13 @@ package util
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/samber/lo"
-	bolt "go.etcd.io/bbolt"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/samber/lo"
+	bolt "go.etcd.io/bbolt"
 )
 
 func PrintVersionExit(ok bool) {
@@ -118,6 +119,10 @@ func NewFilesFrom(names []string, folder string) (files []*File, err error) {
 		info, err := os.Lstat(filePath)
 		if err != nil {
 			return nil, err
+		}
+		if info.IsDir() {
+			fmt.Printf("%s 是資料夾, 自動忽略\n", filePath)
+			continue
 		}
 		checksum, err := FileSum512(filePath)
 		if err != nil {

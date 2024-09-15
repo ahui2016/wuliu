@@ -86,6 +86,11 @@ New_Album_Info = {  # 用於創建新相簿
 - 命令 `wuliu-docs-preview -json photo-album.json` 生成網頁。
   該命令會自動讀取 docs.msgp, 生成的網頁在 webpages 資料夾中。
 
+## TODO
+
+- 配置文件改用 toml
+
+## notes
 
 https://github.com/wintermute-cell/magick.css
 

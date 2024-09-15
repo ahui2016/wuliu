@@ -4,13 +4,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/samber/lo"
-	"github.com/vmihailenco/msgpack/v5"
-	"golang.org/x/crypto/blake2b"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/samber/lo"
+	"github.com/vmihailenco/msgpack/v5"
+	"golang.org/x/crypto/blake2b"
 )
 
 // WrapErrors 把多个错误合并为一个错误.

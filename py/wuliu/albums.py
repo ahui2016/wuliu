@@ -20,7 +20,7 @@ def create_new_album_info(filename: str):
         return
 
     print(f'Create => {filename}')
-    blob = json.dumps(New_Album_Info, ensure_ascii=False, indent=4)
+    blob = json.dumps(New_Album_Info(), ensure_ascii=False, indent=4)
     target_path.write_text(blob, encoding='utf8')
 
 
@@ -66,20 +66,20 @@ def read_album_msgp(album_path: Path, msgp_name: str) -> dict:
 
 def write_album_msgp(
         files: dict, album_info: dict, album_path: Path, msgp_name: str, tmpl_name: str):
-    if msgp_name == Pics_msgp:
+    if msgp_name == PICS_MSGP:
         msgp_path = album_path.joinpath(msgp_name)
         blob = msgpack.packb(files)
         print(f'Write => {msgp_path}')
         msgp_path.write_bytes(blob)
 
     album_info['files'] = list(files.values())
-    blob = json.dumps(album_info, ensure_ascii=False, indent=4)
-    blob = 'const albumData = ' + blob;
+    text = json.dumps(album_info, ensure_ascii=False, indent=4)
+    text = 'const albumData = ' + text;
     js_path = album_path.joinpath('files.js')
     print(f'Write => {js_path}')
-    js_path.write_text(blob, encoding='utf8')
+    js_path.write_text(text, encoding='utf8')
     
-    src = Path(Webpages).joinpath('templates', tmpl_name)
+    src = Path(WEBPAGES).joinpath('templates', tmpl_name)
     dst = album_path.joinpath('index.html')
     if not dst.exists():
         print(f'Write => {dst}')
@@ -89,7 +89,7 @@ def write_album_msgp(
 def keywords_union(files: list, album_info: dict) -> set:
     result: Set[str] = set()
     for x in album_info['keywords']:
-        good = {f[ID] for f in files if x in f[Keywords]}
+        good = {f[ID] for f in files if x in f[KEYWORDS]}
         result = result.union(good)
     return result
 
@@ -97,7 +97,7 @@ def keywords_union(files: list, album_info: dict) -> set:
 def collections_union(files: list, album_info: dict) -> set:
     result: Set[str] = set()
     for x in album_info['collections']:
-        good = {f[ID] for f in files if x in f[Collections]}
+        good = {f[ID] for f in files if x in f[COLLECTIONS]}
         result = result.union(good)
     return result
 
@@ -105,7 +105,7 @@ def collections_union(files: list, album_info: dict) -> set:
 def albums_union(files: list, album_info: dict) -> set:
     result: Set[str] = set()
     for x in album_info['albums']:
-        good = {f[ID] for f in files if x in f[Albums]}
+        good = {f[ID] for f in files if x in f[ALBUMS]}
         result = result.union(good)
     return result
 
@@ -118,11 +118,11 @@ def filter_files(files: list, album_info: dict) -> list:
         return files
     
     if album_info['label'] != '':
-        by_label = {f[ID] for f in files if album_info['label'] == f[Label]}
+        by_label = {f[ID] for f in files if album_info['label'] == f[LABEL]}
         ids = ids.union(by_label)
 
     if album_info['notes'] != '':
-        by_notes = {f[ID] for f in files if album_info['notes'] == f[Notes]}
+        by_notes = {f[ID] for f in files if album_info['notes'] == f[NOTES]}
         ids = ids.union(by_notes)
     
     by_keywords = keywords_union(files, album_info)
