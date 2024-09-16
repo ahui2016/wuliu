@@ -2,6 +2,7 @@ import re
 import sys
 import zlib
 import json
+import yaml
 import arrow
 import hashlib
 import mimetypes
@@ -30,6 +31,22 @@ def print_err_exit(err:str|None, front_msg:str=''):
         else:
             print(f'Error! {err}', file=sys.stderr)
             sys.exit()
+
+
+# https://reorx.com/blog/python-yaml-tips/
+class IndentDumper(yaml.Dumper):
+    def increase_indent(self, flow=False, indentless=False):
+        return super(IndentDumper, self).increase_indent(flow, False)
+
+
+def yaml_dump(doc) -> str:
+    return yaml.dump(
+        doc, Dumper=IndentDumper, allow_unicode=True, sort_keys=False)
+
+
+def yaml_load_file(f: Path):
+    text = f.read_text(encoding="utf-8")
+    return yaml.safe_load(text)
 
 
 # https://github.com/numpy/numpy/blob/main/numpy/core/numeric.py

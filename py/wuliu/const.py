@@ -21,6 +21,8 @@ ALBUMS      = 'albums'
 CTIME       = 'ctime'
 UTIME       = 'utime'
 
+IDS         = 'ids'
+FILENAMES   = 'filenames'
 
 FILES       = 'files'
 METADATA    = 'metadata'
@@ -80,5 +82,6 @@ def Edit_Files_Config() -> dict:
         notes="",        # 備註，便於搜尋
         keywords=[],     # 關鍵詞, 便於搜尋
         collections=[],  # 集合（分组），一个档案可属于多个集合
-        albums=[]        # 相册（专辑），主要用于图片和音乐
+        albums=[],       # 相册（专辑），主要用于图片和音乐
+        learn_yaml="https://www.bairesdev.com/tools/json2yaml/"
     )

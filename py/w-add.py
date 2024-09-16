@@ -1,13 +1,12 @@
 import sys
-import tomllib
-import tomli_w
+import yaml
 import argparse
 from pathlib import Path
 
 from wuliu.const import *
 from wuliu.common import print_err, print_err_exit, read_project_info, \
     check_not_in_backup, get_filenames, time_now, name_to_id, file_sum512, \
-    type_by_filename
+    type_by_filename, yaml_dump, yaml_load_file
 
 
 def new_file(name: str) -> dict:
@@ -41,7 +40,7 @@ def new_files_from(names: list[str], folder: str) -> list:
     return files
 
 
-def find_new_files() -> list:
+def find_input_files() -> list:
     """
     寻找 input 资料夹里的全部档案。
     """
@@ -50,14 +49,30 @@ def find_new_files() -> list:
     return files
 
 
-def create_config_toml(filename:str, allow_danger:bool):
+def add_files_config(ids: list, filenames: list) -> dict:
+    cfg = Edit_Files_Config()
+    cfg[IDS] = ids
+    cfg[FILENAMES] = filenames
+    return cfg
+
+
+def create_config_yaml(filename:str, allow_danger:bool):
     file_path = Path(filename)
     if file_path.exists() and not allow_danger:
         print_err(f"file exists: {filename}")
         return
+    names_in_input = get_filenames(Path(INPUT))
+    text = yaml_dump(add_files_config([], names_in_input))
     print(f"Create => {filename}")
-    text = tomli_w.dumps(Edit_Files_Config())
     file_path.write_text(text, encoding="utf-8")
+
+
+def read_config(file_path: Path) -> dict:
+    """返回 None 表示有错误"""
+    cfg = yaml_load_file(file_path)
+    if len(cfg[IDS]) > 0:
+        print_err_exit("添加新檔案時不可通過 ID 指定檔案")
+    return cfg
 
 
 if __name__ == "__main__":
@@ -67,15 +82,23 @@ if __name__ == "__main__":
     parser.add_argument("-danger", action="store_true",
         help="allow dangerous operations")
 
-    parser.add_argument("--new-toml", type=str,
-        help="create a TOML file for adding files")
+    parser.add_argument("--new-yaml", type=str,
+        help="create a YAML file for adding files")
+
+    parser.add_argument('-yaml', type=str,
+        help='use a YAML file to add files')
 
     args = parser.parse_args()
     info = read_project_info()
     check_not_in_backup(info)
 
-    if args.new_toml:
-        create_config_toml(args.new_toml, args.danger)
+    if args.new_yaml:
+        create_config_yaml(args.new_yaml, args.danger)
+        sys.exit()
+
+    if args.yaml:
+        cfg = read_config(Path(args.yaml))
+        print(cfg)
         sys.exit()
 
     parser.print_help()

@@ -88,7 +88,11 @@ New_Album_Info = {  # 用於創建新相簿
 
 ## TODO
 
-- 配置文件改用 toml
+- 配置文件改用 yaml
+- https://pypi.org/project/PyYAML/
+- https://www.bairesdev.com/tools/json2yaml/
+- https://www.cloudbees.com/blog/yaml-tutorial-everything-you-need-get-started
+- https://reorx.com/blog/python-yaml-tips/ （有用！）
 
 ## notes
 
