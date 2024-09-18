@@ -142,9 +142,29 @@ type ProjectInfo struct {
 - 执行 `wuliu-add --json add.json` 列出 add.json 中指定的待添加档案，
   同时列出 add.json 里的档案属性，该属性将应用于全部待添加档案。
 - 注意, add.json 应放在专案的根目录。
-- 需要添加属性 `--danger` 才能真正添加新档案，否则就只是列印相关信息
+- 需要添加参数 `-danger` 才能真正添加新档案，否则就只是列印相关信息
 
-### 档案属性
+### 小技巧
+
+- 生成 add.json 后，可删除其中的 filenames 的内容 (修改后是这样 `"filenames": []`),
+  表示作用于 input 资料夹中的全部档案。
+- 删除 filenames 的内容后，可执行 `wuliu-add -json add.json` 预览配置，
+  添加参数 `-danger` 正式执行。
+
+### 添加後，修改檔案及其屬性
+
+一旦成功添加檔案，在 metadata 資料夾中會自動生成同名 json, 在該 json 中
+含有檔案屬性，但請勿直接修改 json 內容。
+
+也不可直接修改檔案本身。
+
+如需修改檔案本身 或 檔案屬性，請使用 wuliu-export 與 wuliu-overwrite
+(詳見後文的相關章節)
+
+如需更改檔案名稱，請使用 wuliu-rename 命令。
+
+
+## 档案属性
 
 ```
 {
@@ -161,8 +181,8 @@ type ProjectInfo struct {
     Albums      []string  `json:"albums"`      // 相册（专辑），主要用于图片和音乐
     CTime       string    `json:"ctime"`       // RFC3339 檔案入庫時間
     UTime       string    `json:"utime"`       // RFC3339 檔案更新時間
-    Checked     string    `json:"checked"`     // RFC3339 上次校驗檔案完整性的時間
-    Damaged     bool      `json:"damaged"`     // 上次校驗結果 (檔案是否損壞)
+    // Checked     string    `json:"checked"`     // RFC3339 上次校驗檔案完整性的時間
+    // Damaged     bool      `json:"damaged"`     // 上次校驗結果 (檔案是否損壞)
 }
 ```
 
@@ -180,17 +200,6 @@ type ProjectInfo struct {
 - ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
   如需更改檔案名稱，請使用 wuliu-rename 命令。
 
-### 添加後修改檔案及其屬性
-
-一旦成功添加檔案，在 metadata 資料夾中會自動生成同名 json, 在該 json 中
-含有檔案屬性，但請勿直接修改 json 內容。
-
-也不可直接修改檔案本身。
-
-如需修改檔案本身 或 檔案屬性，請使用 wuliu-export 與 wuliu-overwrite
-(詳見後文的相關章節)
-
-如需更改檔案名稱，請使用 wuliu-rename 命令。
 
 ## wuliu-delete
 

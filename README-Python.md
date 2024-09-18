@@ -4,15 +4,18 @@ Wuliu File Manager (五柳檔案管理腳本) Python Scripts
 
 本文假設讀者已閱讀 <README.md>
 
+
 ## 支持一切程式語言
 
 本軟件的本質是對 JSON 進行操作，因此使用任何語言均可為本軟件編寫功能。
+
 
 ## 安裝 Python
 
 - 本文假設讀者(用戶)有 Python 基礎
 - <https://www.python.org/downloads/>
 - 我在編寫以下介紹的腳本時，使用 Python 3.12
+
 
 ## 安裝 Wuliu Python Scripts
 
@@ -37,9 +40,83 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
 
 我自己使用方法二。
 
+
 ## w-db.py (数据库)
 
-采用 TinyDB <https://github.com/msiemens/tinydb>
+- 该命令用于添加档案，同时也用于发现新档案
+- 需要添加属性 `--danger` 才能真正添加新档案，否则就只是列出新档案
+- 如果有一段时间未执行 `wuliu-orphan` 命令，建议先执行 `wuliu-orphan`
+- 请把需要添加的档案放到 input 资料夹中，然后执行 `wuliu-add`
+- 采用 TinyDB <https://github.com/msiemens/tinydb>
+
+### 只添加一部分新档案
+
+- 执行 `w-add --new-yaml add.yaml`
+  可在 input 资料夹中生成一个新的 add.yaml, 方便编辑
+- 在 add.yaml 中会列出全部待添加的档案名称
+- 在 add.yaml 中删除不需要添加的档案名称后，执行命令
+  `w-add -yaml add.yaml` 即可只添加指定的新档案
+
+### 批量修改待添加档案的属性
+
+- 执行 `w-add --new-yaml add.yaml`
+  可在 input 资料夹中生成一个新的 add.yaml, 方便编辑
+- 执行 `w-add -yaml add.yaml` 列出 add.yaml 中指定的待添加档案，
+  同时列出 add.yaml 里的档案属性，该属性将应用于全部待添加档案。
+- 注意, add.yaml 应放在专案的根目录。
+- 需要添加属性 `-danger` 才能真正添加新档案，否则就只是列印相关信息
+
+### 小技巧
+
+- 生成 add.yaml 后，可删除其中的 filenames 的内容 (修改后是这样 `filenames: []`),
+  表示作用于 input 资料夹中的全部档案。
+- 删除 filenames 的内容后，可执行 `w-add -yaml add.yaml` 预览配置，
+  添加参数 `-danger` 正式执行。
+
+### 添加後，修改檔案及其屬性
+
+一旦成功添加檔案，在 metadata 資料夾中會自動生成同名 json, 在該 json 中
+含有檔案屬性，但請勿直接修改 json 內容。
+
+也不可直接修改檔案本身。
+
+如需修改檔案本身 或 檔案屬性，請使用 wuliu-export 與 wuliu-overwrite
+(詳見後文的相關章節)
+
+如需更改檔案名稱，請使用 wuliu-rename 命令。
+
+
+## 档案属性
+
+```
+{
+    id="",           # 档案名称的 CRC32
+    filename="",     # 档案名称
+    checksum="",     # BLAKE2b
+    size=0,          # length in bytes for regular files
+    type="",         # 檔案類型, 例: text/js, office/docx
+    like=0,          # 點贊
+    label="",        # 标签，便於搜尋
+    notes="",        # 備註，便於搜尋
+    keywords=[],     # 關鍵詞, 便於搜尋
+    collections=[],  # 集合（分组），一个档案可属于多个集合
+    albums=[],       # 相册（专辑），主要用于图片和音乐
+    ctime="",        # RFC3339 檔案入庫時間
+    utime=""         # RFC3339 檔案更新時間
+}
+```
+
+- ID 是档案名称的 CRC32，有冲突的可能性，但可能性较低，
+  大不了冲突了再改档案名称，问题不大。
+  后续如果档案数量大了，可以考虑改用 CRC64
+- 关于 CRC32 <https://softwareengineering.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed>
+- Type, Label, Note, Keywords 等都是为了方便搜寻，请大胆灵活使用。
+- 請勿直接修改 metadata 裏的檔案。
+  如需修改，請導出後修改，然後再使用 w-overwrite 覆蓋舊檔案。
+- 手動修改檔案屬性時，請勿直接修改 ID, Filename, Checksum, Size.
+- ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
+  如需更改檔案名稱，請使用 w-rename 命令。
+
 
 ## wuliu-photo-album (創建相簿網頁)
 

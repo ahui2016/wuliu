@@ -40,13 +40,24 @@ def new_files_from(names: list[str], folder: str) -> list:
     return files
 
 
-def find_input_files() -> list:
+def read_config(file_path: Path) -> dict:
+    """返回 None 表示有错误"""
+    cfg = yaml_load_file(file_path)
+    if len(cfg[IDS]) > 0:
+        print_err_exit("添加新檔案時不可通過 ID 指定檔案")
+    return cfg
+
+
+def find_input_files(cfg_path: str) -> list:
     """
     寻找 input 资料夹里的全部档案。
     """
     names_in_input = get_filenames(Path(INPUT))
-    files = new_files_from(names_in_input, INPUT)
-    return files
+    if cfg_path == "":
+        return new_files_from(names_in_input, INPUT)
+
+    cfg = read_config(Path(cfg_path))
+
 
 
 def add_files_config(ids: list, filenames: list) -> dict:
@@ -65,14 +76,6 @@ def create_config_yaml(filename:str, allow_danger:bool):
     text = yaml_dump(add_files_config([], names_in_input))
     print(f"Create => {filename}")
     file_path.write_text(text, encoding="utf-8")
-
-
-def read_config(file_path: Path) -> dict:
-    """返回 None 表示有错误"""
-    cfg = yaml_load_file(file_path)
-    if len(cfg[IDS]) > 0:
-        print_err_exit("添加新檔案時不可通過 ID 指定檔案")
-    return cfg
 
 
 if __name__ == "__main__":
@@ -94,11 +97,6 @@ if __name__ == "__main__":
 
     if args.new_yaml:
         create_config_yaml(args.new_yaml, args.danger)
-        sys.exit()
-
-    if args.yaml:
-        cfg = read_config(Path(args.yaml))
-        print(cfg)
         sys.exit()
 
     parser.print_help()

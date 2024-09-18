@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/ahui2016/wuliu/util"
@@ -104,16 +105,20 @@ func printNewFiles(files []*File) {
 		fmt.Println("在input資料夾中未發現新檔案")
 		return
 	}
-	if *cfgPath != "" {
-		data := lo.Must(os.ReadFile(*cfgPath))
-		fmt.Printf("%s\n", data)
-		return
-	}
 	for _, f := range files {
 		size := util.FileSizeToString(float64(f.Size), 2)
 		size = fmt.Sprintf("(%s)", size)
 		size = util.PaddingRight(size, " ", 11)
 		fmt.Printf("%s %s\n", size, f.Filename)
+	}
+	if *cfgPath != "" {
+		cfg := readConfig()
+		fmt.Printf("Like: %d\n", cfg.Like)
+		fmt.Printf("Label: %s\n", cfg.Label)
+		fmt.Printf("Notes: %s\n", cfg.Notes)
+		fmt.Printf("Keywords: %s\n", strings.Join(cfg.Keywords, ", "))
+		fmt.Printf("Collections: %s\n", strings.Join(cfg.Collections, ", "))
+		fmt.Printf("Albums: %s\n", strings.Join(cfg.Albums, ", "))
 	}
 }
 
