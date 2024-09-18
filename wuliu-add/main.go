@@ -36,7 +36,7 @@ func main() {
 	db := lo.Must(util.OpenDB("."))
 	defer db.Close()
 
-	files := findNewFiles()
+	files, cfg := findNewFiles()
 	checkExist(files, db)
 
 	if *newFlag != "" {
@@ -47,7 +47,7 @@ func main() {
 	if *danger {
 		addNewFiles(files, db)
 	} else {
-		printNewFiles(files)
+		printNewFiles(files, cfg)
 	}
 }
 
@@ -71,12 +71,12 @@ func readConfig() (cfg EditFiles) {
 	return
 }
 
-func findNewFiles() []*File {
+func findNewFiles() (files []*File, cfg EditFiles) {
 	inputNames := lo.Must(util.NamesInInput())
 	if *cfgPath == "" {
-		return lo.Must(util.NewFilesFrom(inputNames, util.INPUT))
+		return lo.Must(util.NewFilesFrom(inputNames, util.INPUT)), cfg
 	}
-	cfg := readConfig()
+	cfg = readConfig()
 	if len(cfg.Filenames) == 0 {
 		cfg.Filenames = inputNames
 	}
@@ -88,7 +88,7 @@ func findNewFiles() []*File {
 			fmt.Println("Not Found:", name)
 		}
 	}
-	files := lo.Must(util.NewFilesFrom(filenames, util.INPUT))
+	files = lo.Must(util.NewFilesFrom(filenames, util.INPUT))
 	for i := range files {
 		files[i].Like = cfg.Like
 		files[i].Label = cfg.Label
@@ -97,10 +97,10 @@ func findNewFiles() []*File {
 		files[i].Collections = cfg.Collections
 		files[i].Albums = cfg.Albums
 	}
-	return files
+	return files, cfg
 }
 
-func printNewFiles(files []*File) {
+func printNewFiles(files []*File, cfg EditFiles) {
 	if len(files) == 0 {
 		fmt.Println("在input資料夾中未發現新檔案")
 		return
@@ -112,7 +112,6 @@ func printNewFiles(files []*File) {
 		fmt.Printf("%s %s\n", size, f.Filename)
 	}
 	if *cfgPath != "" {
-		cfg := readConfig()
 		fmt.Printf("Like: %d\n", cfg.Like)
 		fmt.Printf("Label: %s\n", cfg.Label)
 		fmt.Printf("Notes: %s\n", cfg.Notes)

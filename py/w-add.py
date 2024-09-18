@@ -1,7 +1,9 @@
 import sys
 import yaml
 import argparse
+import humanize
 from pathlib import Path
+from typing import Tuple
 
 from wuliu.const import *
 from wuliu.common import print_err, print_err_exit, read_project_info, \
@@ -48,19 +50,7 @@ def read_config(file_path: Path) -> dict:
     return cfg
 
 
-def find_input_files(cfg_path: str) -> list:
-    """
-    寻找 input 资料夹里的全部档案。
-    """
-    names_in_input = get_filenames(Path(INPUT))
-    if cfg_path == "":
-        return new_files_from(names_in_input, INPUT)
-
-    cfg = read_config(Path(cfg_path))
-
-
-
-def add_files_config(ids: list, filenames: list) -> dict:
+def config_add_files(ids: list, filenames: list) -> dict:
     cfg = Edit_Files_Config()
     cfg[IDS] = ids
     cfg[FILENAMES] = filenames
@@ -73,9 +63,60 @@ def create_config_yaml(filename:str, allow_danger:bool):
         print_err(f"file exists: {filename}")
         return
     names_in_input = get_filenames(Path(INPUT))
-    text = yaml_dump(add_files_config([], names_in_input))
+    text = yaml_dump(config_add_files([], names_in_input))
     print(f"Create => {filename}")
     file_path.write_text(text, encoding="utf-8")
+
+
+def find_input_files(cfg_path: str):
+    """
+    寻找 input 资料夹里的全部档案。
+    :return: (files, cfg)
+    """
+    names_in_input = get_filenames(Path(INPUT))
+    if cfg_path == "":
+        return new_files_from(names_in_input, INPUT)
+
+    cfg = read_config(Path(cfg_path))
+    if len(cfg[FILENAMES]) == 0:
+        cfg[FILENAMES] = names_in_input
+
+    filenames = []
+    for name in cfg[FILENAMES]:
+        if name in names_in_input:
+            filenames.append(name)
+        else:
+            print(f"Not Found: {name}")
+
+    files = new_files_from(filenames, INPUT)
+    for f in files:
+        f[LIKE] = cfg[LIKE]
+        f[LABEL] = cfg[LABEL]
+        f[NOTES] = cfg[NOTES]
+        f[KEYWORDS] = cfg[KEYWORDS]
+        f[COLLECTIONS] = cfg[COLLECTIONS]
+        f[ALBUMS] = cfg[ALBUMS]
+    return files, cfg
+
+
+def print_files(files: list, cfg: dict|None):
+    if len(files) == 0:
+        print("在input資料夾中未發現新檔案")
+
+    for f in files:
+        size = humanize.naturalsize(f[SIZE])
+        size = f"({size})"
+        print(f"{size.ljust(11, ' ')} {f[FILENAME]}")
+
+    if cfg is None:
+        return
+
+    print(f"like: {cfg[LIKE]}")
+    print(f"label: {cfg[LABEL]}")
+    print(f"notes: {cfg[NOTES]}")
+    print(f"keywords: {', '.join(cfg[KEYWORDS])}")
+    print(f"collections: {', '.join(cfg[COLLECTIONS])}")
+    print(f"albums: {', '.join(cfg[ALBUMS])}")
 
 
 if __name__ == "__main__":
@@ -97,6 +138,18 @@ if __name__ == "__main__":
 
     if args.new_yaml:
         create_config_yaml(args.new_yaml, args.danger)
+        sys.exit()
+
+    files, cfg = find_input_files(args.yaml)
+
+    if args.yaml and args.danger:
+        # add_new_files()
+        sys.exit()
+
+    if args.yaml:
+        if args.yaml == "":
+            cfg = None
+        print_files(files, cfg)
         sys.exit()
 
     parser.print_help()
