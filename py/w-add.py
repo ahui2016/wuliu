@@ -3,12 +3,14 @@ import yaml
 import argparse
 import humanize
 from pathlib import Path
+from tinydb import TinyDB
 from typing import Tuple
 
 from wuliu.const import *
 from wuliu.common import print_err, print_err_exit, read_project_info, \
     check_not_in_backup, get_filenames, time_now, name_to_id, file_sum512, \
     type_by_filename, yaml_dump, yaml_load_file
+from wuliu.db import open_db, files_in_db
 
 
 def new_file(name: str) -> dict:
@@ -74,8 +76,8 @@ def find_input_files(cfg_path: str):
     :return: (files, cfg)
     """
     names_in_input = get_filenames(Path(INPUT))
-    if cfg_path == "":
-        return new_files_from(names_in_input, INPUT)
+    if not cfg_path:
+        return new_files_from(names_in_input, INPUT), None
 
     cfg = read_config(Path(cfg_path))
     if len(cfg[FILENAMES]) == 0:
@@ -119,6 +121,38 @@ def print_files(files: list, cfg: dict|None):
     print(f"albums: {', '.join(cfg[ALBUMS])}")
 
 
+def print_id_name(files: list):
+    for f in files:
+        print(f"{f[ID]: {f[FILENAME]}}")
+
+
+def check_exist(files: list, db: TinyDB):
+    exist_files = files_in_db(files, db)
+    if len(exist_files) > 0:
+        print("【注意！】數據庫中有同名檔案：")
+        print_id_name(exist_files)
+        return
+
+    files_folder = Path(FILES)
+    meta_folder = Path(METADATA)
+    dst_files = []
+    for f in files:
+        filename = f[FILENAME]
+        dst = files_folder.joinpath(filename)
+        meta = meta_folder.joinpath(filename+".json")
+        dst_files.extend([dst, meta])
+
+    exist_files = []
+    for f in dst_files:
+        if f.exists():
+            exist_files.append(f)
+
+    if len(exist_files) > 0:
+        print("【注意！】同名檔案已存在：")
+        for f in exist_files:
+            print(f)
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
@@ -146,10 +180,4 @@ if __name__ == "__main__":
         # add_new_files()
         sys.exit()
 
-    if args.yaml:
-        if args.yaml == "":
-            cfg = None
-        print_files(files, cfg)
-        sys.exit()
-
-    parser.print_help()
+    print_files(files, cfg)

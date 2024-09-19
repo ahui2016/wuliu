@@ -4,15 +4,11 @@ import argparse
 
 from pathlib import Path
 from tinydb import TinyDB, Query
-from tinydb.storages import JSONStorage
-from tinydb.middlewares import CachingMiddleware
 
 from wuliu.const import *
-from wuliu.common import print_err, print_err_exit, read_project_info, check_not_in_backup
-
-
-def open_db() -> TinyDB:
-    return TinyDB(Project_PY_DB, storage=CachingMiddleware(JSONStorage))
+from wuliu.common import print_err, print_err_exit, read_project_info, \
+    check_not_in_backup
+from wuliu.db import open_db
 
 
 def load_all_metadatas(db: TinyDB):
@@ -33,7 +29,7 @@ def create_database():
     if Path(Project_PY_DB).exists():
         print_err_exit(f"file exists: {Project_PY_DB}")
     print(f"Create {Project_PY_DB}")
-    with open_db() as db:
+    with open_db(Project_PY_DB) as db:
         load_all_metadatas(db)
 
 
