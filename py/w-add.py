@@ -1,5 +1,7 @@
 import sys
+import json
 import yaml
+import shutil
 import argparse
 import humanize
 from pathlib import Path
@@ -11,6 +13,11 @@ from wuliu.common import print_err, print_err_exit, read_project_info, \
     check_not_in_backup, get_filenames, time_now, name_to_id, file_sum512, \
     type_by_filename, yaml_dump, yaml_load_file
 from wuliu.db import open_db, files_in_db
+
+
+input_folder = Path(INPUT)
+files_folder = Path(FILES)
+meta_folder = Path(METADATA)
 
 
 def new_file(name: str) -> dict:
@@ -64,7 +71,7 @@ def create_config_yaml(filename:str, allow_danger:bool):
     if file_path.exists() and not allow_danger:
         print_err(f"file exists: {filename}")
         return
-    names_in_input = get_filenames(Path(INPUT))
+    names_in_input = get_filenames(input_folder)
     text = yaml_dump(config_add_files([], names_in_input))
     print(f"Create => {filename}")
     file_path.write_text(text, encoding="utf-8")
@@ -75,7 +82,7 @@ def find_input_files(cfg_path: str):
     寻找 input 资料夹里的全部档案。
     :return: (files, cfg)
     """
-    names_in_input = get_filenames(Path(INPUT))
+    names_in_input = get_filenames(input_folder)
     if not cfg_path:
         return new_files_from(names_in_input, INPUT), None
 
@@ -123,18 +130,19 @@ def print_files(files: list, cfg: dict|None):
 
 def print_id_name(files: list):
     for f in files:
-        print(f"{f[ID]: {f[FILENAME]}}")
+        print(f"{f[ID]}: {f[FILENAME]}")
 
 
-def check_exist(files: list, db: TinyDB):
+def check_exist(files: list, db: TinyDB) -> bool:
+    """
+    :return: has_exist_files
+    """
     exist_files = files_in_db(files, db)
     if len(exist_files) > 0:
-        print("【注意！】數據庫中有同名檔案：")
+        print("【注意！】數據庫中有名稱或内容相同的檔案：")
         print_id_name(exist_files)
-        return
+        return True
 
-    files_folder = Path(FILES)
-    meta_folder = Path(METADATA)
     dst_files = []
     for f in files:
         filename = f[FILENAME]
@@ -151,6 +159,31 @@ def check_exist(files: list, db: TinyDB):
         print("【注意！】同名檔案已存在：")
         for f in exist_files:
             print(f)
+        return True
+
+    return False
+
+
+def add_files(files: list, db: TinyDB):
+    if len(files) == 0:
+        print("warning: No file to add.")
+        return
+
+    for f in files:
+        filename = f[FILENAME]
+        src = input_folder.joinpath(filename)
+        dst = files_folder.joinpath(filename)
+        print(f"Add => {dst}")
+        shutil.move(src, dst)
+
+        meta_path = meta_folder.joinpath(filename+".json")
+        print(f"Create => {meta_path}")
+        text = json.dumps(f, ensure_ascii=False, indent=4)
+        meta_path.write_text(text, encoding='utf8')
+
+        db.insert(f)
+
+    print("Done.")
 
 
 if __name__ == "__main__":
@@ -176,8 +209,11 @@ if __name__ == "__main__":
 
     files, cfg = find_input_files(args.yaml)
 
-    if args.yaml and args.danger:
-        # add_new_files()
-        sys.exit()
+    with open_db(Project_PY_DB) as db:
+        if check_exist(files, db):
+            sys.exit()
+        if args.danger:
+            add_files(files, db)
+            sys.exit()
 
     print_files(files, cfg)

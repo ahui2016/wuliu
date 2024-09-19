@@ -165,15 +165,15 @@ New_Album_Info = {  # 用於創建新相簿
 
 ## TODO
 
-- 配置文件改用 yaml
+- 添加文件时检查磁盘空间
+
+## notes
+
+- https://github.com/wintermute-cell/magick.css
 - https://pypi.org/project/PyYAML/
 - https://www.bairesdev.com/tools/json2yaml/
 - https://www.cloudbees.com/blog/yaml-tutorial-everything-you-need-get-started
 - https://reorx.com/blog/python-yaml-tips/ （有用！）
-
-## notes
-
-https://github.com/wintermute-cell/magick.css
 
 
 python -m pip freeze will produce a similar list of the installed packages, but the output uses the format that python -m pip install expects. 
