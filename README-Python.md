@@ -111,6 +111,7 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
   后续如果档案数量大了，可以考虑改用 CRC64
 - 关于 CRC32 <https://softwareengineering.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed>
 - Type, Label, Note, Keywords 等都是为了方便搜寻，请大胆灵活使用。
+- 为了避免歧义, keywords, collections, albums 等不允许包含半角逗号和空格。
 - 請勿直接修改 metadata 裏的檔案。
   如需修改，請導出後修改，然後再使用 w-overwrite 覆蓋舊檔案。
 - 手動修改檔案屬性時，請勿直接修改 ID, Filename, Checksum, Size.
@@ -163,9 +164,10 @@ New_Album_Info = {  # 用於創建新相簿
 - 命令 `wuliu-docs-preview -json photo-album.json` 生成網頁。
   該命令會自動讀取 docs.msgp, 生成的網頁在 webpages 資料夾中。
 
+
 ## TODO
 
-- 添加文件时检查磁盘空间
+- w-checksum.py
 
 ## notes
 

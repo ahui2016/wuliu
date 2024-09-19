@@ -11,7 +11,7 @@ from typing import Tuple
 from wuliu.const import *
 from wuliu.common import print_err, print_err_exit, read_project_info, \
     check_not_in_backup, get_filenames, time_now, name_to_id, file_sum512, \
-    type_by_filename, yaml_dump, yaml_load_file
+    type_by_filename, yaml_dump, yaml_load_file, check_keywords
 from wuliu.db import open_db, files_in_db
 
 
@@ -56,6 +56,10 @@ def read_config(file_path: Path) -> dict:
     cfg = yaml_load_file(file_path)
     if len(cfg[IDS]) > 0:
         print_err_exit("添加新檔案時不可通過 ID 指定檔案")
+
+    keywords = cfg[KEYWORDS] + cfg[COLLECTIONS] + cfg[ALBUMS]
+    err = check_keywords(keywords)
+    print_err_exit(err)
     return cfg
 
 
@@ -164,6 +168,8 @@ def check_exist(files: list, db: TinyDB) -> bool:
     return False
 
 
+# 添加档案时不需要检查磁盘空间，
+# 因为 input 资料夹与 files 资料夹在同一个磁盘分区内。
 def add_files(files: list, db: TinyDB):
     if len(files) == 0:
         print("warning: No file to add.")

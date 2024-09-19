@@ -193,7 +193,7 @@ type ProjectInfo struct {
 - Type, Label, Note, Keywords 等都是为了方便搜寻，请大胆灵活使用。
 - Keywords, Collections 等 `[]string` 类型，都排序，排序后转为纯字符
   （用逗号空格 `, ` 分隔）方便保存到 kv 数据库。
-- 因此 `[]string` 类型在用户输入时不允许包含逗号、顿号和空格。
+- 因此 `[]string` 类型在用户输入时不允许包含半角逗号和空格。
 - 請勿直接修改 metadata 裏的檔案。
   如需修改，請導出後修改，然後再使用 wuliu-overwrite 覆蓋舊檔案。
 - 手動修改檔案屬性時，請勿直接修改 ID, Filename, Checksum, Size.
@@ -471,12 +471,11 @@ type EditFiles struct {
 
 ## TODO
 
+- 检查 keywords 等，禁止空格等。
 - wuliu-any-preview 創建一個網頁，便於預覽或下载档案 (不限格式)。
-
 - wuliu-list -others 列印除圖片和可預覽文檔外的檔案
 - wuliu-checksum -same
 - wuliu-search -ctime="2024-02-01" 通過日期前綴後列印檔案
-
 - 数据库改用 https://github.com/ostafen/clover ?
 - https://tinydb.readthedocs.io/en/latest/usage.html
 

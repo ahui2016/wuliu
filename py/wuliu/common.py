@@ -197,3 +197,14 @@ def check_filename(name: str) -> str:
     else:
         return '只能使用 0-9, a-z, A-Z, _(下劃線), -(連字號), .(點)' \
                '\n注意：不能使用空格，請用下劃線或連字號替代空格。'
+
+
+def check_keywords(keywords: list[str]) -> str | None:
+    """
+    :return: 有错返回 err:str, 无措返回 None 或空字符串。
+    """
+    joined = ''.join(keywords)
+    if Keywords_Forbid_Pattern.search(joined) is None:
+        return None
+    else:
+        return "keywords/collections/albums 禁止包含半角逗號或空格"

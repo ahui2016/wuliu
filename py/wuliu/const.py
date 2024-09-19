@@ -38,6 +38,8 @@ MIME_OCTET_STREAM = 'application/octet-stream'
 Filename_Forbid_Pattern = re.compile(r"[^._0-9a-zA-Z\-]")
 """文件名只能使用 0-9, a-z, A-Z, _(下划线), -(短横线), .(点)。"""
 
+Keywords_Forbid_Pattern = re.compile(r"[,\s]")
+"""keywords, collections, albums 等不允许包含半角逗号和空格"""
 
 def New_Album_Info() -> dict:
     return dict(  # 用於創建新相簿
