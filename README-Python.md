@@ -161,7 +161,7 @@ New_Album_Info = {  # 用於創建新相簿
 - 執行命令 `wuliu-docs-preview --new-json docs-album.json` 生成 docs-album.json
 - docs-album.json 的內容與前述 wuliu-photo-album (創建相簿網頁) 的
   photo-album.json 相同，填寫方法也相同。
-- 命令 `wuliu-docs-preview -json photo-album.json` 生成網頁。
+- 命令 `wuliu-docs-preview -json docs-album.json` 生成網頁。
   該命令會自動讀取 docs.msgp, 生成的網頁在 webpages 資料夾中。
 
 

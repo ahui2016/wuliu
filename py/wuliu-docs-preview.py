@@ -21,7 +21,7 @@ def read_docs_msgp(album_path: Path) -> dict:
 def make_album(album_info: dict):
     files = get_docs_metadata()
     files = filter_files(files, album_info)
-    docs = {f[ID]:f for f in files}
+    docs = {f['ID']:f for f in files}
     album_path = Path(WEBPAGES).joinpath(album_info['name'])
     album_path.mkdir(exist_ok=True)
     write_album_msgp(docs, album_info, album_path, DOCS_MSGP, 'docs_index.html')

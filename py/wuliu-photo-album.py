@@ -30,7 +30,7 @@ def create_album(pics: list, album_info: dict, album_path: Path, thumb_size):
     album_pics = dict()
 
     for file in pics:
-        file_id = file[ID]
+        file_id = file['ID']
         src = Path(FILES).joinpath(file[FILENAME])
         dst = pics_path.joinpath(file['pic_file_name'])
         print('.', end='')
@@ -48,7 +48,7 @@ def create_album(pics: list, album_info: dict, album_path: Path, thumb_size):
 def get_deleted_pics(pics:list, old_pics:dict) -> dict:
     """返回需要刪除的縮略圖的ID 和 filename"""
     ids: Set[str] = set()
-    pics_ids = {pic[ID] for pic in pics}
+    pics_ids = {pic['ID'] for pic in pics}
     old_ids = {pic_id for pic_id in old_pics.keys()}
     deleted_ids = old_ids.difference(pics_ids)
     
@@ -81,7 +81,7 @@ def delete_album_pics(deleted_pics:dict, album_pics:dict, album_path:Path) -> di
 
 
 def pic_exists(pic:dict, old_pics:dict) -> bool:
-    pic_id = pic[ID]
+    pic_id = pic['ID']
     if pic_id not in old_pics:
         return False
 
@@ -112,7 +112,7 @@ def update_album_pics(newpics:list, album_pics:dict, album_path: Path, thumb_siz
     thumbs_dir = album_path.joinpath('thumbs')  # 縮略圖資料夾
 
     for pic in newpics:
-        pic_id = pic[ID]
+        pic_id = pic['ID']
         src = Path(FILES).joinpath(pic[FILENAME])
         dst = pics_dir.joinpath(pic['pic_file_name'])
         thumb = thumbs_dir.joinpath(pic_id+'.jpg')
@@ -129,7 +129,7 @@ def update_album_pics(newpics:list, album_pics:dict, album_path: Path, thumb_siz
 
 def update_album_pics_msgp(pics:list, album_pics:dict, album_info: dict, album_path:Path):
     for pic in pics:
-        pic_id = pic[ID]
+        pic_id = pic['ID']
         if pic_id in album_pics:
             album_pics[pic_id] = pic
 
@@ -158,7 +158,7 @@ def make_album(pics: list, album_info: dict, proj_info: dict):
 
     for pic in pics:
         pic[CHECKSUM] = ''  # 前端 pic.js 裏不需要 checksum
-        pic_file_name = pic[ID] + Path(pic[FILENAME]).suffix
+        pic_file_name = pic['ID'] + Path(pic[FILENAME]).suffix
         pic['pic_file_name'] = pic_file_name  # 前端的原圖檔名
 
     if album_path.exists():
