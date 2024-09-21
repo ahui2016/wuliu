@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/ahui2016/wuliu/util"
 	"github.com/samber/lo"
@@ -128,19 +127,19 @@ func addNewFiles(files []*File, db *bolt.DB) {
 	}
 	var metadatas []FileAndMeta
 	for _, f := range files {
-		metaPath := filepath.Join(util.METADATA, f.Filename+".json")
-		fmt.Println("Create =>", metaPath)
-		meta := lo.Must(util.WriteJSON(f, metaPath))
-		metadatas = append(metadatas, FileAndMeta{f, meta})
-
-		// 不知道为什么有时候这里会卡住（写 meta 后无法移动文件，程序停止但不崩溃）
-		// 因此加个时间间隔试试。
-		time.Sleep(100 * time.Millisecond)
+		// 不知道为什么有时候这里会卡住（无法移动文件，程序停止但不崩溃）
+		// 找到原因了，另一个软件正在使用文件（例如 Windows 第三方资源管理器预览图片）
+		// 导致无法移动文件。不是本程序的问题。
 
 		src := filepath.Join(util.INPUT, f.Filename)
 		dst := filepath.Join(util.FILES, f.Filename)
 		fmt.Println("Add =>", dst)
 		lo.Must0(os.Rename(src, dst))
+
+		metaPath := filepath.Join(util.METADATA, f.Filename+".json")
+		fmt.Println("Create =>", metaPath)
+		meta := lo.Must(util.WriteJSON(f, metaPath))
+		metadatas = append(metadatas, FileAndMeta{f, meta})
 	}
 	fmt.Println("Update database...")
 	lo.Must0(util.AddFilesToDB(metadatas, db))
