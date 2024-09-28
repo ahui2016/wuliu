@@ -1,17 +1,26 @@
 import sys
 import json
-import yaml
 import shutil
 import argparse
 import humanize
 from pathlib import Path
 from tinydb import TinyDB
-from typing import Tuple
 
 from wuliu.const import *
-from wuliu.common import print_err, print_err_exit, read_project_info, \
-    check_not_in_backup, get_filenames, time_now, name_to_id, file_sum512, \
-    type_by_filename, yaml_dump, yaml_load_file, check_keywords
+from wuliu.common import (
+    print_err,
+    print_err_exit,
+    read_project_info,
+    check_not_in_backup,
+    get_filenames,
+    time_now,
+    name_to_id,
+    file_sum512,
+    type_by_filename,
+    yaml_dump,
+    yaml_load_file,
+    check_keywords,
+)
 from wuliu.db import open_db, files_in_db
 
 
@@ -70,7 +79,7 @@ def config_add_files(ids: list, filenames: list) -> dict:
     return cfg
 
 
-def create_config_yaml(filename:str, allow_danger:bool):
+def create_config_yaml(filename: str, allow_danger: bool):
     file_path = Path(filename)
     if file_path.exists() and not allow_danger:
         print_err(f"file exists: {filename}")
@@ -112,7 +121,7 @@ def find_input_files(cfg_path: str):
     return files, cfg
 
 
-def print_files(files: list, cfg: dict|None):
+def print_files(files: list, cfg: dict | None):
     if len(files) == 0:
         print("在input資料夾中未發現新檔案")
 
@@ -151,7 +160,7 @@ def check_exist(files: list, db: TinyDB) -> bool:
     for f in files:
         filename = f[FILENAME]
         dst = files_folder.joinpath(filename)
-        meta = meta_folder.joinpath(filename+".json")
+        meta = meta_folder.joinpath(filename + ".json")
         dst_files.extend([dst, meta])
 
     exist_files = []
@@ -182,10 +191,10 @@ def add_files(files: list, db: TinyDB):
         print(f"Add => {dst}")
         shutil.move(src, dst)
 
-        meta_path = meta_folder.joinpath(filename+".json")
+        meta_path = meta_folder.joinpath(filename + ".json")
         print(f"Create => {meta_path}")
         text = json.dumps(f, ensure_ascii=False, indent=4)
-        meta_path.write_text(text, encoding='utf8')
+        meta_path.write_text(text, encoding="utf8")
 
         db.insert(f)
 
@@ -193,17 +202,17 @@ def add_files(files: list, db: TinyDB):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-danger", action="store_true",
-        help="allow dangerous operations")
+    parser.add_argument(
+        "-danger", action="store_true", help="allow dangerous operations"
+    )
 
-    parser.add_argument("--new-yaml", type=str,
-        help="create a YAML file for adding files")
+    parser.add_argument(
+        "--new-yaml", type=str, help="create a YAML file for adding files"
+    )
 
-    parser.add_argument('-yaml', type=str,
-        help='use a YAML file to add files')
+    parser.add_argument("-yaml", type=str, help="use a YAML file to add files")
 
     args = parser.parse_args()
     info = read_project_info()

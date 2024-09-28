@@ -3,11 +3,14 @@ import json
 import argparse
 
 from pathlib import Path
-from tinydb import TinyDB, Query
+from tinydb import TinyDB
 
 from wuliu.const import *
-from wuliu.common import print_err, print_err_exit, read_project_info, \
-    check_not_in_backup
+from wuliu.common import (
+    print_err_exit,
+    read_project_info,
+    check_not_in_backup,
+)
 from wuliu.db import open_db
 
 
@@ -34,11 +37,9 @@ def create_database():
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--create", action="store_true",
-        help="create the database")
+    parser.add_argument("--create", action="store_true", help="create the database")
 
     args = parser.parse_args()
     info = read_project_info()

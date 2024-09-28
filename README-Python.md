@@ -118,6 +118,18 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
 - ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
   如需更改檔案名稱，請使用 w-rename 命令。
 
+## w-add
+
+w-add
+
+## w-ls (列印數據庫中的檔案)
+
+- `w-ls -n=10` 列印最近添加到數據庫中的 10 個檔案。
+
+"注意: 參數 '-n' 與 '-orderby' 不可同時使用, 如果同時使用, 後者無效。\n" \
+        "使用 '-orderby' 參數時, 建議輸出到檔案, 例如:\n" \
+        "$ w-ls -orderby utime > utime.yaml"
+
 
 ## wuliu-photo-album (創建相簿網頁)
 

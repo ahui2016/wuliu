@@ -1,4 +1,3 @@
-import re
 import sys
 import zlib
 import json
@@ -13,23 +12,23 @@ from PIL import Image, ImageOps
 from .const import *
 
 
-def print_err(err:str|None):
+def print_err(err: str | None):
     """如果有错误就打印, 没错误就忽略."""
     if err:
         print(f"Error! {err}", file=sys.stderr)
 
 
-def print_err_exit(err:str|None, front_msg:str=''):
+def print_err_exit(err: str | None, front_msg: str = ""):
     """若有错误则打印并结束程序, 无错误则忽略.
     如果提供了 front_msg, 则在 err 之前显示。
     """
     if err:
         if front_msg:
-            print(f'Error! {front_msg}', file=sys.stderr)
+            print(f"Error! {front_msg}", file=sys.stderr)
             print(err, file=sys.stderr)
             sys.exit()
         else:
-            print(f'Error! {err}', file=sys.stderr)
+            print(f"Error! {err}", file=sys.stderr)
             sys.exit()
 
 
@@ -40,8 +39,17 @@ class IndentDumper(yaml.Dumper):
 
 
 def yaml_dump(doc) -> str:
-    return yaml.dump(
-        doc, Dumper=IndentDumper, allow_unicode=True, sort_keys=False)
+    return yaml.dump(doc, Dumper=IndentDumper, allow_unicode=True, sort_keys=False)
+
+
+def yaml_dump_all(docs: list) -> str:
+    return yaml.dump_all(
+        docs,
+        Dumper=IndentDumper,
+        allow_unicode=True,
+        sort_keys=False,
+        explicit_start=True,
+    )
 
 
 def yaml_load_file(f: Path):
@@ -95,13 +103,13 @@ def name_to_id(name: str) -> str:
 # BLAKE2b is faster than MD5, SHA-1, SHA-2, and SHA-3, on 64-bit x86-64 and ARM architectures.
 # https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2
 # https://blog.min.io/fast-hashing-in-golang-using-blake2/
-def file_sum512(name: str|Path) -> str:
+def file_sum512(name: str | Path) -> str:
     with open(name, "rb") as f:
         digest = hashlib.file_digest(f, hashlib.blake2b)
         return digest.hexdigest()
 
 
-def my_type_by_filename(ext: str) -> str|None:
+def my_type_by_filename(ext: str) -> str | None:
     if not ext:
         return None
     if ext[0] == ".":
@@ -112,9 +120,28 @@ def my_type_by_filename(ext: str) -> str|None:
         return "ebook/" + ext
     if ext in ["zip", "rar", "7z", "gz", "tar", "bz", "bz2", "xz"]:
         return "compressed/" + ext
-    if ext in ["md", "json", "xml", "html", "xhtml", "htm", "atom", "rss", \
-            "yaml", "js", "ts", "go", "py", "cs", "dart", "rb", "c", "h", \
-            "cpp", "rs"]:
+    if ext in [
+        "md",
+        "json",
+        "xml",
+        "html",
+        "xhtml",
+        "htm",
+        "atom",
+        "rss",
+        "yaml",
+        "js",
+        "ts",
+        "go",
+        "py",
+        "cs",
+        "dart",
+        "rb",
+        "c",
+        "h",
+        "cpp",
+        "rs",
+    ]:
         return "text/" + ext
     return None
 
@@ -159,7 +186,7 @@ def read_thumbs_msgp() -> dict:
     return msgpack.unpackb(data)
 
 
-def open_image(file: str|Path) -> Union[Image.Image, None]:
+def open_image(file: str | Path) -> Union[Image.Image, None]:
     try:
         img = Image.open(file)
     except OSError:
@@ -167,9 +194,8 @@ def open_image(file: str|Path) -> Union[Image.Image, None]:
     return img
 
 
-def create_thumb_img(img:Image.Image, thumb_path:Path, thumb_size):
-    """請使用 create_thumb
-    """
+def create_thumb_img(img: Image.Image, thumb_path: Path, thumb_size):
+    """請使用 create_thumb"""
     img = ImageOps.exif_transpose(img)
     img = img.convert("RGB")
     img = ImageOps.fit(img, thumb_size)
@@ -185,7 +211,7 @@ def create_thumb(pic_path, thumb_path, thumb_size) -> str | None:
 
 
 def files_to_pics(files):
-    return {file[ID]: file for file in files if file[Type].startswith('image')}
+    return {file[ID]: file for file in files if file[Type].startswith("image")}
 
 
 def check_filename(name: str) -> str:
@@ -193,17 +219,19 @@ def check_filename(name: str) -> str:
     :return: 有错返回 err: str, 无错返回空字符串。
     """
     if Filename_Forbid_Pattern.search(name) is None:
-        return ''
+        return ""
     else:
-        return '只能使用 0-9, a-z, A-Z, _(下劃線), -(連字號), .(點)' \
-               '\n注意：不能使用空格，請用下劃線或連字號替代空格。'
+        return (
+            "只能使用 0-9, a-z, A-Z, _(下劃線), -(連字號), .(點)"
+            "\n注意：不能使用空格，請用下劃線或連字號替代空格。"
+        )
 
 
 def check_keywords(keywords: list[str]) -> str | None:
     """
     :return: 有错返回 err:str, 无措返回 None 或空字符串。
     """
-    joined = ''.join(keywords)
+    joined = "".join(keywords)
     if Keywords_Forbid_Pattern.search(joined) is None:
         return None
     else:
