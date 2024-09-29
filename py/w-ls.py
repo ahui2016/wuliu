@@ -1,7 +1,6 @@
 import sys
 import argparse
 import humanize
-from tinydb import TinyDB
 from wuliu.const import *
 from wuliu.common import (
     print_err,
@@ -40,19 +39,7 @@ def trim_empty_items(files: list) -> list:
     return files
 
 
-def dump_new_files(db: TinyDB, n: int):
-    files = db_new_files(db, n)
-    if not files:
-        print_err("空空如也")
-        return
-    files = trim_empty_items(files)
-    text = yaml_dump_all(files)
-    print("【最新加人數據庫的檔案】")
-    print(text)
-
-
-def dump_all_files(db: TinyDB, orderby: str, title: str):
-    files = db_all_files(db, orderby)
+def dump_files(files: list, title: str):
     if not files:
         print_err("空空如也")
         return
@@ -65,7 +52,7 @@ def dump_all_files(db: TinyDB, orderby: str, title: str):
 if __name__ == "__main__":
 
     # 在 Windows 中使用 `>` 重定向打印到文件时可能会遇到编码问题，因此需要这行设置。
-    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stdout.reconfigure(encoding='utf-8')  # type: ignore
 
     parser = argparse.ArgumentParser()
 
@@ -81,7 +68,8 @@ if __name__ == "__main__":
         if args.n > 100:
             print_err_exit("N 不可大於 100")
         with open_db(Project_PY_DB) as db:
-            dump_new_files(db, args.n)
+            files = db_new_files(db, args.n)
+            dump_files(files, "【最新加入數據庫的檔案】")
         sys.exit()
 
     if args.orderby:
@@ -95,7 +83,8 @@ if __name__ == "__main__":
         else:
             print_err_exit("ORDERBY 必須是 size/like/utime 其中之一")
         with open_db(Project_PY_DB) as db:
-            dump_all_files(db, args.orderby, title)
+            files = db_all_files(db, args.orderby)
+            dump_files(files, title)
         sys.exit()        
 
     parser.print_help()

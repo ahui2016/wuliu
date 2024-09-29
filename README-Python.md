@@ -41,13 +41,12 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
 我自己使用方法二。
 
 
-## w-db.py (数据库)
+## w-add.py (添加檔案)
 
 - 该命令用于添加档案，同时也用于发现新档案
-- 需要添加属性 `--danger` 才能真正添加新档案，否则就只是列出新档案
+- 需要添加属性 `-danger` 才能真正添加新档案，否则就只是列出新档案
 - 如果有一段时间未执行 `wuliu-orphan` 命令，建议先执行 `wuliu-orphan`
-- 请把需要添加的档案放到 input 资料夹中，然后执行 `wuliu-add`
-- 采用 TinyDB <https://github.com/msiemens/tinydb>
+- 请把需要添加的档案放到 input 资料夹中，然后执行 `w-add`
 
 ### 只添加一部分新档案
 
@@ -66,10 +65,10 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
 - 注意, add.yaml 应放在专案的根目录。
 - 需要添加属性 `-danger` 才能真正添加新档案，否则就只是列印相关信息
 
-### 小技巧
+### 小技巧 (很實用)
 
 - 生成 add.yaml 后，可删除其中的 filenames 的内容 (修改后是这样 `filenames: []`),
-  表示作用于 input 资料夹中的全部档案。
+  表示選中 input 资料夹中的全部档案。
 - 删除 filenames 的内容后，可执行 `w-add -yaml add.yaml` 预览配置，
   添加参数 `-danger` 正式执行。
 
@@ -118,17 +117,24 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
 - ID 與 Filename 是相關的，修改檔案名稱會改變 ID.
   如需更改檔案名稱，請使用 w-rename 命令。
 
-## w-add
 
-w-add
+## w-db
+
+采用 TinyDB <https://github.com/msiemens/tinydb>
+
+- `w-db --create` 創建數據庫
+- `w-db --update=add` 發現 metadata 資料夾中的新檔案並添加到數據庫中。
+  注意: 該命令只處理新檔案, 忽略檔案被刪除或修改的情況, 如須確保數據庫完全更新, 請刪除數據庫後重新建立。
+
 
 ## w-ls (列印數據庫中的檔案)
 
 - `w-ls -n=10` 列印最近添加到數據庫中的 10 個檔案。
-
-"注意: 參數 '-n' 與 '-orderby' 不可同時使用, 如果同時使用, 後者無效。\n" \
-        "使用 '-orderby' 參數時, 建議輸出到檔案, 例如:\n" \
-        "$ w-ls -orderby utime > utime.yaml"
+- `w-ls -orderby utime > utime.yaml` 建議導出到檔案
+- `w-ls -orderby size > size.yaml` 建議導出到檔案
+- `w-ls -orderby like` 不需要導出到檔案
+- 注意: 參數 `-n` 與 `-orderby` 不可同時使用, 如果同時使用, 後者無效。
+- 注意: 參數 `-n` 有時不能正確地列出最新檔案 (例如剛剛重建數據庫後)。
 
 
 ## wuliu-photo-album (創建相簿網頁)
@@ -179,6 +185,7 @@ New_Album_Info = {  # 用於創建新相簿
 
 ## TODO
 
+- 重建數據庫時檢查孤立檔案
 - w-checksum.py
 
 ## notes

@@ -471,6 +471,7 @@ type EditFiles struct {
 
 ## TODO
 
+- wuliu-db -update=add
 - 检查 keywords 等，禁止空格等。
 - wuliu-any-preview 創建一個網頁，便於預覽或下载档案 (不限格式)。
 - wuliu-list -others 列印除圖片和可預覽文檔外的檔案

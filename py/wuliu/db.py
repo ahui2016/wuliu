@@ -64,3 +64,11 @@ def db_all_files(db: TinyDB, orderby: str | None) -> list:
     files = [dict(f) for f in files]
     files.sort(key=itemgetter(orderby), reverse=True)
     return files
+
+
+def db_all_ids(db: TinyDB) -> set:
+    """
+    導出全部檔案ID
+    """
+    files = db.all()
+    return {f[ID] for f in files}
