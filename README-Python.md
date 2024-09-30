@@ -137,6 +137,29 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
 - 注意: 參數 `-n` 有時不能正確地列出最新檔案 (例如剛剛重建數據庫後)。
 
 
+## w-daily (日記/日報)
+
+- 不使用 markdown, 使用 html, 使用 emmet❗
+- 參考 <https://docs.emmet.io/>
+- 檔案 ID 特殊處理 (daily-2024-10-01)
+- 檔案名: daily-2024-10-01.html
+- label: daily-2024-10-01
+- collections: `["my-daily"]`
+- `w-daily -edit today` 新建/編輯今天的日記。
+- `w-daily -edit 2024-10-01` 新建/編輯指定日期的日記。
+- 使用 `w-daily -edit` 時會檢查 files 資料夾中是否存在同名檔案。
+  - 如果不存在, 則新建, 並導出到 buffer 資料夾 (metadata 檔案也一並導出)
+  - 如果已存在, 則導出到 buffer 資料夾 (metadata 檔案也一並導出)
+  - 導出到 buffer 資料夾時, 也會檢查是否存在同名檔案。
+- `w-daily -list 2024-10` 列出 2024 年 10 月內寫過日記的日期
+- `w-daily -list 2024` 列出 2024 年內寫過日記的日期
+- `w-daily -list all` 列出全部寫過日記的日期
+- `w-daily -list=all -web` 生成 daily-index.html
+- `w-daily` 功能以檔案 ID 為準, ID 以 `daily-` 開頭的即視為日記。
+- `w-daily --create-site` 把 collections 包含 "my-daily" 的檔案全部複製到
+  webpages 資料夾中, 創建一個簡單的網站。 因此, 日記中引用的圖片等資源請加入 my-daily 集合。
+
+
 ## wuliu-photo-album (創建相簿網頁)
 
 - 執行命令 `wuliu-db -dump pics` 導出全部圖片的屬性 (pics.msgp)

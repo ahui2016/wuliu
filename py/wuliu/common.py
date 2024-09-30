@@ -158,7 +158,10 @@ def type_by_filename(filename: str) -> str:
 
 
 def read_project_info():
-    data = Path(Project_JSON).read_text(encoding="utf-8")
+    project = Path(Project_JSON)
+    if not project.exists():
+        print_err_exit(f"not found: {project}")
+    data = project.read_text(encoding="utf-8")
     info = json.loads(data)
     if info["RepoName"] != Repo_Name:
         print_err_exit(f"RepoName ({info["RepoName"]}) != {Repo_Name}")

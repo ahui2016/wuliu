@@ -25,6 +25,7 @@ IDS = "ids"
 FILENAMES = "filenames"
 
 FILES = "files"
+BUFFER = "buffer"
 METADATA = "metadata"
 INPUT = "input"
 WEBPAGES = "webpages"
@@ -32,6 +33,9 @@ THUMBS = "webpages/tHUMBS"
 THUMBS_MSGP = "thumbs.msgp"
 PICS_MSGP = "pics.msgp"
 DOCS_MSGP = "docs.msgp"
+
+DAILY_PREFIX = "daily-"
+MY_DAILY = "my-daily"
 
 MIME_OCTET_STREAM = "application/octet-stream"
 

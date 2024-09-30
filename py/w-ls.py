@@ -50,15 +50,14 @@ def dump_files(files: list, title: str):
 
 
 if __name__ == "__main__":
-
     # 在 Windows 中使用 `>` 重定向打印到文件时可能会遇到编码问题，因此需要这行设置。
-    sys.stdout.reconfigure(encoding='utf-8')  # type: ignore
+    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore
 
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-n", type=int, help="print N most recently added files")
 
-    parser.add_argument("-orderby", type=str, help='size/like/utime')
+    parser.add_argument("-orderby", type=str, help="size/like/utime")
 
     args = parser.parse_args()
     info = read_project_info()
@@ -74,17 +73,17 @@ if __name__ == "__main__":
 
     if args.orderby:
         title = ""
-        if args.orderby == 'size':
+        if args.orderby == "size":
             title = "【大體積檔案】"
-        elif args.orderby == 'like':
+        elif args.orderby == "like":
             title = "【精選檔案】"
-        elif args.orderby == 'utime':
+        elif args.orderby == "utime":
             title = "【最近更新檔案】"
         else:
             print_err_exit("ORDERBY 必須是 size/like/utime 其中之一")
         with open_db(Project_PY_DB) as db:
             files = db_all_files(db, args.orderby)
             dump_files(files, title)
-        sys.exit()        
+        sys.exit()
 
     parser.print_help()
