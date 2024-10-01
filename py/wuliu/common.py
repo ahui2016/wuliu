@@ -57,6 +57,11 @@ def yaml_load_file(f: Path):
     return yaml.safe_load(text)
 
 
+def path_write_json(f: Path, obj):
+    text = json.dumps(obj, ensure_ascii=False, indent=4)
+    f.write_text(text, encoding="utf-8")
+
+
 # https://github.com/numpy/numpy/blob/main/numpy/core/numeric.py
 def base_repr(number: int, base: int = 10, padding: int = 0) -> str:
     """
