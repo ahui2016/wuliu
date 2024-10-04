@@ -62,6 +62,11 @@ def path_write_json(f: Path, obj):
     f.write_text(text, encoding="utf-8")
 
 
+def json_load(f: Path):
+    text = f.read_text(encoding="utf-8")
+    return json.loads(text)
+
+
 # https://github.com/numpy/numpy/blob/main/numpy/core/numeric.py
 def base_repr(number: int, base: int = 10, padding: int = 0) -> str:
     """
@@ -180,10 +185,16 @@ def check_not_in_backup(info: dict):
 
 def get_filenames(folder: Path) -> list[str]:
     """
-    假设 folder 里全是普通档案，没有资料夹。
+    只返回普通檔案, 忽略資料夾。
     """
-    files = folder.glob("*")
-    return [f.name for f in files]
+    items = folder.glob("*")
+    files = []
+    for f in items:
+        if f.is_dir():
+            print(f"{f} 是資料夾, 自動忽略")
+            continue
+        files.append(f.name)
+    return files
 
 
 def read_thumbs_msgp() -> dict:

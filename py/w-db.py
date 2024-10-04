@@ -10,8 +10,9 @@ from wuliu.common import (
     print_err_exit,
     read_project_info,
     check_not_in_backup,
+    yaml_dump,
 )
-from wuliu.db import open_db, db_all_ids
+from wuliu.db import open_db, db_all_ids, db_dup_id, db_dup_checksum
 
 
 def load_all_metadatas(db: TinyDB):
@@ -23,6 +24,20 @@ def load_all_metadatas(db: TinyDB):
         meta = json.loads(data)
         meta_list.append(meta)
     db.insert_multiple(meta_list)
+
+    all_files = db.all()
+    duplicated = db_dup_id(all_files, db)
+    if duplicated:
+        print("【發現重複ID】")
+        msg = yaml_dump(duplicated)
+        print(msg)
+        print()
+
+    duplicated = db_dup_checksum(all_files, db)
+    if duplicated:
+        print("【發現重複檔案】")
+        msg = yaml_dump(duplicated)
+        print(msg)
 
 
 def create_database(db_path: str):

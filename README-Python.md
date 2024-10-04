@@ -55,6 +55,8 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
 - 在 add.yaml 中会列出全部待添加的档案名称
 - 在 add.yaml 中删除不需要添加的档案名称后，执行命令
   `w-add -yaml add.yaml` 即可只添加指定的新档案
+- 如果 add.yaml 檔案已存在, 可添加 '-danger' 參數強制覆蓋:
+  `w-add --new-yaml add.yaml -danger`
 
 ### 批量修改待添加档案的属性
 
@@ -151,13 +153,35 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
   - 如果不存在, 則新建, 並導出到 buffer 資料夾 (metadata 檔案也一並導出)
   - 如果已存在, 則導出到 buffer 資料夾 (metadata 檔案也一並導出)
   - 導出到 buffer 資料夾時, 也會檢查是否存在同名檔案。
-- `w-daily -list 2024-10` 列出 2024 年 10 月內寫過日記的日期
-- `w-daily -list 2024` 列出 2024 年內寫過日記的日期
-- `w-daily -list all` 列出全部寫過日記的日期
+- 編輯 buffer 資料夾中的檔案後, 使用 `w-overwrite` 命令更新檔案。
+- `w-daily -list 2024-10` 列出 2024 年 10 月已創建的日記
+- `w-daily -list 2024` 列出 2024 年內已創建的日記
+- `w-daily -list all` 列出全部已創建的日記
 - `w-daily -list=all -web` 生成 daily-index.html
 - `w-daily` 功能以檔案 ID 為準, ID 以 `daily-` 開頭的即視為日記。
-- `w-daily --create-site` 把 collections 包含 "my-daily" 的檔案全部複製到
+- `w-daily --create-website` 把 collections 包含 "my-daily" 的檔案全部複製到
   webpages 資料夾中, 創建一個簡單的網站。 因此, 日記中引用的圖片等資源請加入 my-daily 集合。
+
+
+## wuliu-overwrite
+
+- 執行 `w-overwrite` 查看待覆蓋檔案清單。
+  (注意，待覆蓋檔案應存放在 buffer 資料夾中。)
+- 在該清單中可以看到，凡是 *非json* 檔案都將覆蓋 files,
+  凡是 *json* 檔案都將覆蓋 metadata.
+- 如果其中有 json 檔案想覆蓋 files, 請執行 `w-overwrite --new-yaml overwrite.yaml`
+  然後編輯 overwrite.yaml, 根據需要把其中的 "metadata" 改為 "files".
+  (此時，還可以刪除 overwrite.json 裏的一部分檔案名稱，只有保留在清單中的檔案纔會被覆蓋。)
+- 經過上述操作後，執行 `w-overwrite -yaml overwrite.yaml` 查看待覆蓋檔案清單
+- 執行 `w-overwrite -yaml overwrite.yaml -danger` 或
+  `w-overwrite -danger` 正式覆蓋。
+- 如果不使用 `-danger` 參數，則只是查看待覆蓋檔案清單，不會真正發生覆蓋。
+- 【注意】手動修改檔案屬性時，請勿直接修改 ID, Filename, Checksum, Size, Type, UTime.
+- 請勿直接修改 metadata 資料夾中的檔案。
+  如需修改，請導出後修改，再使用 w-overwrite 進行更新。
+  另外，可以使用 w-metadata 命令批量修改属性。
+- ID 與 Filename 是相關的，請勿直接修改檔案名稱，如需更改檔案名稱，
+  請使用 w-rename 命令。
 
 
 ## wuliu-photo-album (創建相簿網頁)

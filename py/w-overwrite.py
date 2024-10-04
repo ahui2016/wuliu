@@ -1,9 +1,11 @@
-import json
+import sys
 import shutil
+import argparse
 from pathlib import Path
 from tinydb import TinyDB, Query
 from wuliu.const import *
 from wuliu.common import (
+    print_err,
     print_err_exit,
     get_filenames,
     type_by_filename,
@@ -12,7 +14,11 @@ from wuliu.common import (
     file_sum512,
     time_now,
     path_write_json,
+    json_load,
+    read_project_info,
+    check_not_in_backup,
 )
+from wuliu.db import open_db
 
 
 File = Query()
@@ -25,7 +31,7 @@ def files_or_meta(filetype: str) -> str:
 
 
 def buffer_files() -> dict:
-    names = get_filenames(BUFFER)
+    names = get_filenames(Path(BUFFER))
     cfg = {}
     for name in names:
         file_type = type_by_filename(name)
@@ -36,7 +42,10 @@ def buffer_files() -> dict:
     return cfg
 
 
-def new_cfg_yaml(cfg_path: Path):
+def new_cfg_yaml(cfg_path: Path, allow_danger: bool):
+    if cfg_path.exists() and not allow_danger:
+        print_err(f"file exists: {cfg_path}")
+        return
     text = yaml_dump(buffer_files())
     print(f"Create => {cfg_path}")
     cfg_path.write_text(text, encoding="utf-8")
@@ -55,6 +64,7 @@ def check_dst(dst: Path):
 
 
 def print_preview(cfg: dict):
+    print(f"【待執行操作如下所示(未正式執行)】")
     for name, target in cfg.items():
         print(f"{target} <== buffer/{name}")
         dst = Path(target).joinpath(name)
@@ -63,8 +73,8 @@ def print_preview(cfg: dict):
 
 def overwrite_into_files(name: str, dst: Path, db: TinyDB):
     src = Path(BUFFER).joinpath(name)
-    meta_path = Path(METADATA).joinpath(name+".json")
-    meta = json.load(meta_path)
+    meta_path = Path(METADATA).joinpath(name + ".json")
+    meta = json_load(meta_path)
 
     sum = file_sum512(src)
     if sum == meta[CHECKSUM]:
@@ -89,21 +99,55 @@ def overwrite_into_files(name: str, dst: Path, db: TinyDB):
 
 def overwrite_into_meta(name: str, dst: Path, db: TinyDB):
     src = Path(BUFFER).joinpath(name)
-    meta = json.load(src)
+    meta = json_load(src)
     shutil.move(src, dst)
     db.update(meta, File.id == meta[ID])
 
 
-def overwrite_files(cfg:dict, db: TinyDB):
+def overwrite_files(cfg: dict, db: TinyDB):
+    # 必須先更新 metadata, 後更新檔案, 纔能正確更新檔案體積 checksum 等。
+    files = {}
     for name, target in cfg.items():
-        print(f"{target} <== buffer/{name}")
         dst = Path(target).joinpath(name)
         check_dst(dst)
         if target == FILES:
-            overwrite_into_files(name, dst, db)
+            files[name] = dst
         elif target == METADATA:
+            print(f"metadata <== buffer/{name}")
             overwrite_into_meta(name, dst, db)
         else:
             print_err_exit(f"不認識: {target}")
+    for name, dst in files.items():
+        print(f"files <== buffer/{name}")
+        overwrite_into_files(name, dst, db)
 
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "-danger", action="store_true", help="allow dangerous operations"
+    )
+
+    parser.add_argument(
+        "--new-yaml", type=str, help="create a YAML file for overwriting files"
+    )
+
+    parser.add_argument("-yaml", type=str, help="use a YAML file to overwrite files")
+
+    args = parser.parse_args()
+    info = read_project_info()
+    check_not_in_backup(info)
+
+    if args.new_yaml:
+        new_cfg_yaml(Path(args.new_yaml), args.danger)
+        sys.exit()
+
+    cfg = read_config(Path(args.yaml)) if args.yaml else buffer_files()
+
+    if args.danger:
+        with open_db(Project_PY_DB) as db:
+            overwrite_files(cfg, db)
+        sys.exit()
+
+    print_preview(cfg)

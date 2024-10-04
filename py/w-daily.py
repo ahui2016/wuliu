@@ -7,7 +7,6 @@ from tinydb import TinyDB, Query
 from wuliu.const import *
 from wuliu.common import (
     time_now,
-    print_err,
     file_sum512,
     type_by_filename,
     read_project_info,
@@ -34,25 +33,25 @@ def file_exists(file_id: str, db: TinyDB):
     return file_path.exists() or result
 
 
-def export_file(file_id: str) -> str | None:
+def export_file(file_id: str):
     """返回空字符串或 None 表示沒有錯誤"""
     filename = file_id + ".html"
     src = files_folder.joinpath(filename)
     dst = buffer_folder.joinpath(filename)
     if dst.exists():
-        return f"file exists: {dst}"
-    print(f"Export => {dst}")
-    shutil.copyfile(src, dst)
+        print(f"[warning] file exists: {dst}")
+    else:
+        print(f"Export => {dst}")
+        shutil.copyfile(src, dst)
 
     meta_file = filename + ".json"
     src = meta_folder.joinpath(meta_file)
     dst = buffer_folder.joinpath(meta_file)
     if dst.exists():
-        return f"file exists: {dst}"
+        print(f"[warning] file exists: {dst}")
+        return
     print(f"Export => {dst}")
     shutil.copyfile(src, dst)
-
-    return None
 
 
 def new_file(file_id: str) -> dict:
@@ -108,10 +107,20 @@ def create_daily(file_id: str, db: TinyDB):
 def create_export(day: str, db: TinyDB):
     file_id = DAILY_PREFIX + day
     if file_exists(file_id, db):
-        err = export_file(file_id)
-        print_err(err)
+        export_file(file_id)
     else:
         create_daily(file_id, db)
+
+
+def get_daily_by_date(date: str, db: TinyDB) -> list:
+    files = db.all()
+    files = [dict(f) for f in files if f[ID].startswith(DAILY_PREFIX+date)]
+    files.sort(key=itemgetter(ID), reverse=True)
+    return files
+
+
+def get_all_daily(db: TinyDB) -> list:
+    return get_daily_by_date("", db)
 
 
 if __name__ == "__main__":

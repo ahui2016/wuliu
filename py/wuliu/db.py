@@ -5,6 +5,9 @@ from operator import itemgetter
 from .const import *
 
 
+File = Query()
+
+
 def open_db(db_path) -> TinyDB:
     return TinyDB(db_path, storage=CachingMiddleware(JSONStorage))
 
@@ -14,7 +17,6 @@ def files_in_db(files: list, db: TinyDB) -> list:
     :return: exist_files 名稱或內容相同的檔案
     """
     exist_files = []
-    File = Query()
     for f in files:
         ef = db.get((File.id == f[ID]) | (File.checksum == f[CHECKSUM]))
         if ef is not None:
@@ -56,7 +58,6 @@ def db_all_files(db: TinyDB, orderby: str | None) -> list:
         orderby = "utime"
 
     if orderby == "like":
-        File = Query()
         files = db.search(File.like > 0)
     else:
         files = db.all()
@@ -72,3 +73,34 @@ def db_all_ids(db: TinyDB) -> set:
     """
     files = db.all()
     return {f[ID] for f in files}
+
+
+def db_dup_id(files: list, db: TinyDB) -> dict:
+    """尋找重複的ID"""
+    # files = db.all(), 另一個函數也要使用 files
+    # 檔案名受檔案系統的限制, 不會重複, 因此只需要檢查ID
+    id_count: dict[str, int] = {}
+    for f in files:
+        n = id_count.get(f[ID], 0)
+        id_count[f[ID]] = n + 1
+    duplicated = {}
+    for k, v in id_count.items():
+        if v > 1:
+            docs = db.search(File.id == k)
+            duplicated[k] = [dict(doc) for doc in docs]
+    return duplicated
+
+
+def db_dup_checksum(files: list, db: TinyDB) -> dict:
+    """尋找重複的 checksum (意味着檔案內容完全相同)"""
+    # files = db.all(), 另一個函數也要使用 files
+    count: dict[str, int] = {}
+    for f in files:
+        n = count.get(f[CHECKSUM], 0)
+        count[f[ID]] = n + 1
+    duplicated = {}
+    for k, v in count.items():
+        if v > 1:
+            docs = db.search(File.id == k)
+            duplicated[k] = [dict(doc) for doc in docs]
+    return duplicated

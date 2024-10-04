@@ -47,9 +47,6 @@ def new_files_from(names: list[str], folder: str) -> list:
     folder_path = Path(folder)
     for name in names:
         file_path = folder_path.joinpath(name)
-        if file_path.is_dir():
-            print(f"{file_path} 是資料夾, 自動忽略")
-            continue
         file_stat = file_path.lstat()
         checksum = file_sum512(file_path)
         f = new_file(name)
@@ -125,12 +122,13 @@ def print_files(files: list, cfg: dict | None):
     if len(files) == 0:
         print("在input資料夾中未發現新檔案")
 
+    print(f"【待執行操作如下所示(未正式執行)】")
     for f in files:
         size = humanize.naturalsize(f[SIZE])
         size = f"({size})"
         print(f"{size.ljust(11, ' ')} {f[FILENAME]}")
 
-    if cfg is None:
+    if not cfg:
         return
 
     print(f"like: {cfg[LIKE]}")
