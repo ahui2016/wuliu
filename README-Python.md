@@ -152,6 +152,8 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
 - 使用 `w-daily -edit` 時會檢查 files 資料夾中是否存在同名檔案。
   - 如果不存在, 則新建, 並導出到 buffer 資料夾 (metadata 檔案也一並導出)
   - 如果已存在, 則導出到 buffer 資料夾 (metadata 檔案也一並導出)
+  - 編輯 metadata 時請勿修改 labal
+  - 編輯 metadata 時, 建議只編輯 keywords
   - 導出到 buffer 資料夾時, 也會檢查是否存在同名檔案。
 - 編輯 buffer 資料夾中的檔案後, 使用 `w-overwrite` 命令更新檔案。
 - `w-daily -list 2024-10` 列出 2024 年 10 月已創建的日記

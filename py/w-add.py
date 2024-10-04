@@ -122,7 +122,7 @@ def print_files(files: list, cfg: dict | None):
     if len(files) == 0:
         print("在input資料夾中未發現新檔案")
 
-    print(f"【待執行操作如下所示(未正式執行)】")
+    print("【待執行操作如下所示(未正式執行)】")
     for f in files:
         size = humanize.naturalsize(f[SIZE])
         size = f"({size})"

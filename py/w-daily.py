@@ -3,6 +3,7 @@ import json
 import shutil
 import argparse
 from pathlib import Path
+from operator import itemgetter
 from tinydb import TinyDB, Query
 from wuliu.const import *
 from wuliu.common import (
@@ -113,14 +114,25 @@ def create_export(day: str, db: TinyDB):
 
 
 def get_daily_by_date(date: str, db: TinyDB) -> list:
-    files = db.all()
-    files = [dict(f) for f in files if f[ID].startswith(DAILY_PREFIX+date)]
-    files.sort(key=itemgetter(ID), reverse=True)
-    return files
+    prefix = DAILY_PREFIX + date
+    files = db.search(File.id >= prefix)
+    dates = [dict(f) for f in files if f[ID].startswith(prefix)]
+    dates.sort(key=itemgetter(ID), reverse=True)
+    return dates
 
 
 def get_all_daily(db: TinyDB) -> list:
     return get_daily_by_date("", db)
+
+
+def print_daily(files: list):
+    for f in files:
+        date = f[ID].removeprefix(DAILY_PREFIX)
+        if f[KEYWORDS]:
+            keywords = ", ".join(f[KEYWORDS])
+            print(f"- {date} ({keywords})")
+        else:
+            print(f"- {date}")
 
 
 if __name__ == "__main__":
@@ -129,11 +141,31 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
+    parser.add_argument("-list", type=str, help="'-list all' or '-list 2014-09'")
+
     parser.add_argument("-edit", type=str, help="'-edit today' or '-edit 1970-12-31'")
 
     args = parser.parse_args()
     info = read_project_info()
     check_not_in_backup(info)
+
+    if args.list:
+        with open_db(Project_PY_DB) as db:
+            if args.list == "all":
+                files = get_all_daily(db)
+                if not files:
+                    print("[warning] 沒有日記", file=sys.stderr)
+                    sys.exit()
+                print("【全部日記】")
+                print_daily(files)
+            else:
+                files = get_daily_by_date(args.list, db)
+                if not files:
+                    print(f"[warning] 未找到 {args.list} 的日記")
+                    sys.exit()
+                print(f"【{args.list} 的日記】")
+                print_daily(files)
+        sys.exit()
 
     if args.edit == "today":
         args.edit = today()

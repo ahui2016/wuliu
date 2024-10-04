@@ -64,7 +64,7 @@ def check_dst(dst: Path):
 
 
 def print_preview(cfg: dict):
-    print(f"【待執行操作如下所示(未正式執行)】")
+    print("【待執行操作如下所示(未正式執行)】")
     for name, target in cfg.items():
         print(f"{target} <== buffer/{name}")
         dst = Path(target).joinpath(name)
