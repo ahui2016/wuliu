@@ -37,6 +37,7 @@ DOCS_MSGP = "docs.msgp"
 
 DAILY_PREFIX = "daily-"
 MY_DAILY = "my-daily"
+DAILY_NEW_HTML = "daily_new.html"
 DAILY_INDEX_HTML = "daily_index.html"
 DAILY_JS = "daily.js"
 

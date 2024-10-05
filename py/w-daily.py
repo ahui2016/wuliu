@@ -5,6 +5,7 @@ import argparse
 from pathlib import Path
 from operator import itemgetter
 from tinydb import TinyDB, Query
+from jinja2 import Environment, select_autoescape, FileSystemLoader, Template
 from wuliu.const import *
 from wuliu.common import (
     time_now,
@@ -82,18 +83,19 @@ def copyfile_or_not(src, dst):
         shutil.copyfile(src, dst)
 
 
-def create_daily(file_id: str, db: TinyDB):
+def create_daily(doc: dict, tmpl: Template, db: TinyDB):
+    """doc = {'id': '', 'date': ''}"""
     # 剛剛檢查過檔案不存在, 因此這裡不再檢查。
-    filename = file_id + ".html"
-    text = "<!DOCTYPE html>"
+    filename = doc["id"] + ".html"
+    html = tmpl.render(doc=doc)
     src = files_folder.joinpath(filename)
     print(f"Create => {src}")
-    src.write_text(text, encoding="utf-8")
+    src.write_text(html, encoding="utf-8")
     dst = buffer_folder.joinpath(filename)
     copyfile_or_not(src, dst)
 
     meta_filename = filename + ".json"
-    file_meta = new_file(file_id)
+    file_meta = new_file(doc["id"])
     meta = json.dumps(file_meta, ensure_ascii=False, indent=4)
     src = meta_folder.joinpath(meta_filename)
     print(f"Create => {src}")
@@ -106,12 +108,14 @@ def create_daily(file_id: str, db: TinyDB):
     print("OK")
 
 
-def create_export(day: str, db: TinyDB):
+def create_export(day: str, jinja_env: Environment, db: TinyDB):
     file_id = DAILY_PREFIX + day
     if file_exists(file_id, db):
         export_file(file_id)
     else:
-        create_daily(file_id, db)
+        tmpl = jinja_env.get_template(DAILY_NEW_HTML)
+        doc = dict(id=file_id, date=day)
+        create_daily(doc, tmpl, db)
 
 
 def get_daily_by_date(date: str, db: TinyDB) -> list:
@@ -189,6 +193,10 @@ if __name__ == "__main__":
     info = read_project_info()
     check_not_in_backup(info)
 
+    jinja_env = Environment(
+        loader=FileSystemLoader("webpages/templates"), autoescape=select_autoescape()
+    )
+
     if args.list:
         with open_db(Project_PY_DB) as db:
             show_daily_list(args.list, db, args.web)
@@ -199,7 +207,7 @@ if __name__ == "__main__":
 
     if args.edit:
         with open_db(Project_PY_DB) as db:
-            create_export(args.edit, db)
+            create_export(args.edit, jinja_env, db)
         sys.exit()
 
     parser.print_help()
