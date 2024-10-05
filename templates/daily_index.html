@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <script src="daily.js"></script>
+
+    <title>Wuliu Daily Index</title>
+
+    <style>
+      .DateItem {
+        margin-bottom: 0.5em;
+      }
+      .keywords {
+        color: #999;
+      }
+    </style>
+
+  </head>
+  <body>
+      <!-- 大標題 -->
+      <h1>Wuliu Docs Preview</h1>
+
+      <ul id="date-list"></ul>
+
+  </body>
+
+  <template id="date-item">
+    <li class="DateItem">
+      <a class="date"></a>
+      <span class="keywords"></span>
+    </li>
+  </template>
+
+  <script>
+function query(selectors) {
+  return document.querySelector(selectors);
+}
+
+function newElem(tagName) {
+  return document.createElement(tagName);
+}
+
+const dateList = query("#date-list");
+const dateItemTmpl = query("#date-item");
+
+function newDateItem(file) {
+  const item = dateItemTmpl.content.cloneNode(true);
+  item.children[0].setAttribute("id", file.id);
+
+  const folder = "files/"
+
+  const dateElem = item.querySelector(".date");
+  dateElem.setAttribute("href", folder+file.id+".html");
+  dateElem.innerText = file.id.substring(6);
+
+  if (file.keywords && file.keywords.length > 0) {
+    keywords = file.keywords.join(", ");
+    keywords = `(${keywords})`;
+    const kwElem = item.querySelector(".keywords");
+    kwElem.innerText = keywords;
+  }
+
+  return item;
+}
+
+function appendItems(allItems, listElem, newItemFn) {
+  allItems.forEach(item => {
+    listElem.appendChild(newItemFn(item));
+  });
+}
+
+/* script src="daily.js" */
+// daily.js 的根元素是 files
+function init() {
+  appendItems(files, dateList, newDateItem);
+}
+
+init();
+
+  </script>
+</html>

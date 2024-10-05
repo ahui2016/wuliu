@@ -12,6 +12,7 @@ from wuliu.common import (
     type_by_filename,
     read_project_info,
     check_not_in_backup,
+    json_dumps,
 )
 from wuliu.db import open_db
 
@@ -135,6 +136,45 @@ def print_daily(files: list):
             print(f"- {date}")
 
 
+def show_daily_list(date: str, db: TinyDB, webpage: bool):
+    if date == "all":
+        files = get_all_daily(db)
+        if not files:
+            print("[warning] 沒有日記", file=sys.stderr)
+            return
+        if webpage:
+            create_index_page(files)
+            return
+        print("【全部日記】")
+        print_daily(files)
+    else:
+        files = get_daily_by_date(args.list, db)
+        if not files:
+            print(f"[warning] 未找到 {args.list} 的日記", file=sys.stderr)
+            return
+        if webpage:
+            create_index_page(files)
+            return
+        print(f"【{args.list} 的日記】")
+        print_daily(files)
+
+
+def create_index_page(files: list):
+    src = Path(WEBPAGES).joinpath(TEMPLATES, DAILY_INDEX_HTML)
+    dst = Path(DAILY_INDEX_HTML)
+    if not dst.exists():
+        print(f"Copy => {dst}")
+        shutil.copyfile(src, dst)
+
+    text = json_dumps(files)
+    text = "files = " + text
+    daily_js = Path(DAILY_JS)
+    print(f"Create => {daily_js}")
+    daily_js.write_text(text, encoding="utf-8")
+
+    print(f"請用瀏覽器打開 {dst}")
+
+
 if __name__ == "__main__":
     # 在 Windows 中使用 `>` 重定向打印到文件时可能会遇到编码问题，因此需要这行设置。
     # sys.stdout.reconfigure(encoding='utf-8')  # type: ignore
@@ -142,7 +182,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-list", type=str, help="'-list all' or '-list 2014-09'")
-
+    parser.add_argument("-web", action="store_true", help="'w-daily -list=all -web'")
     parser.add_argument("-edit", type=str, help="'-edit today' or '-edit 1970-12-31'")
 
     args = parser.parse_args()
@@ -151,20 +191,7 @@ if __name__ == "__main__":
 
     if args.list:
         with open_db(Project_PY_DB) as db:
-            if args.list == "all":
-                files = get_all_daily(db)
-                if not files:
-                    print("[warning] 沒有日記", file=sys.stderr)
-                    sys.exit()
-                print("【全部日記】")
-                print_daily(files)
-            else:
-                files = get_daily_by_date(args.list, db)
-                if not files:
-                    print(f"[warning] 未找到 {args.list} 的日記")
-                    sys.exit()
-                print(f"【{args.list} 的日記】")
-                print_daily(files)
+            show_daily_list(args.list, db, args.web)
         sys.exit()
 
     if args.edit == "today":

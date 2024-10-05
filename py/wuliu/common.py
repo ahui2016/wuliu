@@ -57,8 +57,12 @@ def yaml_load_file(f: Path):
     return yaml.safe_load(text)
 
 
-def path_write_json(f: Path, obj):
-    text = json.dumps(obj, ensure_ascii=False, indent=4)
+def json_dumps(doc) -> str:
+    return json.dumps(doc, ensure_ascii=False, indent=4)
+
+
+def path_write_json(f: Path, doc):
+    text = json_dumps(doc)
     f.write_text(text, encoding="utf-8")
 
 

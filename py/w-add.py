@@ -1,5 +1,4 @@
 import sys
-import json
 import shutil
 import argparse
 import humanize
@@ -17,6 +16,7 @@ from wuliu.common import (
     name_to_id,
     file_sum512,
     type_by_filename,
+    json_dumps,
     yaml_dump,
     yaml_load_file,
     check_keywords,
@@ -191,7 +191,7 @@ def add_files(files: list, db: TinyDB):
 
         meta_path = meta_folder.joinpath(filename + ".json")
         print(f"Create => {meta_path}")
-        text = json.dumps(f, ensure_ascii=False, indent=4)
+        text = json_dumps(f)
         meta_path.write_text(text, encoding="utf8")
 
         db.insert(f)

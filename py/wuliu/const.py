@@ -29,13 +29,16 @@ BUFFER = "buffer"
 METADATA = "metadata"
 INPUT = "input"
 WEBPAGES = "webpages"
-THUMBS = "webpages/tHUMBS"
+TEMPLATES = "templates"
+THUMBS = "webpages/thumbs"
 THUMBS_MSGP = "thumbs.msgp"
 PICS_MSGP = "pics.msgp"
 DOCS_MSGP = "docs.msgp"
 
 DAILY_PREFIX = "daily-"
 MY_DAILY = "my-daily"
+DAILY_INDEX_HTML = "daily_index.html"
+DAILY_JS = "daily.js"
 
 MIME_OCTET_STREAM = "application/octet-stream"
 
