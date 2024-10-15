@@ -203,7 +203,7 @@ type ProjectInfo struct {
 
 ## wuliu-delete
 
-- 该命令删除添加档案，包括删除对应的 json 档案和数据库中的条目
+- 该命令删除档案，同时删除对应的 json 档案和数据库中的条目
 - `wuliu-delete -id [ID]` 通过档案 ID 指定需要删除的档案（只能指定一个）
 - `wuliu-delete -name [NAME]` 通过档案名称指定需要删除的档案（只能指定一个）
 - `wuliu-delete --newjson delete.json` 在专案根目录生成一个 delete.json 档案模板，

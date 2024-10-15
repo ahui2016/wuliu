@@ -2,6 +2,7 @@ import re
 
 
 Repo_Name = "Wuliu File Manager"
+Repo_URL = "https://github.com/ahui2016/wuliu"
 
 Project_JSON = "project.json"
 Project_PY_DB = "project.py.db"
@@ -48,6 +49,10 @@ Filename_Forbid_Pattern = re.compile(r"[^._0-9a-zA-Z\-]")
 
 Keywords_Forbid_Pattern = re.compile(r"[,\s]")
 """keywords, collections, albums 等不允许包含半角逗号和空格"""
+
+
+class WuliuError(Exception):
+    pass
 
 
 def New_Album_Info() -> dict:

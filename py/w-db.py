@@ -19,7 +19,6 @@ def load_all_metadatas(db: TinyDB):
     files = Path(METADATA).glob("*.json")
     meta_list = []
     for f in files:
-        print(".", end="")
         data = f.read_text(encoding="utf-8")
         meta = json.loads(data)
         meta_list.append(meta)

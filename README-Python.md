@@ -145,7 +145,6 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
 - 參考 <https://docs.emmet.io/>
 - 檔案 ID 特殊處理 (daily-2024-10-01)
 - 檔案名: daily-2024-10-01.html
-- label: daily-2024-10-01
 - collections: `["my-daily"]`
 - `w-daily -edit today` 新建/編輯今天的日記。
 - `w-daily -edit 2024-10-01` 新建/編輯指定日期的日記。
@@ -165,7 +164,7 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
   webpages 資料夾中, 創建一個簡單的網站。 因此, 日記中引用的圖片等資源請加入 my-daily 集合。
 
 
-## wuliu-overwrite
+## w-overwrite
 
 - 執行 `w-overwrite` 查看待覆蓋檔案清單。
   (注意，待覆蓋檔案應存放在 buffer 資料夾中。)

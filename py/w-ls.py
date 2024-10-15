@@ -6,7 +6,6 @@ from wuliu.common import (
     print_err,
     print_err_exit,
     read_project_info,
-    check_not_in_backup,
     yaml_dump_all,
 )
 from wuliu.db import open_db, db_new_files, db_all_files
@@ -61,7 +60,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     info = read_project_info()
-    check_not_in_backup(info)
+    # check_not_in_backup(info)
 
     if args.n:
         if args.n > 100:

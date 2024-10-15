@@ -70,7 +70,6 @@ def new_file(file_id: str) -> dict:
     file_stat = file_path.lstat()
     f[SIZE] = file_stat.st_size
     f[TYPE] = type_by_filename(filename)
-    f[LABEL] = file_id
     f[COLLECTIONS] = [MY_DAILY]
     return f
 
@@ -144,7 +143,7 @@ def show_daily_list(date: str, db: TinyDB, webpage: bool):
     if date == "all":
         files = get_all_daily(db)
         if not files:
-            print("[warning] 沒有日記", file=sys.stderr)
+            print("[warning] 沒有日記, 請創建日記", file=sys.stderr)
             return
         if webpage:
             create_index_page(files)
