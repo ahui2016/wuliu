@@ -5,6 +5,16 @@ from operator import itemgetter
 from .const import *
 
 
+"""
+数据库用 sqlite, 但把 sqlite 当作 key-value 数据库来用。
+因为 key-value 数据库就够用了，但多数 key-value 数据库都是语言限定的，
+不同用，因此用这个办法，让 sqlite 变成一个各种语言通用的 key-value 数据库。
+
+具体来说，平时通常把一个表的全部条目读出来，保存到一个 `dict` 中，成为 cache,
+如果只涉及「读」操作，一般就只使用 cache, 如果涉及「写」操作则需要同时更新 cache 和数据库。
+"""
+
+
 Create_Table_File = "CREATE TABLE file(id TEXT PRIMARY KEY, doc TEXT)"
 Insert_File = "INSERT INTO file(id, doc) VALUES(?, ?)"
 Select_File = "SELECT id, doc FROM file"
@@ -14,7 +24,7 @@ def open_db(db_path) -> Conn:
     return sqlite3.connect(db_path)
 
 
-def db_init(db: Conn):
+def db_create_tables(db: Conn):
     with db:
         db.execute(Create_Table_File)
 
@@ -89,40 +99,14 @@ def db_get_files(cache: dict, n: int | None, orderby: str | None) -> list:
     return files[:n]
 
 
-def db_all_ids(db: TinyDB) -> set:
+def db_dup_checksum(db: Conn) -> dict:
     """
-    導出全部檔案ID
+    尋找数据库中重複的 checksum
+    返回 dict, key 是 checksum, value 是 files
     """
-    files = db.all()
-    return {f[ID] for f in files}
-
-
-def db_dup_id(files: list, db: TinyDB) -> dict:
-    """尋找重複的ID"""
-    # files = db.all(), 另一個函數也要使用 files
-    # 檔案名受檔案系統的限制, 不會重複, 因此只需要檢查ID
-    id_count: dict[str, int] = {}
-    for f in files:
-        n = id_count.get(f[ID], 0)
-        id_count[f[ID]] = n + 1
-    duplicated = {}
-    for k, v in id_count.items():
-        if v > 1:
-            docs = db.search(File.id == k)
-            duplicated[k] = [dict(doc) for doc in docs]
-    return duplicated
-
-
-def db_dup_checksum(files: list, db: TinyDB) -> dict:
-    """尋找重複的 checksum (意味着檔案內容完全相同)"""
-    # files = db.all(), 另一個函數也要使用 files
-    count: dict[str, int] = {}
-    for f in files:
-        n = count.get(f[CHECKSUM], 0)
-        count[f[ID]] = n + 1
-    duplicated = {}
-    for k, v in count.items():
-        if v > 1:
-            docs = db.search(File.id == k)
-            duplicated[k] = [dict(doc) for doc in docs]
-    return duplicated
+    cache = db_cache(db)
+    count: dict[str, dict] = {}
+    for f in cache.values():
+        items = count.get(f[CHECKSUM], list())
+        count[f[CHECKSUM]] = items.append(f)
+    return {k:v for (k,v) in count.items() if len(v)>1}

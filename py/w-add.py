@@ -2,6 +2,8 @@ import sys
 import shutil
 import argparse
 import humanize
+import sqlite3
+import sqlite3.Connection as Conn
 from pathlib import Path
 
 from wuliu.const import *
@@ -176,7 +178,7 @@ def check_exist(files: list, cache: dict) -> bool:
 
 # 添加档案时不需要检查磁盘空间，
 # 因为 input 资料夹与 files 资料夹在同一个磁盘分区内。
-def add_files(files: list, db: TinyDB):
+def add_files(files: list, db: Conn):
     if len(files) == 0:
         print("warning: No file to add.")
         return
@@ -221,12 +223,17 @@ if __name__ == "__main__":
 
     files, cfg = find_input_files(args.yaml)
 
-    with open_db(Project_PY_DB) as db:
-        cache = db_cache()
-        if check_exist(files, cache):
-            sys.exit()
-        if args.danger:
-            add_files(files, db)
-            sys.exit()
+    db = open_db(Project_PY_DB)
+    cache = db_cache()
 
+    if check_exist(files, cache):
+        db.close()
+        sys.exit()
+
+    if args.danger:
+        add_files(files, db)
+        db.close()
+        sys.exit()
+
+    db.close()
     print_files(files, cfg)
