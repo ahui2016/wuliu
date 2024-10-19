@@ -131,12 +131,12 @@ Linux 系統請參考 [Executable Python Scripts](https://docs.python.org/3/tuto
 
 ## w-ls (列印數據庫中的檔案)
 
-- `w-ls -n=10` 列印最近添加到數據庫中的 10 個檔案。
-- `w-ls -orderby utime > utime.yaml` 建議導出到檔案
-- `w-ls -orderby size > size.yaml` 建議導出到檔案
-- `w-ls -orderby like` 不需要導出到檔案
-- 注意: 參數 `-n` 與 `-orderby` 不可同時使用, 如果同時使用, 後者無效。
-- 注意: 參數 `-n` 有時不能正確地列出最新檔案 (例如剛剛重建數據庫後)。
+- `w-ls` 默認列出 5 個最近更新的檔案
+- `w-ls -n 10` 列出 10 個最近更新的檔案
+- `w-ls -orderby ctime` 列出 5 個最近創建的檔案
+- `w-ls -orderby size -n=3` 列出 3 個體積最大的檔案
+- `w-ls -all > utime.yaml` 列出全部檔案, 默認按更新日期排序 (保存到utime.yaml中)
+- `w-ls -h` 查看幫助
 
 
 ## w-daily (日記/日報)

@@ -54,35 +54,27 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-n", type=int, help="print N most recently added files")
-
-    parser.add_argument("-orderby", type=str, help="size/like/utime")
+    parser.add_argument("-n", type=int, help="print N files, default N=5")
+    parser.add_argument("-all", action="store_true", help="print all files")
+    parser.add_argument("-orderby", type=str, help="size/like/ctime/utime")
 
     args = parser.parse_args()
     info = read_project_info()
     # check_not_in_backup(info)
 
-    if args.n:
-        if args.n > 100:
-            print_err_exit("N 不可大於 100")
-        with open_db(Project_PY_DB) as db:
-            files = db_new_files(db, args.n)
-            dump_files(files, "【最新加入數據庫的檔案】")
-        sys.exit()
+    if args.orderby == "size":
+        title = "# 【大體積檔案】"
+    elif args.orderby == "like":
+        title = "# 【精選檔案】"
+    elif args.orderby == "ctime":
+        title = "# 【最近創建檔案】"
+    else:  # args.orderby == "utime":
+        title = "# 【最近更新檔案】"
 
-    if args.orderby:
-        title = ""
-        if args.orderby == "size":
-            title = "【大體積檔案】"
-        elif args.orderby == "like":
-            title = "【精選檔案】"
-        elif args.orderby == "utime":
-            title = "【最近更新檔案】"
-        else:
-            print_err_exit("ORDERBY 必須是 size/like/utime 其中之一")
-        with open_db(Project_PY_DB) as db:
-            files = db_all_files(db, args.orderby)
-            dump_files(files, title)
-        sys.exit()
+    if args.all:
+        args.n = -1
 
-    parser.print_help()
+    with open_db(Project_PY_DB) as db:
+        cache = db_cache()
+        files = db_get_files(cache, args.n, args.orderby)
+        dump_files(files, title)

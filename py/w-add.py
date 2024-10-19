@@ -3,7 +3,6 @@ import shutil
 import argparse
 import humanize
 from pathlib import Path
-from tinydb import TinyDB
 
 from wuliu.const import *
 from wuliu.common import (
@@ -21,7 +20,7 @@ from wuliu.common import (
     yaml_load_file,
     check_keywords,
 )
-from wuliu.db import open_db, files_in_db
+from wuliu.db import open_db, db_cache, db_files_exist
 
 
 input_folder = Path(INPUT)
@@ -144,11 +143,11 @@ def print_id_name(files: list):
         print(f"{f[ID]}: {f[FILENAME]}")
 
 
-def check_exist(files: list, db: TinyDB) -> bool:
+def check_exist(files: list, cache: dict) -> bool:
     """
     :return: has_exist_files
     """
-    exist_files = files_in_db(files, db)
+    exist_files = db_files_exist(files, cache)
     if len(exist_files) > 0:
         print("【注意！】數據庫中有名稱或内容相同的檔案：")
         print_id_name(exist_files)
@@ -223,7 +222,8 @@ if __name__ == "__main__":
     files, cfg = find_input_files(args.yaml)
 
     with open_db(Project_PY_DB) as db:
-        if check_exist(files, db):
+        cache = db_cache()
+        if check_exist(files, cache):
             sys.exit()
         if args.danger:
             add_files(files, db)

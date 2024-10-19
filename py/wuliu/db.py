@@ -1,70 +1,92 @@
-from tinydb import TinyDB, Query
-from tinydb.storages import JSONStorage
-from tinydb.middlewares import CachingMiddleware
+import json
+import sqlite3
+import sqlite3.Connection as Conn
 from operator import itemgetter
 from .const import *
 
 
-File = Query()
+Create_Table_File = "CREATE TABLE file(id TEXT PRIMARY KEY, doc TEXT)"
+Insert_File = "INSERT INTO file(id, doc) VALUES(?, ?)"
+Select_File = "SELECT id, doc FROM file"
 
 
-def open_db(db_path) -> TinyDB:
-    return TinyDB(db_path, storage=CachingMiddleware(JSONStorage))
+def open_db(db_path) -> Conn:
+    return sqlite3.connect(db_path)
 
 
-def files_in_db(files: list, db: TinyDB) -> list:
+def db_init(db: Conn):
+    with db:
+        db.execute(Create_Table_File)
+
+
+def db_cache(db: Conn) -> dict:
+    with db:
+        data = db.execute(Select_File).fetchall()
+        return {k:v for (k,v) in data}
+
+
+def db_insert_many(data: list, db: Conn):
+    with db:
+        db.executemany(Insert_File, data)
+
+
+def db_insert_files(files: list, db: Conn):
+    data = files_to_pairs(files)
+    db_insert_many(data, db)
+
+
+def file_to_pair(file: dict) -> tuple:
+    """
+    convert a dict to a key-value pair,
+    where the key is the id, and the value is a JSON.
+    """
+    return (file[ID], json.dumps(file))
+
+
+def files_to_pairs(files: list) -> list:
+    return [file_to_pair(file) for file in files]
+
+
+def db_insert_file(file:dict, db: Conn):
+    with db:
+        db.execute(Insert_File, file_to_pair(file))
+
+
+def db_files_exist(files: list, cache: dict) -> list:
     """
     :return: exist_files 名稱或內容相同的檔案
     """
+    checksums = [f[CHECKSUM] for f in cache.values()]
     exist_files = []
     for f in files:
-        ef = db.get((File.id == f[ID]) | (File.checksum == f[CHECKSUM]))
-        if ef is not None:
-            exist_files.append(ef)
+        if (f[ID] in cache) or (f[CHECKSUM] in checksums):
+            exist_files.append(f)
     return exist_files
 
 
-def db_new_files(db: TinyDB, n: int | None) -> list:
+def db_get_files(cache: dict, n: int | None, orderby: str | None) -> list:
     """
-    返回 n 个最新添加到数据库中的档案。 n 不可大于 100
+    :orderby: size/like/ctime/utime (default "utime")
+    :n: n < 0 表示全部, n 等於 None 或 0 表示默認值(5)
     """
-    if not n:
-        n = 10
-
-    if n > 100:
-        n = 100
-
-    db_size = len(db)
-    if n >= db_size:
-        files = db.all()
-        return [dict(f) for f in reversed(files)]
-
-    skip = db_size - n
-    files = []
-    for f in db:
-        if skip > 0:
-            skip -= 1
-            continue
-        files.append(dict(f))
-    files.reverse()
-    return files
-
-
-def db_all_files(db: TinyDB, orderby: str | None) -> list:
-    """
-    :orderby: size/like/utime (default "utime")
-    """
-    if orderby != "size" and orderby != "like":
+    if orderby not in ["size", "like", "ctime"]:
         orderby = "utime"
 
     if orderby == "like":
-        files = db.search(File.like > 0)
+        files = [file for file in cache.values() if file[LIKE] > 0]
     else:
-        files = db.all()
+        files = cache.values()
 
-    files = [dict(f) for f in files]
     files.sort(key=itemgetter(orderby), reverse=True)
-    return files
+
+    if n is None or n == 0:
+        n = 5
+
+    files_len = len(files)
+    if n < 0 or n >= files_len:
+        return files
+
+    return files[:n]
 
 
 def db_all_ids(db: TinyDB) -> set:

@@ -1,9 +1,10 @@
 import sys
 import json
 import argparse
+import sqlite3
+import sqlite3.Connection as Conn
 
 from pathlib import Path
-from tinydb import TinyDB
 
 from wuliu.const import *
 from wuliu.common import (
@@ -15,7 +16,7 @@ from wuliu.common import (
 from wuliu.db import open_db, db_all_ids, db_dup_id, db_dup_checksum
 
 
-def load_all_metadatas(db: TinyDB):
+def load_all_metadatas(db: Conn):
     files = Path(METADATA).glob("*.json")
     meta_list = []
     for f in files:
