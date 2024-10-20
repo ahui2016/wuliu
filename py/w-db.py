@@ -1,9 +1,8 @@
 import sys
 import json
 import argparse
-import sqlite3
-import sqlite3.Connection as Conn
 
+from sqlite3 import Connection as Conn
 from pathlib import Path
 
 from wuliu.const import *
@@ -13,7 +12,13 @@ from wuliu.common import (
     check_not_in_backup,
     yaml_dump,
 )
-from wuliu.db import open_db, db_create_tables, db_insert_files, db_dup_checksum
+from wuliu.db import (
+    open_db,
+    db_create_tables,
+    db_insert_files,
+    db_dup_checksum,
+    db_cache,
+)
 
 
 def load_all_metadatas(db: Conn):
@@ -28,7 +33,8 @@ def load_all_metadatas(db: Conn):
         meta_list.append(meta)
     db_insert_files(meta_list, db)
 
-    duplicated = db_dup_checksum(db)
+    cache = db_cache(db)
+    duplicated = db_dup_checksum(cache)
     if duplicated:
         print("【發現重複檔案】")
         msg = yaml_dump(duplicated)

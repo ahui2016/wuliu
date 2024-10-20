@@ -2,7 +2,7 @@ import sys
 import json
 import shutil
 import argparse
-import sqlite3.Connection as Conn
+from sqlite3 import Connection as Conn
 from pathlib import Path
 from operator import itemgetter
 from jinja2 import Environment, select_autoescape, FileSystemLoader, Template
@@ -15,7 +15,7 @@ from wuliu.common import (
     check_not_in_backup,
     json_dumps,
 )
-from wuliu.db import open_db, db_id_exists, db_insert_file
+from wuliu.db import open_db, db_insert_file, db_cache
 
 
 input_folder = Path(INPUT)
@@ -31,7 +31,7 @@ def today() -> str:
 def daily_file_exists(file_id: str) -> bool:
     filename = file_id + ".html"
     file_path = files_folder.joinpath(filename)
-    meta_path = meta_folder.joinpath(filename+".json")
+    meta_path = meta_folder.joinpath(filename + ".json")
     file_exists = file_path.exists()
     meta_exists = meta_path.exists()
     if file_exists and not meta_exists:
@@ -123,7 +123,7 @@ def create_export(day: str, jinja_env: Environment, db: Conn):
 
 def get_daily_by_date(date: str, cache: dict) -> list:
     prefix = DAILY_PREFIX + date
-    dates = [v for (k,v) in cache.items() if k.startswith(prefix)]
+    dates = [v for (k, v) in cache.items() if k.startswith(prefix)]
     dates.sort(key=itemgetter(ID), reverse=True)
     return dates
 
@@ -201,7 +201,7 @@ if __name__ == "__main__":
 
     if args.list:
         db = open_db(Project_PY_DB)
-        cache = db_cache()
+        cache = db_cache(db)
         show_daily_list(args.list, cache, args.web)
         db.close()
         sys.exit()

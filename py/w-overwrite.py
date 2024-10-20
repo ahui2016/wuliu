@@ -1,7 +1,7 @@
 import sys
 import shutil
 import argparse
-import sqlite3.Connection as Conn
+from sqlite3 import Connection as Conn
 from pathlib import Path
 from wuliu.const import *
 from wuliu.common import (

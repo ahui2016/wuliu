@@ -12,6 +12,7 @@ from wuliu.common import (
 
 Projects = "Projects"
 
+
 def print_projects_list(info: dict):
     bk_projects = info[Projects][1:]
     if len(bk_projects) == 0:
@@ -57,7 +58,7 @@ if __name__ == "__main__":
         try:
             bk_path = get_bk_path(args.n, info)
         except WuliuError as err:
-            print_err(err)
+            print_err(str(err))
         else:
             print(bk_path)
         sys.exit()

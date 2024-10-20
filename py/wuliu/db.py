@@ -1,6 +1,6 @@
 import json
 import sqlite3
-import sqlite3.Connection as Conn
+from sqlite3 import Connection as Conn
 from operator import itemgetter
 from .const import *
 
@@ -35,7 +35,7 @@ def db_create_tables(db: Conn):
 def db_cache(db: Conn) -> dict:
     with db:
         data = db.execute(Select_All_Files).fetchall()
-        return {k:json.loads(v) for (k,v) in data}
+        return {k: json.loads(v) for (k, v) in data}
 
 
 def db_insert_many(data: list, db: Conn):
@@ -63,7 +63,7 @@ def files_to_pairs(files: list) -> list:
     return [file_to_pair(file) for file in files]
 
 
-def db_insert_file(file:dict, db: Conn):
+def db_insert_file(file: dict, db: Conn):
     with db:
         db.execute(Insert_File, file_to_pair(file))
 
@@ -73,8 +73,8 @@ def db_insert_files(files: list, db: Conn):
     db_insert_many(data, db)
 
 
-def db_update_file(file:dict, db:Conn):
-    pair = files_to_pair(file)
+def db_update_file(file: dict, db: Conn):
+    pair = file_to_pair(file)
     pair = pair_to_doc_id(pair)
     with db:
         db.execute(Update_By_ID, pair)
@@ -89,7 +89,7 @@ def db_select_by_id(id: str, db: Conn) -> dict | None:
 
 def db_id_exists(id: str, db: Conn) -> bool:
     data = db.execute(Select_ID_By_ID, (id,)).fetchone()
-    return !data
+    return not data
 
 
 def db_files_exist(files: list, cache: dict) -> list:
@@ -115,7 +115,7 @@ def db_get_files(cache: dict, n: int | None, orderby: str | None) -> list:
     if orderby == "like":
         files = [file for file in cache.values() if file[LIKE] > 0]
     else:
-        files = cache.values()
+        files = list(cache.values())
 
     files.sort(key=itemgetter(orderby), reverse=True)
 
@@ -134,8 +134,10 @@ def db_dup_checksum(cache: dict) -> dict:
     尋找数据库中重複的 checksum
     返回 dict, key 是 checksum, value 是 files
     """
-    count: dict[str, dict] = {}
+    count: dict[str, list] = {}
     for f in cache.values():
-        items = count.get(f[CHECKSUM], list())
-        count[f[CHECKSUM]] = items.append(f)
-    return {k:v for (k,v) in count.items() if len(v)>1}
+        checksum = f[CHECKSUM]
+        items = count.get(checksum, list())
+        items.append(f)
+        count[checksum] = items
+    return {k: v for (k, v) in count.items() if len(v) > 1}

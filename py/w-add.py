@@ -2,8 +2,7 @@ import sys
 import shutil
 import argparse
 import humanize
-import sqlite3
-import sqlite3.Connection as Conn
+from sqlite3 import Connection as Conn
 from pathlib import Path
 
 from wuliu.const import *
@@ -224,7 +223,7 @@ if __name__ == "__main__":
     files, cfg = find_input_files(args.yaml)
 
     db = open_db(Project_PY_DB)
-    cache = db_cache()
+    cache = db_cache(db)
 
     if check_exist(files, cache):
         db.close()
