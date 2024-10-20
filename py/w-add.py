@@ -22,7 +22,7 @@ from wuliu.common import (
     yaml_load_file,
     check_keywords,
 )
-from wuliu.db import open_db, db_cache, db_files_exist
+from wuliu.db import open_db, db_cache, db_files_exist, db_insert_file
 
 
 input_folder = Path(INPUT)
@@ -195,7 +195,7 @@ def add_files(files: list, db: Conn):
         text = json_dumps(f)
         meta_path.write_text(text, encoding="utf8")
 
-        db.insert(f)
+        db_insert_file(f, db)
 
     print("Done.")
 

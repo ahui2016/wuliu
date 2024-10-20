@@ -17,7 +17,10 @@ from .const import *
 
 Create_Table_File = "CREATE TABLE file(id TEXT PRIMARY KEY, doc TEXT)"
 Insert_File = "INSERT INTO file(id, doc) VALUES(?, ?)"
-Select_File = "SELECT id, doc FROM file"
+Select_All_Files = "SELECT id, doc FROM file"
+Select_File_By_ID = "SELECT doc FROM file WHERE id=?"
+Select_ID_By_ID = "SELECT id FROM file WHERE id=?"  # 專用於確認ID是否存在
+Update_By_ID = "UPDATE file SET doc=? WHERE id=?"
 
 
 def open_db(db_path) -> Conn:
@@ -31,18 +34,13 @@ def db_create_tables(db: Conn):
 
 def db_cache(db: Conn) -> dict:
     with db:
-        data = db.execute(Select_File).fetchall()
-        return {k:v for (k,v) in data}
+        data = db.execute(Select_All_Files).fetchall()
+        return {k:json.loads(v) for (k,v) in data}
 
 
 def db_insert_many(data: list, db: Conn):
     with db:
         db.executemany(Insert_File, data)
-
-
-def db_insert_files(files: list, db: Conn):
-    data = files_to_pairs(files)
-    db_insert_many(data, db)
 
 
 def file_to_pair(file: dict) -> tuple:
@@ -53,6 +51,14 @@ def file_to_pair(file: dict) -> tuple:
     return (file[ID], json.dumps(file))
 
 
+def pair_to_doc_id(pair: tuple) -> tuple:
+    """
+    輸入的 pair 是 (id, doc), 轉換為 (doc, id)
+    """
+    id, doc = pair
+    return doc, id
+
+
 def files_to_pairs(files: list) -> list:
     return [file_to_pair(file) for file in files]
 
@@ -60,6 +66,30 @@ def files_to_pairs(files: list) -> list:
 def db_insert_file(file:dict, db: Conn):
     with db:
         db.execute(Insert_File, file_to_pair(file))
+
+
+def db_insert_files(files: list, db: Conn):
+    data = files_to_pairs(files)
+    db_insert_many(data, db)
+
+
+def db_update_file(file:dict, db:Conn):
+    pair = files_to_pair(file)
+    pair = pair_to_doc_id(pair)
+    with db:
+        db.execute(Update_By_ID, pair)
+
+
+def db_select_by_id(id: str, db: Conn) -> dict | None:
+    data = db.execute(Select_File_By_ID, (id,)).fetchone()
+    if data is None:
+        return None
+    return json.loads(data)
+
+
+def db_id_exists(id: str, db: Conn) -> bool:
+    data = db.execute(Select_ID_By_ID, (id,)).fetchone()
+    return !data
 
 
 def db_files_exist(files: list, cache: dict) -> list:
@@ -99,12 +129,11 @@ def db_get_files(cache: dict, n: int | None, orderby: str | None) -> list:
     return files[:n]
 
 
-def db_dup_checksum(db: Conn) -> dict:
+def db_dup_checksum(cache: dict) -> dict:
     """
     尋找数据库中重複的 checksum
     返回 dict, key 是 checksum, value 是 files
     """
-    cache = db_cache(db)
     count: dict[str, dict] = {}
     for f in cache.values():
         items = count.get(f[CHECKSUM], list())

@@ -2,9 +2,9 @@ import sys
 import json
 import shutil
 import argparse
+import sqlite3.Connection as Conn
 from pathlib import Path
 from operator import itemgetter
-from tinydb import TinyDB, Query
 from jinja2 import Environment, select_autoescape, FileSystemLoader, Template
 from wuliu.const import *
 from wuliu.common import (
@@ -15,10 +15,9 @@ from wuliu.common import (
     check_not_in_backup,
     json_dumps,
 )
-from wuliu.db import open_db
+from wuliu.db import open_db, db_id_exists, db_insert_file
 
 
-File = Query()
 input_folder = Path(INPUT)
 files_folder = Path(FILES)
 buffer_folder = Path(BUFFER)
@@ -29,15 +28,20 @@ def today() -> str:
     return time_now()[:10]
 
 
-def file_exists(file_id: str, db: TinyDB):
-    """返回空字符串或 None 表示沒有錯誤"""
-    result = db.get(File.id == file_id)
-    file_path = files_folder.joinpath(file_id + ".html")
-    return file_path.exists() or result
+def daily_file_exists(file_id: str) -> bool:
+    filename = file_id + ".html"
+    file_path = files_folder.joinpath(filename)
+    meta_path = meta_folder.joinpath(filename+".json")
+    file_exists = file_path.exists()
+    meta_exists = meta_path.exists()
+    if file_exists and not meta_exists:
+        raise WuliuError(f"{file_path} 存在, 但 {meta_path} 不存在")
+    if meta_exists and not file_exists:
+        raise WuliuError(f"{meta_path} 存在, 但 {file_path} 不存在")
+    return file_exists  # and meta_exists (此时两者数值相同，返回其中之一即可)
 
 
 def export_file(file_id: str):
-    """返回空字符串或 None 表示沒有錯誤"""
     filename = file_id + ".html"
     src = files_folder.joinpath(filename)
     dst = buffer_folder.joinpath(filename)
@@ -82,7 +86,7 @@ def copyfile_or_not(src, dst):
         shutil.copyfile(src, dst)
 
 
-def create_daily(doc: dict, tmpl: Template, db: TinyDB):
+def create_daily(doc: dict, tmpl: Template, db: Conn):
     """doc = {'id': '', 'date': ''}"""
     # 剛剛檢查過檔案不存在, 因此這裡不再檢查。
     filename = doc["id"] + ".html"
@@ -103,13 +107,13 @@ def create_daily(doc: dict, tmpl: Template, db: TinyDB):
     copyfile_or_not(src, dst)
 
     print("Insert into the database...")
-    db.insert(file_meta)
+    db_insert_file(file_meta, db)
     print("OK")
 
 
-def create_export(day: str, jinja_env: Environment, db: TinyDB):
+def create_export(day: str, jinja_env: Environment, db: Conn):
     file_id = DAILY_PREFIX + day
-    if file_exists(file_id, db):
+    if daily_file_exists(file_id):
         export_file(file_id)
     else:
         tmpl = jinja_env.get_template(DAILY_NEW_HTML)
@@ -117,16 +121,15 @@ def create_export(day: str, jinja_env: Environment, db: TinyDB):
         create_daily(doc, tmpl, db)
 
 
-def get_daily_by_date(date: str, db: TinyDB) -> list:
+def get_daily_by_date(date: str, cache: dict) -> list:
     prefix = DAILY_PREFIX + date
-    files = db.search(File.id >= prefix)
-    dates = [dict(f) for f in files if f[ID].startswith(prefix)]
+    dates = [v for (k,v) in cache.items() if k.startswith(prefix)]
     dates.sort(key=itemgetter(ID), reverse=True)
     return dates
 
 
-def get_all_daily(db: TinyDB) -> list:
-    return get_daily_by_date("", db)
+def get_all_daily(cache: dict) -> list:
+    return get_daily_by_date("", cache)
 
 
 def print_daily(files: list):
@@ -139,9 +142,9 @@ def print_daily(files: list):
             print(f"- {date}")
 
 
-def show_daily_list(date: str, db: TinyDB, webpage: bool):
+def show_daily_list(date: str, cache: dict, webpage: bool):
     if date == "all":
-        files = get_all_daily(db)
+        files = get_all_daily(cache)
         if not files:
             print("[warning] 沒有日記, 請創建日記", file=sys.stderr)
             return
@@ -151,7 +154,7 @@ def show_daily_list(date: str, db: TinyDB, webpage: bool):
         print("【全部日記】")
         print_daily(files)
     else:
-        files = get_daily_by_date(args.list, db)
+        files = get_daily_by_date(args.list, cache)
         if not files:
             print(f"[warning] 未找到 {args.list} 的日記", file=sys.stderr)
             return
@@ -197,16 +200,19 @@ if __name__ == "__main__":
     )
 
     if args.list:
-        with open_db(Project_PY_DB) as db:
-            show_daily_list(args.list, db, args.web)
+        db = open_db(Project_PY_DB)
+        cache = db_cache()
+        show_daily_list(args.list, cache, args.web)
+        db.close()
         sys.exit()
 
     if args.edit == "today":
         args.edit = today()
 
     if args.edit:
-        with open_db(Project_PY_DB) as db:
-            create_export(args.edit, jinja_env, db)
+        db = open_db(Project_PY_DB)
+        create_export(args.edit, jinja_env, db)
+        db.close()
         sys.exit()
 
     parser.print_help()

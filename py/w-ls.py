@@ -8,7 +8,7 @@ from wuliu.common import (
     read_project_info,
     yaml_dump_all,
 )
-from wuliu.db import open_db, db_new_files, db_all_files
+from wuliu.db import open_db, db_new_files, db_get_files
 
 
 def trim_empty_items(files: list) -> list:
@@ -74,7 +74,8 @@ if __name__ == "__main__":
     if args.all:
         args.n = -1
 
-    with open_db(Project_PY_DB) as db:
-        cache = db_cache()
-        files = db_get_files(cache, args.n, args.orderby)
-        dump_files(files, title)
+    db = open_db(Project_PY_DB)
+    cache = db_cache()
+    files = db_get_files(cache, args.n, args.orderby)
+    dump_files(files, title)
+    db.close()

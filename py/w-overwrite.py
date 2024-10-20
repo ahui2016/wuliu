@@ -1,8 +1,8 @@
 import sys
 import shutil
 import argparse
+import sqlite3.Connection as Conn
 from pathlib import Path
-from tinydb import TinyDB, Query
 from wuliu.const import *
 from wuliu.common import (
     print_err,
@@ -18,10 +18,7 @@ from wuliu.common import (
     read_project_info,
     check_not_in_backup,
 )
-from wuliu.db import open_db
-
-
-File = Query()
+from wuliu.db import open_db, db_update_file
 
 
 def files_or_meta(filetype: str) -> str:
@@ -71,7 +68,7 @@ def print_preview(cfg: dict):
         check_dst(dst)
 
 
-def overwrite_into_files(name: str, dst: Path, db: TinyDB):
+def overwrite_into_files(name: str, dst: Path, db: Conn):
     src = Path(BUFFER).joinpath(name)
     meta_path = Path(METADATA).joinpath(name + ".json")
     meta = json_load(meta_path)
@@ -88,23 +85,17 @@ def overwrite_into_files(name: str, dst: Path, db: TinyDB):
 
     shutil.move(src, dst)
     path_write_json(meta_path, meta)
-
-    updated = {
-        CHECKSUM: meta[CHECKSUM],
-        SIZE: meta[SIZE],
-        UTIME: meta[UTIME],
-    }
-    db.update(updated, File.id == meta[ID])
+    db_update_file(meta, db)
 
 
-def overwrite_into_meta(name: str, dst: Path, db: TinyDB):
+def overwrite_into_meta(name: str, dst: Path, db: Conn):
     src = Path(BUFFER).joinpath(name)
     meta = json_load(src)
     shutil.move(src, dst)
-    db.update(meta, File.id == meta[ID])
+    db_update_file(meta, db)
 
 
-def overwrite_files(cfg: dict, db: TinyDB):
+def overwrite_files(cfg: dict, db: Conn):
     # 必須先更新 metadata, 後更新檔案, 纔能正確更新檔案體積 checksum 等。
     files = {}
     for name, target in cfg.items():
@@ -146,8 +137,9 @@ if __name__ == "__main__":
     cfg = read_config(Path(args.yaml)) if args.yaml else buffer_files()
 
     if args.danger:
-        with open_db(Project_PY_DB) as db:
-            overwrite_files(cfg, db)
+        db = open_db(Project_PY_DB)
+        overwrite_files(cfg, db)
+        db.close()
         sys.exit()
 
     print_preview(cfg)
