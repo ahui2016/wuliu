@@ -80,11 +80,11 @@ def db_update_file(file: dict, db: Conn):
         db.execute(Update_By_ID, pair)
 
 
-def db_select_by_id(id: str, db: Conn) -> dict | None:
+def db_select_by_id(id: str, db: Conn) -> dict:
     data = db.execute(Select_File_By_ID, (id,)).fetchone()
     if data is None:
-        return None
-    return json.loads(data)
+        raise WuliuError(f"not found id: {id}")
+    return json.loads(data[0])
 
 
 def db_id_exists(id: str, db: Conn) -> bool:
