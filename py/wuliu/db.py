@@ -21,6 +21,7 @@ Select_All_Files = "SELECT id, doc FROM file"
 Select_File_By_ID = "SELECT doc FROM file WHERE id=?"
 Select_ID_By_ID = "SELECT id FROM file WHERE id=?"  # 專用於確認ID是否存在
 Update_By_ID = "UPDATE file SET doc=? WHERE id=?"
+Delete_By_ID = "DELETE FROM file WHERE id=?"
 
 
 def open_db(db_path) -> Conn:
@@ -78,6 +79,11 @@ def db_update_file(file: dict, db: Conn):
     pair = pair_to_doc_id(pair)
     with db:
         db.execute(Update_By_ID, pair)
+
+
+def db_delete_file(file_id: str, db: Conn):
+    with db:
+        db.execute(Delete_By_ID, (file_id,))
 
 
 def db_select_by_id(id: str, db: Conn) -> dict:
