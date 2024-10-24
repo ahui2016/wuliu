@@ -33,11 +33,13 @@ def export_file(file: dict, info: dict):
 
 
 def export_file_by_id(file_id: str, db: Conn, info: dict):
+    file_id = file_id.upper()
     file = db_select_by_id(file_id, db)
     export_file(file, info)
 
 
 def export_meta(file_id: str, db: Conn):
+    file_id = file_id.upper()
     file = db_select_by_id(file_id, db)
     src = meta_folder.joinpath(file[FILENAME] + ".json")
     dst = buffer_folder.joinpath(file[FILENAME] + ".json")
